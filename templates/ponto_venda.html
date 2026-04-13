@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PDV - Bar Moto Clube</title>
+    <link rel="icon" href="{{ url_for('static', filename='img/motorhead.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ponto_venda.css') }}">
+    <script>
+        /* DIAGNOSTICO DE ERRO VISUAL DIRETO */
+        window.onerror = function (msg, url, line, col, error) {
+            var l = document.getElementById('loading');
+            if (l) {
+                l.style.display = 'flex';
+                l.innerHTML = '<div style="background:white; color:red; padding: 20px; border-radius:8px; max-width:80%; margin:auto; text-align:left; font-family:sans-serif;"><h3 style="margin-top:0;">Erro Crítico Detectado!</h3><p><b>Motivo:</b> ' + msg + '</p><p style="font-size:0.8rem">Linha: ' + line + '</p><button onclick="document.getElementById(\'loading\').style.display=\'none\'" style="margin-top:10px; padding:10px; background:#333; color:white; border:none; border-radius:4px; cursor:pointer;">Fechar Aviso</button></div>';
+            }
+        };
+        function realizarLogout() {
+            UIModal.confirm("Tem certeza que deseja sair?", function() {
+                document.getElementById('loading').style.display = 'flex';
+                API.logout().then(() => {
+                    window.location.href = '/login';
+                }).catch(() => {
+                    // Fallback se der erro
+                    window.location.href = '/login';
+                });
+            });
+        }
+    </script>
+</head>
+
+<body>
+    <!-- API Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+
+    <!-- TELA DE LOADING -->
+    <div id="loading">
+        <div class="spinner"></div>
+        <p style="margin-top:12px; font-size:0.95rem; color:#888; letter-spacing:0.5px;">Carregando...</p>
+    </div>
+
+    <img id="logo-preload" style="display:none;" />
+    <div id="toast">Venda Registrada!</div>
+
+    <!-- HEADER -->
+    <header id="app-header">
+        <div id="info-topo-esq">
+            <div>
+                <img src="{{ url_for('static', filename='img/motorhead.png') }}" alt="Logo"
+                    style="width: 70px; height: 70px;">
+            </div>
+            <div id="barra-operador">CAIXA FECHADO - Toque em Abrir</div>
+        </div>
+
+        <div class="top-buttons">
+            <button class="btn-header" id="btn-estoque" onclick="verificarSenhaEstoque()" title="Gerenciar Estoque">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                        d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                    <path d="m3.3 7 8.7 5 8.7-5" />
+                    <path d="M12 22V12" />
+                </svg>
+                <span class="btn-text">Estoque</span>
+            </button>
+
+            <button class="btn-header" onclick="abrirMenuRelatorios()" title="Gestão de Caixa">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 3v18h18" />
+                    <path d="m19 9-5 5-4-4-3 3" />
+                </svg>
+                <span class="btn-text">Gestão</span>
+            </button>
+            <button class="btn-header" id="btn-admin" onclick="window.location.href='/admin'" style="display:none"
+                title="Painel Admin">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+                <span class="btn-text">Admin</span>
+            </button>
+            <button class="btn-header" onclick="abrirConfig()" title="Configurações">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                        d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                    <circle cx="12" cy="12" r="3" />
+                </svg>
+                <span class="btn-text">Config</span>
+            </button>
+            <button class="btn-header" onclick="realizarLogout()" title="Sair do Sistema">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                <span class="btn-text">Sair</span>
+            </button>
+
+            <button class="btn-header btn-header--accent" id="container-abrir-caixa" onclick="abrirModalAberturaCaixa()"
+                style="display:none" title="Abrir Caixa">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="20" height="14" x="2" y="5" rx="2" />
+                    <line x1="2" x2="22" y1="10" y2="10" />
+                </svg>
+                <span class="btn-text">Abrir Cx</span>
+            </button>
+
+            <button class="btn-header btn-header--login" id="container-btn-login"
+                onclick="window.location.href='/login'" title="Fazer Login">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                    <polyline points="10 17 15 12 10 7" />
+                    <line x1="15" x2="3" y1="12" y2="12" />
+                </svg>
+                <span class="btn-text">Login</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <div id="main-content">
+        <section id="catalogo-section">
+            <div id="grid-produtos" class="grid-produtos"></div>
+        </section>
+        <section id="carrinho-section">
+            <div class="carrinho-header">
+                <!-- Lucide Shopping Cart icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                    <circle cx="8" cy="21" r="1" />
+                    <circle cx="19" cy="21" r="1" />
+                    <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+                </svg>
+                <h3 id="titulo-carrinho">PEDIDO ATUAL</h3>
+            </div>
+            <div id="carrinho-lista" class="carrinho-lista"></div>
+            <div class="carrinho-footer">
+                <div class="total-display" id="total-display">R$ 0,00</div>
+                <input type="text" id="input-cliente" class="input-cliente" placeholder="Nome Visitante (Opcional)">
+                <div class="grid-pagamento">
+                    <button class="btn-pagar btn-dinheiro" onclick="iniciarPagamento('DINHEIRO')">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                            <line x1="12" x2="12" y1="2" y2="22" />
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                        </svg>
+                        Dinheiro
+                    </button>
+                    <button class="btn-pagar btn-pix" onclick="iniciarPagamento('PIX')">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                            <rect width="5" height="5" x="3" y="3" rx="1" />
+                            <rect width="5" height="5" x="16" y="3" rx="1" />
+                            <rect width="5" height="5" x="3" y="16" rx="1" />
+                            <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+                            <path d="M21 21v.01" />
+                            <path d="M12 7v3a2 2 0 0 1-2 2H7" />
+                            <path d="M3 12h.01" />
+                            <path d="M12 3h.01" />
+                            <path d="M12 16v.01" />
+                            <path d="M16 12h1" />
+                            <path d="M21 12v.01" />
+                            <path d="M12 21v-1" />
+                        </svg>
+                        PIX
+                    </button>
+                    <button class="btn-pagar btn-cartao" onclick="iniciarPagamento('CARTAO')">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                            <rect width="20" height="14" x="2" y="5" rx="2" />
+                            <line x1="2" x2="22" y1="10" y2="10" />
+                        </svg>
+                        Cartão
+                    </button>
+                    <button class="btn-pagar btn-fiado" onclick="abrirModalMembros('FIADO')">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                        </svg>
+                        PENDURAR
+                    </button>
+                </div>
+                <button class="btn-fechar-conta" onclick="abrirModalMembros('FECHAR_CONTA')">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    </svg>
+                    FECHAR CONTA DE MEMBRO
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <!-- MODAIS -->
+
+    <!-- Abertura de Caixa -->
+    <div id="modal-abertura-caixa" class="modal-overlay">
+        <div class="modal-content" style="text-align:center;">
+            <h2 style="color:var(--accent);">ABERTURA DE CAIXA</h2>
+            <p style="color:#ccc; margin-bottom:20px;">Informe o Fundo de Caixa (Troco Inicial):</p>
+            <input type="number" id="input-valor-abertura" class="input-cliente" placeholder="0,00"
+                style="font-size:2rem; text-align:center; color:var(--success);">
+            <button class="btn-pagar btn-success" style="width:100%; margin-top:10px; font-size:1.1rem;"
+                onclick="confirmarAberturaValor()">ABRIR CAIXA</button>
+            <button class="btn-pagar" style="width:100%; margin-top:5px; background:#555;"
+                onclick="fecharModal('modal-abertura-caixa')">CANCELAR</button>
+        </div>
+    </div>
+
+    <!-- Observação do Pedido -->
+    <div id="modal-obs" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Personalizar</h3>
+            <p id="modal-prod-nome" style="color:var(--accent); font-weight:bold;"></p>
+            <input type="text" id="custom-obs" placeholder="Ex: Sem cebola..." class="input-cliente"
+                style="margin-top:5px">
+            <br><br>
+            <button class="btn-pagar btn-success" style="width:100%" onclick="confirmarObs()">CONFIRMAR PEDIDO</button>
+            <button class="btn-pagar" onclick="fecharModal('modal-obs')"
+                style="margin-top:5px; background:#555; width:100%">CANCELAR</button>
+        </div>
+    </div>
+
+    <!-- Pagamento Dinheiro -->
+    <div id="modal-dinheiro" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Pagamento em Dinheiro</h3>
+            <div class="valor-pendente" id="valor-total-dinheiro">Total: R$ 0,00</div>
+            <label style="color:#aaa">Valor Recebido:</label>
+            <input type="number" id="valor-recebido" class="input-cliente" placeholder="0,00"
+                style="font-size:2rem; text-align:center; color:var(--success);" oninput="calcularTroco()">
+            <div class="display-troco" id="display-troco">Troco: R$ 0,00</div>
+            <button id="btn-confirmar-dinheiro" class="btn-pagar btn-success"
+                style="width:100%; margin-top:10px; opacity:0.5; pointer-events:none;"
+                onclick="finalizarPagamentoDinheiro()">CONFIRMAR PAGAMENTO</button>
+            <button class="btn-pagar" onclick="fecharModal('modal-dinheiro')"
+                style="margin-top:5px; background:#555; width:100%">CANCELAR</button>
+        </div>
+    </div>
+
+    <!-- Tipo de Cartão -->
+    <div id="modal-cartao" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Selecione o Tipo</h3>
+            <p style="color:#aaa; text-align:center; margin-bottom:20px">Qual a função do cartão?</p>
+            <button class="btn-pagar btn-info" style="width:100%; margin-bottom:10px; font-size:1.2rem"
+                onclick="finalizarPagamentoCartao('DÉBITO')">DÉBITO</button>
+            <button class="btn-pagar btn-info"
+                style="width:100%; margin-bottom:10px; font-size:1.2rem; background:#9c27b0"
+                onclick="finalizarPagamentoCartao('CRÉDITO')">CRÉDITO</button>
+            <button class="btn-pagar" onclick="fecharModal('modal-cartao')"
+                style="margin-top:5px; background:#555; width:100%">CANCELAR</button>
+        </div>
+    </div>
+
+    <!-- Gestão de Estoque -->
+    <div id="modal-estoque" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="color:var(--edit-mode-color)">Gestão de Estoque</h3>
+            <p id="nome-prod-estoque" style="font-weight:bold; margin-bottom:15px;"></p>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div class="config-option"><label style="color:var(--accent)">Estoque BAR:</label><input type="number"
+                        id="edit-est-bar" class="config-input" min="0"></div>
+                <div class="config-option"><label style="color:var(--accent)">Estoque DEPÓSITO:</label><input
+                        type="number" id="edit-est-dep" class="config-input" min="0"></div>
+                <div class="config-option"><label style="color:var(--danger)">Mínimo BAR:</label><input type="number"
+                        id="edit-min-bar" class="config-input" min="0"></div>
+                <div class="config-option"><label style="color:var(--danger)">Mínimo DEPÓSITO:</label><input
+                        type="number" id="edit-min-dep" class="config-input" min="0"></div>
+            </div>
+            <p style="font-size:0.8rem; color:#aaa; margin-top:5px;"><i>Nota: Ao aumentar o Bar, o valor será subtraído
+                    do Depósito automaticamente.</i></p>
+            <button class="btn-pagar" style="background:var(--edit-mode-color); width:100%"
+                onclick="salvarEdicaoEstoque()">SALVAR ALTERAÇÕES</button>
+            <button class="btn-pagar" onclick="fecharModal('modal-estoque')"
+                style="margin-top:5px; background:#555; width:100%">CANCELAR</button>
+        </div>
+    </div>
+
+    <!-- Selecionar Membro -->
+    <div id="modal-selecionar-membro" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Selecione o Membro</h3>
+            <select id="select-membro" class="lista-membros-scroll" onchange="verificarDividaSelecionada()">
+                <option value="" disabled selected>Carregando...</option>
+            </select>
+            <div id="preview-divida"
+                style="text-align:center; margin-bottom:10px; font-weight:bold; color:#aaa; min-height:1.2em;"></div>
+            <button class="btn-pagar btn-success" style="width:100%; margin-top:10px"
+                onclick="confirmarSelecaoMembro()">CONTINUAR</button>
+            <button class="btn-pagar" onclick="fecharModalSelecaoMembro()"
+                style="margin-top:5px; background:#555; width:100%">CANCELAR</button>
+        </div>
+    </div>
+
+    <!-- Fechar Conta Membro -->
+    <div id="modal-fechar-conta" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Fechar Conta</h3>
+            <p id="nome-fechar-conta" style="color:#aaa; font-weight:bold; font-size:1.2rem; text-align:center;"></p>
+            <div id="lista-fechamento" class="extrato-lista">Carregando...</div>
+            <div class="extrato-total" id="total-fechamento">R$ 0,00</div>
+            <div style="margin-top:15px; font-size:0.9em; color:#aaa; margin-bottom:5px">Como vai pagar?</div>
+            <div class="grid-pagamento">
+                <button class="btn-pagar btn-dinheiro" onclick="iniciarLiquidacao('DINHEIRO')">Dinheiro</button>
+                <button class="btn-pagar btn-pix" onclick="iniciarLiquidacao('PIX')">Pix</button>
+                <button class="btn-pagar btn-cartao" onclick="iniciarLiquidacao('CARTAO')">Cartão</button>
+            </div>
+            <button class="btn-pagar" onclick="fecharModal('modal-fechar-conta')"
+                style="margin-top:10px; background:#555; width:100%">CANCELAR</button>
+        </div>
+    </div>
+
+    <!-- Relatórios / Gestão de Caixa -->
+    <div id="modal-relatorios" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Gestão de Caixa</h3>
+            <div class="section-header">OPERADOR ATUAL</div>
+            <div style="padding:10px; background:#222; border-radius:5px; margin-bottom:15px;">
+                <p id="nome-operador-atual"
+                    style="font-size:1.2rem; margin:5px 0 10px 0; font-weight:bold; color:white; text-align:center;">...
+                </p>
+                <button class="btn-pagar btn-info" style="width:100%; background: #e91e63;" onclick="trocarMembro()">
+                    TROCAR MEMBRO (Sair)
+                </button>
+            </div>
+            <div class="section-header">CAIXA</div>
+            <button class="btn-pagar btn-success"
+                style="width:100%; margin-top:5px; background: #ff9800; color: black !important;"
+                onclick="abrirModalAberturaCaixa()">
+                ABRIR CAIXA (INICIO)
+            </button>
+            <div class="section-header">FECHAMENTOS</div>
+            <button class="btn-pagar btn-info" style="width:100%; margin-top:5px; background: #2196f3"
+                onclick="gerarRelatorio('DIA')">
+                FECHAR CAIXA TOTAL (DIA)
+            </button>
+            <div class="section-header">RELATÓRIO PERÍODO</div>
+            <div style="display:flex; gap:5px; margin-top:5px;">
+                <input type="date" id="data-inicio" class="config-input" style="margin:0;">
+                <input type="date" id="data-fim" class="config-input" style="margin:0;">
+            </div>
+            <button class="btn-pagar btn-info" style="width:100%; margin-bottom:10px; background: #9c27b0"
+                onclick="gerarRelatorioPeriodo()">
+                GERAR MENSAL/PERIODO
+            </button>
+            <div id="resultado-relatorio"
+                style="display:none; margin-top:15px; border-top:1px solid #555; padding-top:10px;"></div>
+            <button class="btn-pagar" onclick="fecharModal('modal-relatorios')"
+                style="margin-top:10px; background:#555; width:100%">FECHAR JANELA</button>
+        </div>
+    </div>
+
+    <!-- Configuração -->
+    <div id="modal-config" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Configuração</h3>
+            <div class="config-option"><label><input type="checkbox" id="cfg-imprimir" class="config-check" checked>
+                    Imprimir Auto</label></div>
+            <div class="config-option">
+                <label>Papel:</label>
+                <select id="cfg-largura" class="config-select">
+                    <option value="ticket-80mm">80mm</option>
+                    <option value="ticket-58mm">58mm</option>
+                </select>
+            </div>
+            <button class="btn-pagar btn-dinheiro" onclick="salvarConfig()">SALVAR</button>
+            <button class="btn-pagar" style="margin-top:5px; background:#555;"
+                onclick="fecharModal('modal-config')">CANCELAR</button>
+        </div>
+    </div>
+
+    <!-- Área de Impressão -->
+    <div id="area-impressao"></div>
+
+    <!-- JS do POS (toda lógica de negócio) -->
+    <script src="{{ url_for('static', filename='js/ponto_venda.js') }}"></script>
+</body>
+
+</html>

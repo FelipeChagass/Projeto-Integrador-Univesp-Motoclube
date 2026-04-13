@@ -1,0 +1,173 @@
+/* ===========================
+   LOGIN.CSS — Estilos exclusivos da tela de Login
+   =========================== */
+
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    background: linear-gradient(135deg, #111 0%, #080808 50%, #000 100%);
+}
+
+.login-card {
+    background: #111;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 3px solid #b30000;
+    border-radius: 12px;
+    padding: 40px 30px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+}
+
+.login-card h1 {
+    color: #ff3333;
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+}
+
+.login-card .subtitle {
+    color: #aaa;
+    font-size: 0.95rem;
+    margin-bottom: 25px;
+}
+
+.login-card .logo-img {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 20px;
+    border: 3px solid #b30000;
+}
+
+.login-input {
+    width: 100%;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    border: 1px solid #555;
+    background: #222;
+    color: #fff;
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.login-input:focus {
+    outline: none;
+    border-color: #ff3333;
+}
+
+.login-input::placeholder {
+    color: #777;
+}
+
+.btn-login-primary {
+    width: 100%;
+    padding: 14px;
+    margin-top: 8px;
+    border: none;
+    border-radius: 8px;
+    background-color: #b30000;
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-login-primary:hover {
+    background-color: #e60000;
+}
+
+.btn-login-primary:active {
+    transform: scale(0.98);
+}
+
+.btn-login-secondary {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    border: none;
+    border-radius: 8px;
+    background: #555;
+    color: #fff;
+    font-weight: bold;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background-color 0.2s;
+}
+
+.btn-login-secondary:hover {
+    background: #666;
+}
+
+.login-footer {
+    margin-top: 25px;
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.login-footer a {
+    color: #ff3333;
+    text-decoration: none;
+}
+
+.login-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Toast dentro do login */
+.login-toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: 1px solid var(--danger);
+    font-size: 0.95rem;
+    z-index: 5000;
+    display: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.login-toast.show {
+    display: block;
+    animation: fadein 0.4s;
+}
+
+/* Loading overlay para login */
+.login-loading {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.login-loading.active {
+    display: flex;
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+    .login-card {
+        padding: 30px 20px;
+    }
+
+    .login-card h1 {
+        font-size: 1.5rem;
+    }
+}

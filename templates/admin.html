@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Painel Administrativo - Bar Moto Clube PDV">
+    <title>Admin — Bar Moto Clube</title>
+    <link rel="icon" href="{{ url_for('static', filename='img/motorhead.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <style>
+        /* === SKELETON LOADING === */
+        @keyframes skeleton-shimmer {
+            0% {
+                background-position: -400px 0;
+            }
+
+            100% {
+                background-position: 400px 0;
+            }
+        }
+
+        .skeleton-row td {
+            padding: 10px 8px;
+        }
+
+        .skeleton-row td>.skel {
+            height: 18px;
+            border-radius: 6px;
+            background: linear-gradient(90deg, #1e1e1e 25%, #2a2a2a 50%, #1e1e1e 75%);
+            background-size: 400px 100%;
+            animation: skeleton-shimmer 1.4s ease infinite;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="header-left">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            <h1>Painel Admin</h1>
+        </div>
+        <a href="/pdv" class="btn-voltar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m12 19-7-7 7-7" />
+                <path d="M19 12H5" />
+            </svg>
+            Voltar ao PDV
+        </a>
+    </header>
+
+    <!-- Tabs Navigation -->
+    <nav class="tabs-nav">
+        <button class="tab-btn active" onclick="switchTab('produtos')" id="tab-btn-produtos">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path
+                    d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                <path d="m3.3 7 8.7 5 8.7-5" />
+                <path d="M12 22V12" />
+            </svg>
+            Produtos
+        </button>
+        <button class="tab-btn" onclick="switchTab('membros')" id="tab-btn-membros">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            Membros
+        </button>
+        <button class="tab-btn" onclick="switchTab('usuarios')" id="tab-btn-usuarios">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+            </svg>
+            Usuários
+        </button>
+        <button class="tab-btn" onclick="switchTab('vendas')" id="tab-btn-vendas">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 3v18h18" />
+                <path d="m19 9-5 5-4-4-3 3" />
+            </svg>
+            Vendas
+        </button>
+        <button class="tab-btn" onclick="switchTab('config')" id="tab-btn-config">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path
+                    d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                <circle cx="12" cy="12" r="3" />
+            </svg>
+            Config
+        </button>
+    </nav>
+
+    <!-- ═══════════════ TAB: PRODUTOS ═══════════════ -->
+    <section class="tab-content active" id="tab-produtos">
+        <div class="container">
+            <div class="toolbar">
+                <button class="btn btn-add" onclick="abrirFormNovoProduto()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14" />
+                        <path d="M12 5v14" />
+                    </svg>
+                    Novo Produto
+                </button>
+                <label class="toggle-label">
+                    <input type="checkbox" id="mostrarProdutosInativos" onchange="carregarProdutos()">
+                    <span>Mostrar desativados</span>
+                </label>
+            </div>
+
+            <!-- Form: Novo Produto -->
+            <div id="formNovoProduto" class="form-card" style="display:none;">
+                <div class="form-card-header">
+                    <h3>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                            <path d="m3.3 7 8.7 5 8.7-5" />
+                            <path d="M12 22V12" />
+                        </svg>
+                        Cadastrar Novo Produto
+                    </h3>
+                    <button class="btn-icon-close" onclick="fecharFormNovoProduto()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 6 6 18" />
+                            <path d="m6 6 12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group span-2"><label for="novo-nome">Nome</label><input type="text" id="novo-nome"
+                            placeholder="Ex: Cerveja 600ml"></div>
+                    <div class="form-group"><label for="novo-preco">Preço (R$)</label><input type="number"
+                            id="novo-preco" step="0.01" min="0" placeholder="0.00"></div>
+                    <div class="form-group"><label for="novo-categoria">Categoria</label>
+                        <select id="novo-categoria">
+                            <option value="bebida">Bebida</option>
+                            <option value="comida">Comida</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="form-group span-2">
+                        <label>Imagem do Produto</label>
+                        <div class="upload-zone" id="novo-upload-zone"
+                            onclick="document.getElementById('novo-file-input').click()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="17 8 12 3 7 8" />
+                                <line x1="12" x2="12" y1="3" y2="15" />
+                            </svg>
+                            <span>Clique para selecionar</span><small>PNG, JPG, GIF ou WebP</small>
+                        </div>
+                        <input type="file" id="novo-file-input" accept="image/*"
+                            onchange="previewNovoProdutoImagem(this)" style="display:none;">
+                        <div id="novo-img-preview" class="img-preview-container" style="display:none;">
+                            <img id="novo-img-tag" src="" alt="Preview">
+                            <button class="btn-remove-img" onclick="removerNovoPreview()">Remover</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-save" onclick="criarNovoProduto()">Salvar Produto</button>
+                    <button class="btn btn-cancel" onclick="fecharFormNovoProduto()">Cancelar</button>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Img</th>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Preço</th>
+                            <th>Categ.</th>
+                            <th>Estoque</th>
+                            <th>Mínimos</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaProdutos"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════ TAB: MEMBROS ═══════════════ -->
+    <section class="tab-content" id="tab-membros">
+        <div class="container">
+            <div class="toolbar">
+                <button class="btn btn-add" onclick="abrirFormNovoMembro()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14" />
+                        <path d="M12 5v14" />
+                    </svg>
+                    Novo Membro
+                </button>
+                <label class="toggle-label">
+                    <input type="checkbox" id="mostrarMembrosInativos" onchange="carregarMembros()">
+                    <span>Mostrar desativados</span>
+                </label>
+            </div>
+
+            <div id="formNovoMembro" class="form-card" style="display:none;">
+                <div class="form-card-header">
+                    <h3>Cadastrar Novo Membro</h3>
+                    <button class="btn-icon-close"
+                        onclick="document.getElementById('formNovoMembro').style.display='none'">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M18 6 6 18" />
+                            <path d="m6 6 12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group span-2"><label>Nome do Membro</label><input type="text" id="novo-membro-nome"
+                            placeholder="Nome completo"></div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-save" onclick="criarNovoMembro()">Salvar</button>
+                    <button class="btn btn-cancel"
+                        onclick="document.getElementById('formNovoMembro').style.display='none'">Cancelar</button>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Saldo Devedor</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaMembros"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════ TAB: USUARIOS ═══════════════ -->
+    <section class="tab-content" id="tab-usuarios">
+        <div class="container">
+            <div class="toolbar">
+                <button class="btn btn-add" onclick="abrirFormNovoUsuario()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <line x1="19" y1="8" x2="19" y2="14" />
+                        <line x1="22" y1="11" x2="16" y2="11" />
+                    </svg>
+                    Novo Usuário
+                </button>
+                <div class="toolbar-info">Crie conta para funcionários. Ou gerencie os perfis de quem se cadastrou
+                    sozinho.</div>
+            </div>
+
+            <div id="formNovoUsuario" class="form-card" style="display:none;">
+                <div class="form-card-header">
+                    <h3>Cadastrar Novo Usuário</h3>
+                    <button class="btn-icon-close"
+                        onclick="document.getElementById('formNovoUsuario').style.display='none'">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M18 6 6 18" />
+                            <path d="m6 6 12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Nome de Exibição</label><input type="text" id="novo-user-nome"
+                            placeholder="Nome"></div>
+                    <div class="form-group"><label>E-mail (Login)</label><input type="email" id="novo-user-email"
+                            placeholder="usuario@email.com"></div>
+                    <div class="form-group"><label>Senha Inicial</label><input type="password" id="novo-user-senha"
+                            placeholder="Mínimo 6 caracteres"></div>
+                    <div class="form-group"><label>Perfil de Acesso</label>
+                        <select id="novo-user-perfil">
+                            <option value="operador" selected>Operador</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-save" onclick="criarNovoUsuario()">Salvar Usuário</button>
+                    <button class="btn btn-cancel"
+                        onclick="document.getElementById('formNovoUsuario').style.display='none'">Cancelar</button>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Perfil</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaUsuarios"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════ TAB: VENDAS ═══════════════ -->
+    <section class="tab-content" id="tab-vendas">
+        <div class="container">
+            <div class="toolbar">
+                <div class="filter-group">
+                    <label>De:</label><input type="date" id="vendas-data-inicio" class="filter-input">
+                    <label>Até:</label><input type="date" id="vendas-data-fim" class="filter-input">
+                    <select id="vendas-tipo" class="filter-input">
+                        <option value="">Todos os tipos</option>
+                        <option value="normal">Normal</option>
+                        <option value="fiado">Fiado</option>
+                        <option value="recebimento_divida">Recebimento</option>
+                    </select>
+                    <button class="btn btn-save" onclick="carregarVendas()">Filtrar</button>
+                </div>
+            </div>
+            <div id="vendas-resumo" class="stats-row"></div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Tipo</th>
+                            <th>Método</th>
+                            <th>Cliente</th>
+                            <th>Valor</th>
+                            <th>Itens</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaVendas"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════ TAB: CONFIG ═══════════════ -->
+    <section class="tab-content" id="tab-config">
+        <div class="container">
+            <div class="form-card" style="display:block;">
+                <div class="form-card-header">
+                    <h3>Configurações do Sistema</h3>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Impressão Automática</label>
+                        <select id="cfg-imprimir">
+                            <option value="true">Sim</option>
+                            <option value="false">Não</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Largura do Papel</label>
+                        <select id="cfg-largura">
+                            <option value="ticket-80mm">80mm</option>
+                            <option value="ticket-58mm">58mm</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-save" onclick="salvarConfig()">Salvar Configurações</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal: Extrato do Membro -->
+    <div class="modal-overlay" id="modalExtrato" style="display:none;">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3 id="extrato-titulo">Extrato</h3>
+                <button class="btn-icon-close" onclick="document.getElementById('modalExtrato').style.display='none'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div id="extrato-saldo" class="extrato-saldo-display"></div>
+            <div id="extrato-body" class="extrato-body"></div>
+        </div>
+    </div>
+
+    <!-- Modal: Ajuste de Saldo -->
+    <div class="modal-overlay" id="modalAjuste" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Ajuste de Saldo</h3>
+                <button class="btn-icon-close" onclick="document.getElementById('modalAjuste').style.display='none'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                    </svg>
+                </button>
+            </div>
+            <p id="ajuste-membro-nome" style="color:#e94560; font-weight:600; margin-bottom:1rem;"></p>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Tipo</label>
+                    <select id="ajuste-tipo">
+                        <option value="credito">Crédito (abater dívida)</option>
+                        <option value="debito">Débito (aumentar dívida)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Valor (R$)</label>
+                    <input type="number" id="ajuste-valor" step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group span-2">
+                    <label>Descrição (opcional)</label>
+                    <input type="text" id="ajuste-descricao" placeholder="Motivo do ajuste">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-save" onclick="confirmarAjusteSaldo()">Confirmar Ajuste</button>
+                <button class="btn btn-cancel"
+                    onclick="document.getElementById('modalAjuste').style.display='none'">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Ajuste de Estoque -->
+    <div class="modal-overlay" id="modalAjusteEstoque" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Ajuste de Estoque</h3>
+                <button class="btn-icon-close"
+                    onclick="document.getElementById('modalAjusteEstoque').style.display='none'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                    </svg>
+                </button>
+            </div>
+            <p id="ajuste-estoque-nome" style="color:#2196f3; font-weight:600; margin-bottom:1rem;"></p>
+            <div class="form-grid">
+                <div class="form-group"><label>Novo Estoque Bar</label><input type="number" id="ajuste-estoque-bar"
+                        min="0"></div>
+                <div class="form-group"><label>Novo Estoque Depósito</label><input type="number"
+                        id="ajuste-estoque-deposito" min="0"></div>
+                <div class="form-group"><label>Mínimo Bar (opcional)</label><input type="number"
+                        id="ajuste-estoque-min-bar" min="0"></div>
+                <div class="form-group"><label>Mínimo Depósito (opcional)</label><input type="number"
+                        id="ajuste-estoque-min-deposito" min="0"></div>
+                <div class="form-group span-2">
+                    <label>Motivo do Ajuste</label>
+                    <input type="text" id="ajuste-estoque-motivo" placeholder="Ex: Contagem do mês, +1 caixa comprada">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-save" onclick="confirmarAjusteEstoque()">Salvar</button>
+                <button class="btn btn-cancel"
+                    onclick="document.getElementById('modalAjusteEstoque').style.display='none'">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Hidden file inputs -->
+    <input type="file" id="fileInput" accept="image/*" onchange="uploadImagem(this)" style="display:none;">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script>
+        const BASE = '';
+        let produtos = [], membros = [], usuarios = [];
+        let uploadingProdutoId = null;
+        let ajusteMemberId = null;
+        let supabaseStorageClient = null;
+        const STORAGE_BUCKET = 'produto-imagens';
+
+        // ═══════════════════════ AUTH ═══════════════════════
+        async function getAuthHeaders() {
+            const client = await API._initSupabase();
+            const headers = { 'Content-Type': 'application/json' };
+            if (client) {
+                const { data: { session } } = await client.auth.getSession();
+                if (session && session.access_token) headers['Authorization'] = 'Bearer ' + session.access_token;
+            }
+            return headers;
+        }
+
+        async function getSupabaseClient() {
+            if (supabaseStorageClient) return supabaseStorageClient;
+            supabaseStorageClient = await API._initSupabase();
+            return supabaseStorageClient;
+        }
+
+        async function authFetch(url, opts = {}) {
+            const headers = await getAuthHeaders();
+            if (opts.body && typeof opts.body === 'string') {
+                // JSON request
+            } else if (opts.body instanceof FormData) {
+                delete headers['Content-Type']; // let browser set multipart
+            }
+            const r = await fetch(url, { ...opts, headers: { ...headers, ...opts.headers } });
+            if (r.status === 401 || r.status === 403) {
+                showToast('Acesso restrito. Apenas administradores podem acessar.', 'err');
+                window.location.href = '/pdv';
+                return null;
+            }
+            return r;
+        }
+
+        // ═══════════════════════ TABS ═══════════════════════
+        function switchTab(name) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
+            document.getElementById('tab-btn-' + name).classList.add('active');
+            document.getElementById('tab-' + name).classList.add('active');
+
+            // Lazy load data
+            if (name === 'membros' && membros.length === 0) carregarMembros();
+            if (name === 'usuarios' && usuarios.length === 0) carregarUsuarios();
+            if (name === 'vendas') carregarVendas();
+            if (name === 'config') carregarConfig();
+        }
+
+        // ═══════════════════════ PRODUTOS ═══════════════════════
+        async function carregarProdutos() {
+            const r = await authFetch(`${BASE}/api/admin/produtos`);
+            if (!r) return;
+            const data = await r.json();
+            const inativos = document.getElementById('mostrarProdutosInativos').checked;
+            produtos = (data.produtos || []).filter(p => inativos || p.ativo);
+            renderProdutos();
+        }
+
+        function renderProdutos() {
+            const tbody = document.getElementById('tabelaProdutos');
+            tbody.innerHTML = '';
+            produtos.forEach(p => {
+                const tr = document.createElement('tr');
+                if (!p.ativo) tr.classList.add('row-inactive');
+                const imgHtml = p.url_imagem
+                    ? `<img src="${esc(p.url_imagem)}" class="img-thumb" onerror="this.style.display='none'">`
+                    : `<span class="img-placeholder" onclick="abrirUpload(${p.id})">—</span>`;
+                tr.innerHTML = `
+            <td class="col-imagem">${imgHtml}
+                <button class="btn-upload-sm" onclick="abrirUpload(${p.id})">Foto</button></td>
+            <td class="col-id">${p.id}</td>
+            <td><input value="${esc(p.nome)}" data-pid="${p.id}" data-campo="nome"></td>
+            <td><input type="number" step="0.01" value="${p.preco_atual}" data-pid="${p.id}" data-campo="preco_atual"></td>
+            <td><select data-pid="${p.id}" data-campo="categoria">
+                <option value="bebida" ${p.categoria === 'bebida' ? 'selected' : ''}>Bebida</option>
+                <option value="comida" ${p.categoria === 'comida' ? 'selected' : ''}>Comida</option>
+                <option value="outro"  ${p.categoria === 'outro' ? 'selected' : ''}>Outro</option>
+            </select></td>
+            <td><div style="font-size:0.9rem">Bar: <b>${p.estoque_bar}</b><br>Dep: <b>${p.estoque_deposito}</b></div></td>
+            <td><div style="font-size:0.8rem;color:#666">Mín Bar: ${p.estoque_min_bar}<br>Mín Dep: ${p.estoque_min_deposito}</div></td>
+            <td class="col-status">${p.ativo ? '<span class="badge badge-active">Ativo</span>' : '<span class="badge badge-inactive">Inativo</span>'}</td>
+            <td><div class="btn-group">
+                <button class="btn btn-save btn-sm" onclick="salvarProduto(${p.id})">Salvar</button>
+                <button class="btn btn-info btn-sm" onclick="abrirAjusteEstoque(${p.id})">Estoque</button>
+                ${p.ativo
+                        ? `<button class="btn btn-del btn-sm" onclick="deletarProduto(${p.id},'${esc(p.nome)}')">Desativar</button>`
+                        : `<button class="btn btn-reativar btn-sm" onclick="reativarProduto(${p.id})">Reativar</button>`}
+            </div></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Produto CRUD
+        function abrirFormNovoProduto() { document.getElementById('formNovoProduto').style.display = 'block'; document.getElementById('novo-nome').focus(); }
+        function fecharFormNovoProduto() { document.getElementById('formNovoProduto').style.display = 'none'; }
+
+        function previewNovoProdutoImagem(input) {
+            if (!input.files || !input.files[0]) return;
+            const reader = new FileReader();
+            reader.onload = e => { document.getElementById('novo-img-tag').src = e.target.result; document.getElementById('novo-img-preview').style.display = 'flex'; document.getElementById('novo-upload-zone').style.display = 'none'; };
+            reader.readAsDataURL(input.files[0]);
+        }
+        function removerNovoPreview() { document.getElementById('novo-img-preview').style.display = 'none'; document.getElementById('novo-upload-zone').style.display = 'flex'; document.getElementById('novo-file-input').value = ''; }
+
+        async function criarNovoProduto() {
+            const nome = document.getElementById('novo-nome').value.trim();
+            const preco = parseFloat(document.getElementById('novo-preco').value) || 0;
+            const categoria = document.getElementById('novo-categoria').value;
+            const fileInput = document.getElementById('novo-file-input');
+            if (!nome) return toast('Nome é obrigatório', false);
+            if (preco <= 0) return toast('Preço deve ser maior que zero', false);
+
+            const r = await authFetch(`${BASE}/api/admin/produtos`, { method: 'POST', body: JSON.stringify({ nome, preco_atual: preco, categoria }) });
+            if (!r) return;
+            const data = await r.json();
+            if (data.status !== 'ok') return toast(data.mensagem || 'Erro', false);
+            toast('Produto criado!', true);
+            if (fileInput.files && fileInput.files[0] && data.produto) await uploadImagemParaProduto(data.produto.id, fileInput.files[0]);
+            fecharFormNovoProduto();
+            carregarProdutos();
+        }
+
+        async function deletarProduto(id, nome) {
+            UIModal.confirm(`Desativar "${nome}"?`, async function() {
+                const r = await authFetch(`${BASE}/api/admin/produtos/${id}`, { method: 'DELETE' });
+                if (!r) return;
+                const data = await r.json();
+                toast(data.mensagem, data.status === 'ok');
+                if (data.status === 'ok') carregarProdutos();
+            });
+        }
+
+        async function reativarProduto(id) {
+            const r = await authFetch(`${BASE}/api/admin/produtos/${id}`, { method: 'PUT', body: JSON.stringify({ ativo: true }) });
+            if (!r) return;
+            const data = await r.json();
+            toast(data.mensagem, data.status === 'ok');
+            if (data.status === 'ok') carregarProdutos();
+        }
+        async function salvarProduto(id) {
+            const dados = {};
+            document.querySelectorAll(`[data-pid="${id}"]`).forEach(el => { dados[el.dataset.campo] = el.type === 'number' ? Number(el.value) : el.value; });
+            const r = await authFetch(`${BASE}/api/admin/produtos/${id}`, { method: 'PUT', body: JSON.stringify(dados) });
+            if (!r) return;
+            const data = await r.json();
+            toast(data.mensagem, data.status === 'ok');
+            if (data.status === 'ok') carregarProdutos();
+        }
+
+        // Stock Adjustment
+        let ajusteProdutoId = null;
+
+        function abrirAjusteEstoque(id) {
+            const prod = produtos.find(p => p.id === id);
+            if (!prod) return;
+            ajusteProdutoId = id;
+            document.getElementById('ajuste-estoque-nome').textContent = prod.nome;
+            document.getElementById('ajuste-estoque-bar').value = prod.estoque_bar;
+            document.getElementById('ajuste-estoque-deposito').value = prod.estoque_deposito;
+            document.getElementById('ajuste-estoque-min-bar').value = prod.estoque_min_bar || 0;
+            document.getElementById('ajuste-estoque-min-deposito').value = prod.estoque_min_deposito || 0;
+            document.getElementById('ajuste-estoque-motivo').value = '';
+            document.getElementById('modalAjusteEstoque').style.display = 'flex';
+        }
+
+        async function confirmarAjusteEstoque() {
+            const dados = {
+                estoque_bar: parseInt(document.getElementById('ajuste-estoque-bar').value) || 0,
+                estoque_deposito: parseInt(document.getElementById('ajuste-estoque-deposito').value) || 0,
+                estoque_min_bar: parseInt(document.getElementById('ajuste-estoque-min-bar').value) || 0,
+                estoque_min_deposito: parseInt(document.getElementById('ajuste-estoque-min-deposito').value) || 0,
+                motivo: document.getElementById('ajuste-estoque-motivo').value.trim()
+            };
+            if (!dados.motivo) return toast('O motivo do ajuste é obrigatório.', false);
+
+            const r = await authFetch(`${BASE}/api/admin/produtos/${ajusteProdutoId}/estoque`, { method: 'POST', body: JSON.stringify(dados) });
+            if (!r) return;
+            const data = await r.json();
+            toast(data.mensagem, data.status === 'ok');
+            if (data.status === 'ok') {
+                document.getElementById('modalAjusteEstoque').style.display = 'none';
+                carregarProdutos();
+            }
+        }
+
+        // Image upload
+        function abrirUpload(produtoId) { uploadingProdutoId = produtoId; document.getElementById('fileInput').click(); }
+        async function uploadImagem(input) {
+            if (!input.files || !input.files[0] || !uploadingProdutoId) return;
+            await uploadImagemParaProduto(uploadingProdutoId, input.files[0]);
+            uploadingProdutoId = null;
+            toast('Imagem salva!', true);
+            carregarProdutos();
+        }
+
+        async function uploadImagemParaProduto(produtoId, file) {
+            const client = await getSupabaseClient();
+            let publicUrl = null;
+            if (client) {
+                try {
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    const filePath = `produtos/${produtoId}.${ext}`;
+                    const { error } = await client.storage.from(STORAGE_BUCKET).upload(filePath, file, { upsert: true, contentType: file.type });
+                    if (error) throw error;
+                    const { data: urlData } = client.storage.from(STORAGE_BUCKET).getPublicUrl(filePath);
+                    if (urlData && urlData.publicUrl) publicUrl = urlData.publicUrl;
+                } catch (e) {
+                    console.error('Storage erro:', e.message);
+                    toast('Erro ao enviar imagem para a nuvem. Verifique o Storage.', false);
+                    return;
+                }
+            }
+            if (publicUrl) {
+                await authFetch(`${BASE}/api/admin/produtos/${produtoId}`, { method: 'PUT', body: JSON.stringify({ url_imagem: publicUrl }) });
+            } else {
+                toast('Erro de inicialização do cliente Supabase.', false);
+            }
+        }
+
+        // ═══════════════════════ MEMBROS ═══════════════════════
+        async function carregarMembros() {
+            mostrarSkeleton('tabelaMembros', 4);
+            const r = await authFetch(`${BASE}/api/admin/membros`);
+            if (!r) return;
+            const data = await r.json();
+            const inativos = document.getElementById('mostrarMembrosInativos').checked;
+            membros = (data.membros || []).filter(m => inativos || m.ativo);
+            renderMembros();
+        }
+
+        function renderMembros() {
+            const tbody = document.getElementById('tabelaMembros');
+            tbody.innerHTML = '';
+            membros.forEach(m => {
+                const tr = document.createElement('tr');
+                if (!m.ativo) tr.classList.add('row-inactive');
+                const saldoClass = m.saldo_devedor > 0 ? 'saldo-devedor' : 'saldo-ok';
+                tr.innerHTML = `
+            <td><input value="${esc(m.nome)}" data-mid="${m.id}" data-campo="nome"></td>
+            <td class="${saldoClass}">R$ ${m.saldo_devedor.toFixed(2)}</td>
+            <td class="col-status">${m.ativo ? '<span class="badge badge-active">Ativo</span>' : '<span class="badge badge-inactive">Inativo</span>'}</td>
+            <td><div class="btn-group">
+                <button class="btn btn-save btn-sm" onclick="salvarMembro('${m.id}')">Salvar</button>
+                <button class="btn btn-info btn-sm" onclick="verExtrato('${m.id}','${esc(m.nome)}')">Extrato</button>
+                <button class="btn btn-warn btn-sm" onclick="abrirAjusteSaldo('${m.id}','${esc(m.nome)}')">Ajuste</button>
+                ${m.ativo ? `<button class="btn btn-del btn-sm" onclick="desativarMembro('${m.id}','${esc(m.nome)}')">Desativar</button>` : `<button class="btn btn-reativar btn-sm" onclick="reativarMembro('${m.id}')">Reativar</button>`}
+            </div></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function abrirFormNovoMembro() { document.getElementById('formNovoMembro').style.display = 'block'; document.getElementById('novo-membro-nome').value = ''; document.getElementById('novo-membro-nome').focus(); }
+
+        async function criarNovoMembro() {
+            const nome = document.getElementById('novo-membro-nome').value.trim();
+            if (!nome) return toast('Nome é obrigatório', false);
+            const r = await authFetch(`${BASE}/api/admin/membros`, { method: 'POST', body: JSON.stringify({ nome }) });
+            if (!r) return;
+            const data = await r.json();
+            toast(data.mensagem, data.status === 'ok');
+            if (data.status === 'ok') { document.getElementById('formNovoMembro').style.display = 'none'; carregarMembros(); }
+        }
+
+        async function salvarMembro(id) {
+            const input = document.querySelector(`[data-mid="${id}"][data-campo="nome"]`);
+            if (!input) return;
+            const r = await authFetch(`${BASE}/api/admin/membros/${id}`, { method: 'PUT', body: JSON.stringify({ nome: input.value }) });
+            if (!r) return;
+            const data = await r.json();
+            toast(data.mensagem, data.status === 'ok');
+            if (data.status === 'ok') carregarMembros();
+        }
+
+        async function desativarMembro(id, nome) {
+            UIModal.confirm(`Desativar membro "${nome}"?`, async function() {
+                const r = await authFetch(`${BASE}/api/admin/membros/${id}`, { method: 'DELETE' });
+                if (!r) return;
+                const data = await r.json();
+                toast(data.mensagem, data.status === 'ok');
+                if (data.status === 'ok') carregarMembros();
+            });
+        }
+
+        async function reativarMembro(id) {
+            const r = await authFetch(`${BASE}/api/admin/membros/${id}`, { method: 'PUT', body: JSON.stringify({ ativo: true }) });
+            if (!r) return;
+            const data = await r.json();
+            toast(data.mensagem, data.status === 'ok');
+            if (data.status === 'ok') carregarMembros();
+        }
+
+        // Extrato
+        async function verExtrato(id, nome) {
+            document.getElementById('extrato-titulo').textContent = `Extrato — ${nome}`;
+            document.getElementById('extrato-body').innerHTML = '<p style="text-align:center; color:#888;">Carregando...</p>';
+            document.getElementById('modalExtrato').style.display = 'flex';
+            const r = await authFetch(`${BASE}/api/admin/membros/${id}/extrato`);
+            if (!r) return;
+            const data = await r.json();
+            document.getElementById('extrato-saldo').innerHTML = `<span class="${data.total > 0 ? 'saldo-devedor' : 'saldo-ok'}">Saldo devedor: R$ ${(data.total || 0).toFixed(2)}</span>`;
+            if (!data.itens || data.itens.length === 0) {
+                document.getElementById('extrato-body').innerHTML = '<p style="text-align:center; color:#888; padding:2rem;">Nenhuma movimentação encontrada.</p>';
+                return;
+            }
+            let html = '<table class="inner-table"><thead><tr><th>Data</th><th>Tipo</th><th>Origem</th><th>Descrição</th><th>Valor</th></tr></thead><tbody>';
+            data.itens.forEach(i => {
+                const tipoClass = i.tipo === 'debito' ? 'tipo-debito' : 'tipo-credito';
+                html += `<tr><td>${i.data}</td><td class="${tipoClass}">${i.tipo}</td><td>${i.origem}</td><td>${esc(i.descricao)}</td><td>R$ ${i.valor.toFixed(2)}</td></tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('extrato-body').innerHTML = html;
+        }
+
+        // Ajuste de saldo
+        function abrirAjusteSaldo(id, nome) {
+            ajusteMemberId = id;
+            document.getElementById('ajuste-membro-nome').textContent = nome;
+            document.getElementById('ajuste-valor').value = '';
+            document.getElementById('ajuste-descricao').value = '';
+            document.getElementById('ajuste-tipo').value = 'credito';
+            document.getElementById('modalAjuste').style.display = 'flex';
+        }
+
+        async function confirmarAjusteSaldo() {
+            const valor = parseFloat(document.getElementById('ajuste-valor').value) || 0;
+            const tipo = document.getElementById('ajuste-tipo').value;
+            const descricao = document.getElementById('ajuste-descricao').value;
+            if (valor <= 0) return toast('Valor deve ser positivo', false);
+            const r = await authFetch(`${BASE}/api/admin/membros/${ajusteMemberId}/ajuste`, { method: 'POST', body: JSON.stringify({ valor, tipo, descricao }) });
+            if (!r) return;
+            const data = await r.json();
+            toast(data.mensagem, data.status === 'ok');
+            if (data.status === 'ok') { document.getElementById('modalAjuste').style.display = 'none'; carregarMembros(); }
+        }
+
+        // ═══════════════════════ USUÁRIOS ═══════════════════════
+        async function carregarUsuarios() {
+            mostrarSkeleton('tabelaUsuarios', 5);
+            const r = await authFetch(`${BASE}/api/admin/usuarios`);
+            if (!r) return;
+            const data = await r.json();
+            usuarios = data.usuarios || [];
+            renderUsuarios();
+        }
+
+        function abrirFormNovoUsuario() {
+            document.getElementById('formNovoUsuario').style.display = 'block';
+            document.getElementById('novo-user-nome').value = '';
+            document.getElementById('novo-user-email').value = '';
+            document.getElementById('novo-user-senha').value = '';
+            document.getElementById('novo-user-perfil').value = 'operador';
+            document.getElementById('novo-user-nome').focus();
+        }
+
+        async function criarNovoUsuario() {
+            const nome = document.getElementById('novo-user-nome').value.trim();
+            const email = document.getElementById('novo-user-email').value.trim();
+            const senha = document.getElementById('novo-user-senha').value.trim();
+            const perfil = document.getElementById('novo-user-perfil').value;
+
+            if (!nome || !email || !senha) return toast('Nome, e-mail e senha são obrigatórios', false);
+            if (senha.length < 6) return toast('A senha deve ter pelo menos 6 caracteres', false);
+
+            const r = await authFetch(`${BASE}/api/admin/usuarios`, { method: 'POST', body: JSON.stringify({ nome, email, senha, perfil }) });
+            if (!r) return;
+            const data = await r.json();
+            toast(data.mensagem, data.status === 'ok');
+            if (data.status === 'ok') {
+                document.getElementById('formNovoUsuario').style.display = 'none';
+                carregarUsuarios();
+            }
+        }
+
+        function renderUsuarios() {
+            const tbody = document.getElementById('tabelaUsuarios');
+            tbody.innerHTML = '';
+            usuarios.forEach(u => {
+                const tr = document.createElement('tr');
+                if (!u.ativo) tr.classList.add('row-inactive');
+                tr.innerHTML = `
+            <td><input value="${esc(u.nome)}" data-uid="${u.id}" data-campo="nome"></td>
+            <td style="color:#888; font-size:0.82rem;">${esc(u.email)}</td>
+            <td><select data-uid="${u.id}" data-campo="perfil">
+                <option value="operador" ${u.perfil === 'operador' ? 'selected' : ''}>Operador</option>
+                <option value="admin" ${u.perfil === 'admin' ? 'selected' : ''}>Admin</option>
+            </select></td>
+            <td class="col-status">${u.ativo ? '<span class="badge badge-active">Ativo</span>' : '<span class="badge badge-inactive">Inativo</span>'}</td>
+            <td><div class="btn-group">
+                <button class="btn btn-save btn-sm" onclick="salvarUsuario('${u.id}')">Salvar</button>
+                ${u.ativo
+                        ? `<button class="btn btn-del btn-sm" onclick="toggleUsuario('${u.id}',false)">Desativar</button>`
+                        : `<button class="btn btn-reativar btn-sm" onclick="toggleUsuario('${u.id}',true)">Reativar</button>`}
+            </div></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function salvarUsuario(id) {
+            const dados = {};
+            document.querySelectorAll(`[data-uid="${id}"]`).forEach(el => { dados[el.dataset.campo] = el.value; });
+            const r = await authFetch(`${BASE}/api/admin/usuarios/${id}`, { method: 'PUT', body: JSON.stringify(dados) });
+            if (!r) return;
+            const data = await r.json();
+            toast(data.mensagem, data.status === 'ok');
+            if (data.status === 'ok') carregarUsuarios();
+        }
+
+        async function toggleUsuario(id, ativo) {
+            const r = await authFetch(`${BASE}/api/admin/usuarios/${id}`, { method: 'PUT', body: JSON.stringify({ ativo }) });
+            if (!r) return;
+            const data = await r.json();
+            toast(data.mensagem, data.status === 'ok');
+            if (data.status === 'ok') carregarUsuarios();
+        }
+
+        // ═══════════════════════ VENDAS ═══════════════════════
+        async function carregarVendas() {
+            mostrarSkeleton('tabelaVendas', 6);
+            const params = new URLSearchParams();
+            const di = document.getElementById('vendas-data-inicio').value;
+            const df = document.getElementById('vendas-data-fim').value;
+            const tipo = document.getElementById('vendas-tipo').value;
+            if (di) params.set('data_inicio', di);
+            if (df) params.set('data_fim', df);
+            if (tipo) params.set('tipo_venda', tipo);
+            params.set('limite', '200');
+
+            const r = await authFetch(`${BASE}/api/admin/vendas?${params}`);
+            if (!r) return;
+            const data = await r.json();
+            const vendas = data.vendas || [];
+
+            // Resumo
+            const total = vendas.reduce((s, v) => s + v.valor_total, 0);
+            const resumoEl = document.getElementById('vendas-resumo');
+            resumoEl.innerHTML = `
+        <div class="stat-card"><span class="stat-number">${vendas.length}</span><span class="stat-label">Vendas</span></div>
+        <div class="stat-card"><span class="stat-number">R$ ${total.toFixed(2)}</span><span class="stat-label">Total</span></div>
+    `;
+
+            // Tabela
+            const tbody = document.getElementById('tabelaVendas');
+            tbody.innerHTML = '';
+            vendas.forEach(v => {
+                const tr = document.createElement('tr');
+                const dataStr = v.criado_em ? new Date(v.criado_em).toLocaleString('pt-BR') : '—';
+                const itensStr = (v.itens || []).map(i => `${i.quantidade}x ${i.nome_produto}`).join(', ') || '—';
+                const tipoBadge = v.tipo_venda === 'fiado' ? 'badge-warn' : v.tipo_venda === 'recebimento_divida' ? 'badge-info' : 'badge-active';
+                tr.innerHTML = `
+            <td style="font-size:0.8rem; white-space:nowrap;">${dataStr}</td>
+            <td><span class="badge ${tipoBadge}">${v.tipo_venda}</span></td>
+            <td>${v.metodo_pagamento}</td>
+            <td>${esc(v.nome_cliente || '—')}</td>
+            <td style="font-weight:600;">R$ ${v.valor_total.toFixed(2)}</td>
+            <td style="font-size:0.8rem; max-width:200px; overflow:hidden; text-overflow:ellipsis;">${esc(itensStr)}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ═══════════════════════ CONFIG ═══════════════════════
+        async function carregarConfig() {
+            const r = await authFetch(`${BASE}/api/admin/config`);
+            if (!r) return;
+            const data = await r.json();
+            const cfg = data.config || {};
+            document.getElementById('cfg-imprimir').value = cfg.imprimir_automatico ? 'true' : 'false';
+            document.getElementById('cfg-largura').value = cfg.largura_impressao || 'ticket-80mm';
+        }
+
+        async function salvarConfig() {
+            const dados = {
+                imprimir_automatico: document.getElementById('cfg-imprimir').value === 'true',
+                largura_impressao: document.getElementById('cfg-largura').value,
+            };
+            const r = await authFetch(`${BASE}/api/admin/config`, { method: 'PUT', body: JSON.stringify(dados) });
+            if (!r) return;
+            const data = await r.json();
+            toast(data.mensagem, data.status === 'ok');
+        }
+
+        // ═══════════════════════ UTILS ═══════════════════════
+        function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+        function toast(msg, ok) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.className = 'toast show ' + (ok ? 'ok' : 'err');
+            setTimeout(() => el.className = 'toast', 3500);
+        }
+
+        // ═══════════════════════ SKELETON ═══════════════════════
+        function mostrarSkeleton(tbodyId, cols) {
+            const tbody = document.getElementById(tbodyId);
+            if (!tbody) return;
+            const numCols = cols || 6;
+            let html = '';
+            for (let i = 0; i < 5; i++) {
+                html += '<tr class="skeleton-row">';
+                for (let c = 0; c < numCols; c++) {
+                    const w = 60 + Math.random() * 30;
+                    html += `<td><div class="skel" style="width:${w.toFixed(0)}%;"></div></td>`;
+                }
+                html += '</tr>';
+            }
+            tbody.innerHTML = html;
+        }
+
+        // ═══════════════════════ INIT ═══════════════════════
+        document.addEventListener('DOMContentLoaded', () => {
+            mostrarSkeleton('tabelaProdutos', 8);
+            carregarProdutos();
+        });
+    </script>
+</body>
+
+</html>

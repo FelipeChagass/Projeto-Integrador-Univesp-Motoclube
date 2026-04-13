@@ -1,0 +1,303 @@
+/* ===========================
+   COMMON.CSS — Variáveis globais, reset, componentes compartilhados
+   Importado por TODAS as páginas (login, cadastro, pos, admin)
+   =========================== */
+
+/* Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+:root {
+    --bg-color: #0d0d0d;
+    --card-bg: #1a1a1a;
+    --accent: #b30000;
+    --success: #4caf50;
+    --danger: #f44336;
+    --edit-mode-color: #B30000;
+    --warning-bg: rgba(255, 152, 0, 0.15);
+    --warning-border: #ff9800;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--bg-color);
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    /* Altura fixa da viewport */
+    overflow: hidden;
+    /* Evita scroll na página toda, o scroll será interno nas seções */
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0d0d0d;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 3px;
+}
+
+/* LOADING SCREEN */
+#loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-family: sans-serif;
+    transition: opacity 0.5s;
+}
+
+.spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top: 4px solid var(--accent);
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* TOAST NOTIFICATION */
+#toast {
+    visibility: hidden;
+    min-width: 200px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 8px;
+    padding: 12px;
+    position: fixed;
+    z-index: 5000;
+    left: 50%;
+    top: 20px;
+    transform: translateX(-50%);
+    font-size: 1rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--accent);
+}
+
+#toast.show {
+    visibility: visible;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+@keyframes fadein {
+    from {
+        top: -50px;
+        opacity: 0;
+    }
+
+    to {
+        top: 20px;
+        opacity: 1;
+    }
+}
+
+@keyframes fadeout {
+    from {
+        top: 20px;
+        opacity: 1;
+    }
+
+    to {
+        top: -50px;
+        opacity: 0;
+    }
+}
+
+/* MODAL GENÉRICO */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: #333;
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 450px;
+    border: 1px solid var(--accent);
+    color: white;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+/* BOTÕES GENÉRICOS */
+.btn-pagar {
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    transition: 0.1s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-pagar:active {
+    transform: translateY(2px);
+}
+
+.btn-success {
+    background-color: var(--success);
+    color: black !important;
+}
+
+.btn-info {
+    background: #2196f3;
+    color: white;
+}
+
+/* IMPRESSÃO (compartilhado) */
+@media print {
+    @page {
+        margin: 0;
+        size: auto;
+    }
+
+    body {
+        visibility: hidden;
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    #area-impressao {
+        display: block !important;
+        visibility: visible;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        background: white;
+        color: black;
+        z-index: 9999;
+    }
+
+    #app-header,
+    #main-content,
+    .modal-overlay,
+    #loading,
+    #toast {
+        display: none !important;
+    }
+
+    .ticket-80mm {
+        width: 78mm;
+        font-size: 14px;
+        font-family: 'Courier New', monospace;
+        margin: 0 auto;
+    }
+
+    .ticket {
+        position: relative;
+        padding: 20px 10px;
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        border-bottom: 2px dashed #000;
+        background: transparent !important;
+        z-index: 1;
+        overflow: hidden;
+        isolation: isolate;
+        page-break-inside: avoid;
+        min-height: 120px;
+    }
+
+    .watermark-logo {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 150px;
+        max-width: 80%;
+        height: auto;
+        opacity: 0.4;
+        z-index: 0;
+        display: block !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        pointer-events: none;
+    }
+
+    .ticket-content {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+    }
+
+    .ticket-item {
+        font-size: 1.4rem;
+        font-weight: 900;
+        display: block;
+        margin: 8px 0;
+        text-transform: uppercase;
+        line-height: 1.2;
+    }
+
+    .sheet-a4 {
+        width: 100%;
+        max-width: 210mm;
+        margin: 0 auto;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        text-align: left;
+        padding: 15px;
+    }
+
+    .sheet-a4 .watermark-logo {
+        display: none !important;
+    }
+}
+
+#area-impressao {
+    display: none;
+}

@@ -1,0 +1,260 @@
+create table public.usuarios (
+  id uuid not null,
+  nome text not null,
+  perfil text not null default 'operador'::text,
+  ativo boolean not null default true,
+  criado_em timestamp with time zone not null default now(),
+  atualizado_em timestamp with time zone not null default now(),
+  email character varying not null,
+  constraint usuarios_pkey primary key (id),
+  constraint usuarios_email_key unique (email),
+  constraint usuarios_id_fkey foreign KEY (id) references auth.users (id) on delete CASCADE,
+  constraint usuarios_perfil_check check (
+    (
+      perfil = any (array['admin'::text, 'operador'::text])
+    )
+  )
+) TABLESPACE pg_default;
+
+create trigger trg_usuarios_atualizado_em BEFORE
+update on usuarios for EACH row
+execute FUNCTION definir_atualizado_em ();
+
+create table public.ajustes_estoque (
+  id uuid not null default gen_random_uuid (),
+  produto_id bigint not null,
+  usuario_id uuid null,
+  estoque_bar_anterior integer not null,
+  estoque_bar_novo integer not null,
+  estoque_deposito_anterior integer not null,
+  estoque_deposito_novo integer not null,
+  estoque_min_bar_anterior integer null,
+  estoque_min_bar_novo integer null,
+  estoque_min_deposito_anterior integer null,
+  estoque_min_deposito_novo integer null,
+  motivo text null,
+  criado_em timestamp with time zone not null default now(),
+  constraint ajustes_estoque_pkey primary key (id),
+  constraint ajustes_estoque_produto_id_fkey foreign KEY (produto_id) references produtos (id) on delete CASCADE,
+  constraint ajustes_estoque_usuario_id_fkey foreign KEY (usuario_id) references usuarios (id) on delete set null,
+  constraint ajustes_estoque_valores_validos check (
+    (
+      (estoque_bar_anterior >= 0)
+      and (estoque_bar_novo >= 0)
+      and (estoque_deposito_anterior >= 0)
+      and (estoque_deposito_novo >= 0)
+      and (
+        (estoque_min_bar_anterior is null)
+        or (estoque_min_bar_anterior >= 0)
+      )
+      and (
+        (estoque_min_bar_novo is null)
+        or (estoque_min_bar_novo >= 0)
+      )
+      and (
+        (estoque_min_deposito_anterior is null)
+        or (estoque_min_deposito_anterior >= 0)
+      )
+      and (
+        (estoque_min_deposito_novo is null)
+        or (estoque_min_deposito_novo >= 0)
+      )
+    )
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists ajustes_estoque_produto_id_idx on public.ajustes_estoque using btree (produto_id) TABLESPACE pg_default;
+
+create index IF not exists ajustes_estoque_usuario_id_idx on public.ajustes_estoque using btree (usuario_id) TABLESPACE pg_default;
+
+create index IF not exists ajustes_estoque_criado_em_idx on public.ajustes_estoque using btree (criado_em desc) TABLESPACE pg_default;
+
+create table public.caixas (
+  id uuid not null default gen_random_uuid (),
+  usuario_abertura_id uuid not null,
+  usuario_fechamento_id uuid null,
+  aberto_em timestamp with time zone not null default now(),
+  fechado_em timestamp with time zone null,
+  valor_abertura numeric(12, 2) not null default 0,
+  valor_fechamento numeric(12, 2) null,
+  status text not null default 'aberto'::text,
+  observacoes text null,
+  constraint caixas_pkey primary key (id),
+  constraint caixas_usuario_abertura_id_fkey foreign KEY (usuario_abertura_id) references usuarios (id) on delete RESTRICT,
+  constraint caixas_usuario_fechamento_id_fkey foreign KEY (usuario_fechamento_id) references usuarios (id) on delete set null,
+  constraint caixas_status_check check (
+    (
+      status = any (array['aberto'::text, 'fechado'::text])
+    )
+  ),
+  constraint caixas_valor_abertura_check check ((valor_abertura >= (0)::numeric)),
+  constraint caixas_valor_fechamento_check check (
+    (
+      (valor_fechamento is null)
+      or (valor_fechamento >= (0)::numeric)
+    )
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists caixas_usuario_abertura_idx on public.caixas using btree (usuario_abertura_id) TABLESPACE pg_default;
+
+create index IF not exists caixas_status_idx on public.caixas using btree (status) TABLESPACE pg_default;
+
+create index IF not exists caixas_aberto_em_idx on public.caixas using btree (aberto_em desc) TABLESPACE pg_default;
+
+create unique INDEX IF not exists caixas_um_aberto_por_usuario_idx on public.caixas using btree (usuario_abertura_id) TABLESPACE pg_default
+where
+  (status = 'aberto'::text);
+
+create table public.configuracoes_sistema (
+  id integer not null default 1,
+  url_logo text null,
+  imprimir_automatico boolean not null default true,
+  largura_impressao text not null default 'ticket-80mm'::text,
+  atualizado_em timestamp with time zone not null default now(),
+  constraint configuracoes_sistema_pkey primary key (id),
+  constraint configuracoes_sistema_largura_impressao_check check (
+    (
+      largura_impressao = any (array['ticket-80mm'::text, 'ticket-58mm'::text])
+    )
+  ),
+  constraint configuracoes_sistema_unica check ((id = 1))
+) TABLESPACE pg_default;
+
+create trigger trg_configuracoes_atualizado_em BEFORE
+update on configuracoes_sistema for EACH row
+execute FUNCTION definir_configuracoes_atualizado_em ();
+
+create table public.membros (
+  id uuid not null default gen_random_uuid (),
+  nome text not null,
+  saldo_devedor numeric(12, 2) not null default 0,
+  ativo boolean not null default true,
+  criado_em timestamp with time zone not null default now(),
+  atualizado_em timestamp with time zone not null default now(),
+  constraint membros_pkey primary key (id),
+  constraint membros_saldo_devedor_check check ((saldo_devedor >= (0)::numeric))
+) TABLESPACE pg_default;
+
+create unique INDEX IF not exists membros_nome_unico on public.membros using btree (lower(nome)) TABLESPACE pg_default;
+
+create trigger trg_membros_atualizado_em BEFORE
+update on membros for EACH row
+execute FUNCTION definir_atualizado_em ();
+
+create table public.movimentacoes_membro (
+  id uuid not null default gen_random_uuid (),
+  membro_id uuid not null,
+  venda_id uuid null,
+  usuario_id uuid null,
+  tipo_movimentacao text not null,
+  origem text not null,
+  descricao text null,
+  valor numeric(12, 2) not null,
+  criado_em timestamp with time zone not null default now(),
+  constraint movimentacoes_membro_pkey primary key (id),
+  constraint movimentacoes_membro_usuario_id_fkey foreign KEY (usuario_id) references usuarios (id) on delete set null,
+  constraint movimentacoes_membro_venda_id_fkey foreign KEY (venda_id) references vendas (id) on delete set null,
+  constraint movimentacoes_membro_membro_id_fkey foreign KEY (membro_id) references membros (id) on delete CASCADE,
+  constraint movimentacoes_membro_tipo_movimentacao_check check (
+    (
+      tipo_movimentacao = any (
+        array['debito'::text, 'credito'::text, 'ajuste'::text]
+      )
+    )
+  ),
+  constraint movimentacoes_membro_origem_check check (
+    (
+      origem = any (
+        array[
+          'venda_fiado'::text,
+          'pagamento'::text,
+          'ajuste_manual'::text
+        ]
+      )
+    )
+  ),
+  constraint movimentacoes_membro_valor_check check ((valor >= (0)::numeric))
+) TABLESPACE pg_default;
+
+create index IF not exists movimentacoes_membro_membro_id_idx on public.movimentacoes_membro using btree (membro_id, criado_em desc) TABLESPACE pg_default;
+
+create index IF not exists movimentacoes_membro_venda_id_idx on public.movimentacoes_membro using btree (venda_id) TABLESPACE pg_default;
+
+create index IF not exists movimentacoes_membro_usuario_id_idx on public.movimentacoes_membro using btree (usuario_id) TABLESPACE pg_default;
+
+create index IF not exists movimentacoes_membro_tipo_idx on public.movimentacoes_membro using btree (tipo_movimentacao) TABLESPACE pg_default;
+
+create table public.produtos (
+  id bigint generated by default as identity not null,
+  nome text not null,
+  preco_atual numeric(12, 2) not null,
+  estoque_bar integer not null default 0,
+  estoque_deposito integer not null default 0,
+  url_imagem text null,
+  categoria text null,
+  estoque_min_bar integer not null default 0,
+  estoque_min_deposito integer not null default 0,
+  ativo boolean not null default true,
+  criado_em timestamp with time zone not null default now(),
+  atualizado_em timestamp with time zone not null default now(),
+  constraint produtos_pkey primary key (id),
+  constraint produtos_estoque_bar_check check ((estoque_bar >= 0)),
+  constraint produtos_estoque_deposito_check check ((estoque_deposito >= 0)),
+  constraint produtos_estoque_min_bar_check check ((estoque_min_bar >= 0)),
+  constraint produtos_estoque_min_deposito_check check ((estoque_min_deposito >= 0)),
+  constraint produtos_preco_atual_check check ((preco_atual >= (0)::numeric))
+) TABLESPACE pg_default;
+
+create index IF not exists produtos_nome_idx on public.produtos using btree (lower(nome)) TABLESPACE pg_default;
+
+create index IF not exists produtos_categoria_idx on public.produtos using btree (categoria) TABLESPACE pg_default;
+
+create trigger trg_produtos_atualizado_em BEFORE
+update on produtos for EACH row
+execute FUNCTION definir_atualizado_em ();
+
+create table public.usuarios (
+  id uuid not null,
+  nome text not null,
+  perfil text not null default 'operador'::text,
+  ativo boolean not null default true,
+  criado_em timestamp with time zone not null default now(),
+  atualizado_em timestamp with time zone not null default now(),
+  email character varying not null,
+  constraint usuarios_pkey primary key (id),
+  constraint usuarios_email_key unique (email),
+  constraint usuarios_id_fkey foreign KEY (id) references auth.users (id) on delete CASCADE,
+  constraint usuarios_perfil_check check (
+    (
+      perfil = any (array['admin'::text, 'operador'::text])
+    )
+  )
+) TABLESPACE pg_default;
+
+create trigger trg_usuarios_atualizado_em BEFORE
+update on usuarios for EACH row
+execute FUNCTION definir_atualizado_em ();
+
+create table public.usuarios (
+  id uuid not null,
+  nome text not null,
+  perfil text not null default 'operador'::text,
+  ativo boolean not null default true,
+  criado_em timestamp with time zone not null default now(),
+  atualizado_em timestamp with time zone not null default now(),
+  email character varying not null,
+  constraint usuarios_pkey primary key (id),
+  constraint usuarios_email_key unique (email),
+  constraint usuarios_id_fkey foreign KEY (id) references auth.users (id) on delete CASCADE,
+  constraint usuarios_perfil_check check (
+    (
+      perfil = any (array['admin'::text, 'operador'::text])
+    )
+  )
+) TABLESPACE pg_default;
+
+create trigger trg_usuarios_atualizado_em BEFORE
+update on usuarios for EACH row
+execute FUNCTION definir_atualizado_em ();
+
