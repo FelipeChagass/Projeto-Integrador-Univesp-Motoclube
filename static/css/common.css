@@ -10,7 +10,6 @@
     --bg-color: #0d0d0d;
     --card-bg: #1a1a1a;
     --accent: #b30000;
-    --success: #4caf50;
     --danger: #f44336;
     --edit-mode-color: #B30000;
     --warning-bg: rgba(255, 152, 0, 0.15);
@@ -166,26 +165,7 @@ body {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
-/* BOTÕES GENÉRICOS */
-.btn-pagar {
-    padding: 12px;
-    border: none;
-    border-radius: 5px;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    transition: 0.1s;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.btn-pagar:active {
-    transform: translateY(2px);
-}
-
 .btn-success {
-    background-color: var(--success);
     color: black !important;
 }
 
