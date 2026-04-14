@@ -215,6 +215,22 @@ function atualizarDados(showLoader) {
    ESTOQUE
    ============================================= */
 function alternarModoEstoque() {
+    // If currently in modoGerenciaEstoque, allow disabling without password prompt
+    if (modoGerenciaEstoque) {
+        modoGerenciaEstoque = false;
+        var btn = document.getElementById('btn-estoque');
+        var carrinhoSec = document.getElementById('secao-carrinho');
+        var header = document.getElementById('app-header');
+        if (btn) btn.classList.remove('active');
+        if (carrinhoSec) carrinhoSec.classList.remove('minimizado');
+        document.body.style.border = "none";
+        if (header) header.style.borderBottom = "1px solid rgba(255, 152, 0, 0.25)";
+        showToast("MODO ESTOQUE DESATIVADO");
+        renderizarCatalogo();
+        return;
+    }
+
+    // Otherwise (currently disabled) request password to enable
     UIModal.prompt("Digite a senha do estoque:", function (senha) {
         if (!senha) return;
         API.verificarSenhaEstoque(senha)
@@ -223,22 +239,15 @@ function alternarModoEstoque() {
                     showToast(res && res.mensagem ? res.mensagem : "Senha incorreta.", 'err');
                     return;
                 }
-                modoGerenciaEstoque = !modoGerenciaEstoque;
+                modoGerenciaEstoque = true;
                 var btn = document.getElementById('btn-estoque');
                 var carrinhoSec = document.getElementById('secao-carrinho');
                 var header = document.getElementById('app-header');
-                if (modoGerenciaEstoque) {
-                    if (btn) btn.classList.add('active');
-                    if (carrinhoSec) carrinhoSec.classList.add('minimizado');
-                    document.body.style.border = "3px solid #b30000";
-                    if (header) header.style.borderBottom = "3px solid #b30000";
-                    showToast("MODO ESTOQUE ATIVADO");
-                } else {
-                    if (btn) btn.classList.remove('active');
-                    if (carrinhoSec) carrinhoSec.classList.remove('minimizado');
-                    document.body.style.border = "none";
-                    if (header) header.style.borderBottom = "1px solid rgba(255, 152, 0, 0.25)";
-                }
+                if (btn) btn.classList.add('active');
+                if (carrinhoSec) carrinhoSec.classList.add('minimizado');
+                document.body.style.border = "3px solid #b30000";
+                if (header) header.style.borderBottom = "3px solid #b30000";
+                showToast("MODO ESTOQUE ATIVADO");
                 renderizarCatalogo();
             })
             .catch(function (err) {
