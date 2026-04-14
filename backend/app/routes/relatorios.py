@@ -3,7 +3,7 @@ Rotas: Relatórios
 POST /api/relatorios → Gera relatório financeiro (turno, dia, período) [requer login]
 """
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from app.database import get_db
 from app.services import relatorio_service
 from app.auth_middleware import requer_login
@@ -32,6 +32,9 @@ def gerar_relatorio():
 
         if tipo not in ('TURNO', 'DIA', 'PERIODO'):
             return jsonify({'status': 'erro', 'mensagem': f'Tipo inválido: {tipo}'}), 400
+
+        # Injeta usuario_id do JWT para filtro de turno
+        dados['operador_id'] = g.usuario_id
 
         resultado = relatorio_service.gerar_relatorio(db, tipo, dados)
 

@@ -2,8 +2,6 @@
 Serviço: Caixa
 Lógica de abertura e fechamento de caixa.
 
-IMPORTANTE: Abertura de caixa NÃO é mais tratada como venda.
-Tem sua própria tabela (caixas) e fluxo separado.
 
 O operador é identificado pelo usuario_id (UUID) vindo da sessão.
 """

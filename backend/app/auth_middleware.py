@@ -22,9 +22,13 @@ Uso nas rotas:
 
 import logging
 from functools import wraps
+
 from flask import request, jsonify, g
 from supabase import create_client, Client
+
 from app.config import Config
+from app.database import get_db
+from app.models.usuario import Usuario
 
 logger = logging.getLogger(__name__)
 
@@ -131,8 +135,6 @@ def requer_admin(f):
         g.usuario_meta = dados['metadata']
 
         # Verifica perfil no banco
-        from app.database import get_db
-        from app.models.usuario import Usuario
         db = next(get_db())
         try:
             usuario = db.query(Usuario).filter_by(id=g.usuario_id).first()

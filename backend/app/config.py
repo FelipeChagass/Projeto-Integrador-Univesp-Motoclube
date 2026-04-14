@@ -1,10 +1,3 @@
-"""
-Configurações centralizadas da aplicação.
-Lê variáveis do arquivo .env na raiz do projeto.
-
-Nenhuma dependência externa além de python-dotenv.
-"""
-
 import os
 from dotenv import load_dotenv
 
@@ -16,8 +9,16 @@ class Config:
     """Configurações do Flask e do banco de dados."""
 
     # --- Flask ---
-    SECRET_KEY = os.getenv('SECRET_KEY', 'chave-secreta-dev-trocar-em-prod')
+    SECRET_KEY = os.getenv('SECRET_KEY', '')
     DEBUG = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
+
+    if not SECRET_KEY:
+        if not DEBUG:
+            raise ValueError(
+                "ERRO: SECRET_KEY não configurada no .env. "
+                "Obrigatória em produção (FLASK_DEBUG=False)."
+            )
+        SECRET_KEY = 'chave-secreta-dev-trocar-em-prod'
 
     # --- Banco de Dados (PostgreSQL — Supabase) ---
     DATABASE_URL = os.getenv('DATABASE_URL')

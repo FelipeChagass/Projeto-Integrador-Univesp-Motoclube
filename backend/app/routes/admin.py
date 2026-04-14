@@ -32,10 +32,15 @@ Endpoints:
 import hmac
 import logging
 import os
+from datetime import datetime
+
 from flask import Blueprint, jsonify, request, current_app, g
+
+from app.auth_middleware import requer_admin, _supabase
 from app.database import get_db
+from app.models.configuracao import ConfiguracaoSistema
+from app.models.venda import Venda
 from app.services import produto_service, membro_service, usuario_service
-from app.auth_middleware import requer_admin
 
 logger = logging.getLogger(__name__)
 
@@ -325,7 +330,6 @@ def criar_usuario():
     dados = request.get_json(silent=True) or {}
     db = next(get_db())
     try:
-        from app.auth_middleware import _supabase
         resultado = usuario_service.criar_usuario_admin(db, _supabase, dados)
         status_code = 201 if resultado.get('status') == 'ok' else 400
         return jsonify(resultado), status_code
@@ -361,8 +365,6 @@ def listar_vendas():
         tipo_venda: 'normal', 'fiado', 'recebimento_divida'
         limite: int (default 100)
     """
-    from app.models.venda import Venda
-    from datetime import datetime
 
     db = next(get_db())
     try:
@@ -413,7 +415,6 @@ def listar_vendas():
 @requer_admin
 def get_config():
     """Retorna as configurações atuais do sistema."""
-    from app.models.configuracao import ConfiguracaoSistema
 
     db = next(get_db())
     try:
@@ -431,7 +432,6 @@ def get_config():
 @requer_admin
 def update_config():
     """Atualiza configurações do sistema."""
-    from app.models.configuracao import ConfiguracaoSistema
 
     dados = request.get_json(silent=True) or {}
     db = next(get_db())

@@ -1,15 +1,8 @@
-"""
-Serviço: Relatórios
-Geração de relatórios de caixa (turno, dia, período).
-
-Substitui a função gerarRelatorioCaixa() do Apps Script.
-"""
-
 from datetime import datetime, timezone, timedelta
 from sqlalchemy.orm import Session
-from sqlalchemy import and_
+from sqlalchemy import func
 
-from app.models.venda import Venda, ItemVenda
+from app.models.venda import Venda
 from app.models.caixa import Caixa
 
 
@@ -37,7 +30,13 @@ def gerar_relatorio(db: Session, tipo: str, dados_filtro: dict) -> dict:
         else:
             data_inicio = agora.replace(hour=0, minute=0, second=0, microsecond=0)
         data_fim = agora
-        texto_periodo = f"Turno: {dados_filtro.get('operador_nome', 'Atual')}"
+        # Frontend envia 'operador' (nome); aceita ambos os campos
+        nome_operador = (
+            dados_filtro.get('operador_nome')
+            or dados_filtro.get('operador')
+            or 'Atual'
+        )
+        texto_periodo = f"Turno: {nome_operador}"
 
     elif tipo == 'DIA':
         d = agora
@@ -83,6 +82,11 @@ def gerar_relatorio(db: Session, tipo: str, dados_filtro: dict) -> dict:
         'periodo': texto_periodo,
         'historico': [],
     }
+
+    # Busca valor de abertura de caixa(s) no período
+    resumo['abertura'] = _calcular_abertura(
+        db, data_inicio, data_fim, tipo, dados_filtro
+    )
 
     for venda in vendas:
         valor = float(venda.valor_total)
@@ -140,6 +144,33 @@ def gerar_relatorio(db: Session, tipo: str, dados_filtro: dict) -> dict:
     return resumo
 
 
+def _calcular_abertura(
+    db: Session,
+    data_inicio: datetime,
+    data_fim: datetime,
+    tipo: str,
+    dados_filtro: dict,
+) -> float:
+    """
+    Soma o valor_abertura de todos os caixas abertos no período.
+
+    Para TURNO filtra também pelo operador (usuario_abertura_id).
+    Para DIA/PERIODO soma todos os caixas abertos no intervalo.
+    """
+    query = db.query(func.coalesce(func.sum(Caixa.valor_abertura), 0)).filter(
+        Caixa.aberto_em >= data_inicio,
+        Caixa.aberto_em <= data_fim,
+    )
+
+    if tipo == 'TURNO' and dados_filtro.get('operador_id'):
+        query = query.filter(
+            Caixa.usuario_abertura_id == dados_filtro['operador_id']
+        )
+
+    resultado = query.scalar()
+    return float(resultado) if resultado else 0.0
+
+
 def _processar_itens_vendidos(itens: list, produtos_vendidos: dict):
     """Consolida os itens vendidos por nome do produto."""
     if not itens:
@@ -159,11 +190,15 @@ def _parse_data(data_str: str) -> datetime:
         '%Y-%m-%d',
         '%d/%m/%Y %H:%M:%S',
         '%d/%m/%Y',
+        # JS Date.toString(): "Mon Apr 14 2025 10:30:00 GMT+0000 (...)"
+        '%a %b %d %Y %H:%M:%S GMT%z',
     ]
     for fmt in formatos:
         try:
-            dt = datetime.strptime(data_str, fmt)
-            return dt.replace(tzinfo=timezone.utc)
+            dt = datetime.strptime(data_str.split(' (')[0].strip(), fmt)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt
         except ValueError:
             continue
 
@@ -171,4 +206,4 @@ def _parse_data(data_str: str) -> datetime:
     try:
         return datetime.fromisoformat(data_str.replace('Z', '+00:00'))
     except Exception:
-        return datetime.now(timezone.utc)
+        raise ValueError(f"Formato de data não reconhecido: '{data_str}'")

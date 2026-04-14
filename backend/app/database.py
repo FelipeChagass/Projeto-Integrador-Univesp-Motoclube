@@ -1,18 +1,3 @@
-"""
-Configuração do SQLAlchemy - Conexão com o banco de dados.
-
-Este módulo cria:
-- engine: motor de conexão com o PostgreSQL (via Supabase Pooler/Supavisor)
-- SessionLocal: fábrica de sessões para transações
-- Base: classe base para todos os models ORM
-
-IMPORTANTE sobre o Supabase Pooler (porta 6543):
-- O Supavisor opera em Transaction Mode por padrão
-- Prepared statements não são compatíveis com pooler em transaction mode
-- pool_pre_ping=True testa conexões antes de usar (evita stale connections)
-- pool_recycle=300 recicla conexões a cada 5 min (Supabase fecha idle)
-"""
-
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, declarative_base
 from app.config import Config

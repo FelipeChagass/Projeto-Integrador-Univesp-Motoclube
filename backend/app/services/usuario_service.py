@@ -14,7 +14,10 @@ Fluxo pós-signup:
 
 import logging
 import uuid
+
 from sqlalchemy.orm import Session
+from supabase_auth.errors import AuthApiError
+
 from app.models.usuario import Usuario
 
 logger = logging.getLogger(__name__)
@@ -150,7 +153,6 @@ def criar_usuario_admin(db: Session, supabase_client, dados: dict) -> dict:
     if perfil not in ('admin', 'operador'):
         return {'status': 'erro', 'mensagem': 'Perfil inválido.'}
 
-    from gotrue.errors import AuthApiError
     try:
         # Usa admin API para não precisar de email de verificação
         res = supabase_client.auth.admin.create_user({

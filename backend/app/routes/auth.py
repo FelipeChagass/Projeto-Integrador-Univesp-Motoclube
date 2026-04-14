@@ -1,24 +1,3 @@
-"""
-Rotas: Autenticação / Perfil
-
-O Supabase Auth (via supabase-js no frontend) cuida de signup, login e logout.
-O Flask NÃO gerencia senhas nem sessões de cookie.
-
-Endpoints aqui:
-
-  GET  /api/auth/config
-    → Retorna URL e Anon Key do Supabase (públicas).
-
-  GET  /api/auth/me
-    → Valida o JWT e retorna o perfil (public.usuarios) do usuário logado.
-    → Usado pelo frontend para verificar se há sessão ativa.
-
-  POST /api/auth/sincronizar
-    → Chamado uma vez após o signup (quando o perfil ainda não existe no DB).
-    → Cria (ou atualiza) a linha em public.usuarios.
-    → Body: { "nome": "...", "perfil": "operador" }
-"""
-
 from flask import Blueprint, request, jsonify, g
 from app.database import get_db
 from app.services import usuario_service

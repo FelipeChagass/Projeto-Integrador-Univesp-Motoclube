@@ -9,17 +9,10 @@ Esta tabela guarda apenas dados de perfil: nome, perfil (operador/admin),
 e status ativo. É criada/sincronizada via POST /api/auth/sincronizar
 logo após o signup no frontend.
 
-NOTA: O email também é salvo nesta tabela e espelha o Supabase Auth.
-O schema do banco é:
+Schema do banco:
   id uuid primary key references auth.users(id)
   nome text not null
-  perfil text not null default 'operador'
-  ativo boolean not null default true
-  criado_em timestamptz
-  atualizado_em timestamptz
   email varchar not null unique
-  id uuid primary key references auth.users(id)
-  nome text not null
   perfil text not null default 'operador'
   ativo boolean not null default true
   criado_em timestamptz

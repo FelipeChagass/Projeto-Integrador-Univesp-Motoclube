@@ -45,8 +45,6 @@ def create_app():
     app.register_blueprint(auth_bp)
 
     # ---------- Servir frontend ----------
-    frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-    templates_dir = os.path.join(frontend_dir, 'templates')
 
     @app.route('/')
     def index():
