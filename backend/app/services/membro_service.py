@@ -1,8 +1,3 @@
-"""
-Serviço: Membros
-CRUD completo + extrato de movimentações + ajuste manual de saldo.
-"""
-
 import logging
 import uuid
 from decimal import Decimal

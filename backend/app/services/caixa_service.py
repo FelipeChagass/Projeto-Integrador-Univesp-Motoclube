@@ -1,11 +1,3 @@
-"""
-Serviço: Caixa
-Lógica de abertura e fechamento de caixa.
-
-
-O operador é identificado pelo usuario_id (UUID) vindo da sessão.
-"""
-
 from decimal import Decimal
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session

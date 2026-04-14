@@ -1,8 +1,3 @@
-"""
-Serviço: Produtos
-Listagem, CRUD e ajuste de estoque.
-"""
-
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from sqlalchemy.orm import Session
