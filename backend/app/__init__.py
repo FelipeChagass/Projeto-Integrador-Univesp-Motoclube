@@ -7,7 +7,7 @@ Autenticação: Supabase Auth (JWT). Flask não gerencia sessões.
 """
 
 import os
-from flask import Flask, send_from_directory, redirect, render_template
+from flask import Flask, redirect, render_template
 from flask_cors import CORS
 from app.config import Config
 

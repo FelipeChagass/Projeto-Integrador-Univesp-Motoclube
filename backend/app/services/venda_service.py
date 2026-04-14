@@ -1,16 +1,3 @@
-"""
-Serviço: Vendas
-Contém TODA a lógica de negócio para:
-- Venda normal (dinheiro, pix, cartão)
-- Venda fiado (com movimentação de membro)
-- Pagamento de dívida (recebimento)
-
-REGRA CRÍTICA: Todas as operações são TRANSACIONAIS.
-Se qualquer etapa falhar, tudo é revertido (rollback).
-
-O operador é identificado pelo usuario_id (UUID) vindo da sessão.
-"""
-
 from decimal import Decimal, ROUND_HALF_UP
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -84,9 +71,8 @@ def criar_venda_normal(db: Session, dados: dict) -> dict:
             produto = produtos_dict.get(pid)
             if not produto:
                 return {'status': 'erro', 'mensagem': f'Produto ID {pid} não encontrado.'}
-            if not produto.is_comida():
-                # Permite estoque negativo para não perder a venda financeira
-                pass
+            if produto.estoque_bar < qtd_necessaria:
+                return {'status': 'erro', 'mensagem': f'Porções insuficientes para "{produto.nome}". Disponível: {produto.estoque_bar}, solicitado: {qtd_necessaria}.'}
 
         # 3. RECALCULA TOTAL NO SERVIDOR (ignora o total enviado pelo frontend)
         # Isso previne manipulação de preço por clientes maliciosos.
@@ -131,8 +117,7 @@ def criar_venda_normal(db: Session, dados: dict) -> dict:
         # 6. BAIXA ESTOQUE DO BAR
         for pid, qtd in mapa_reducao.items():
             produto = produtos_dict[pid]
-            if not produto.is_comida():
-                produto.estoque_bar = produto.estoque_bar - qtd
+            produto.estoque_bar = produto.estoque_bar - qtd
 
         # 7. COMMIT ATÔMICO
         db.commit()
@@ -209,9 +194,8 @@ def criar_venda_fiado(db: Session, dados: dict) -> dict:
             produto = produtos_dict.get(pid)
             if not produto:
                 return {'status': 'erro', 'mensagem': f'Produto ID {pid} não encontrado.'}
-            if not produto.is_comida():
-                # Permite estoque negativo para não perder a venda financeira
-                pass
+            if produto.estoque_bar < qtd_necessaria:
+                return {'status': 'erro', 'mensagem': f'Porções insuficientes para "{produto.nome}". Disponível: {produto.estoque_bar}, solicitado: {qtd_necessaria}.'}
 
         # RECALCULA TOTAL NO SERVIDOR
         total_calculado = Decimal('0.00')
@@ -274,8 +258,7 @@ def criar_venda_fiado(db: Session, dados: dict) -> dict:
         # 5. Baixa estoque
         for pid, qtd in mapa_reducao.items():
             produto = produtos_dict[pid]
-            if not produto.is_comida():
-                produto.estoque_bar = produto.estoque_bar - qtd
+            produto.estoque_bar = produto.estoque_bar - qtd
 
         # 6. Commit atômico
         db.commit()

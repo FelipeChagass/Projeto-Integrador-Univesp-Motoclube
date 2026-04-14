@@ -1,25 +1,3 @@
-"""
-Middleware de Autenticação — Supabase JWT
-
-O Supabase emite um JWT (access_token) quando o usuário faz login no frontend.
-O frontend envia esse token em TODA requisição ao Flask:
-
-    Authorization: Bearer <access_token>
-
-Este módulo valida o token usando o Supabase Python SDK (service role).
-Se válido, injeta o user_id (UUID do auth.users) em g.usuario_id.
-
-Uso nas rotas:
-    from app.auth_middleware import requer_login, requer_admin
-
-    @bp.route('/vendas', methods=['POST'])
-    @requer_login
-    def criar_venda():
-        user_id = g.usuario_id    # UUID string do usuário autenticado
-        user_email = g.usuario_email
-        ...
-"""
-
 import logging
 from functools import wraps
 
