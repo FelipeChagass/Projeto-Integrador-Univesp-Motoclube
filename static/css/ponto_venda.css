@@ -350,8 +350,6 @@
     border-left: 1px solid rgba(255, 255, 255, 0.05);
     box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
     height: 100%;
-    transform: translateX(0);
-    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
 }
 
 #carrinho-section.minimizado {
@@ -359,7 +357,6 @@
     right: 0;
     top: 0;
     z-index: 50;
-    transform: translateX(100%);
     opacity: 0;
     border-left: none;
 }
@@ -516,20 +513,15 @@
     font-weight: 600 !important;
     padding: 14px 10px !important;
     font-size: 0.85rem !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4) !important;
     cursor: pointer;
 }
 
 .btn-pagar:hover {
-    transform: translateY(-1px);
     background: #222 !important;
     border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-.btn-pagar:active {
-    transform: translateY(0);
-}
 
 .btn-pagar svg {
     width: 20px;
@@ -774,4 +766,207 @@
     .btn-header {
         padding: 7px 10px;
     }
+}
+
+/* ============================================================
+   CLASSES EXTRAÍDAS DE INLINE STYLES — ponto_venda.html
+   ============================================================ */
+
+/* Loading screen text */
+.loading-text {
+    margin-top: 12px;
+    font-size: 0.95rem;
+    color: #888;
+    letter-spacing: 0.5px;
+}
+
+/* Header logo */
+.header-logo {
+    width: 70px;
+    height: 70px;
+}
+
+/* Modal titles / subtitles */
+.modal-title-accent {
+    color: var(--accent);
+}
+
+.modal-subtitle {
+    color: #ccc;
+    margin-bottom: 20px;
+}
+
+.modal-subtitle-muted {
+    color: #aaa;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Big centered input (valor abertura, valor recebido) */
+.input-valor-grande {
+    font-size: 2rem;
+    text-align: center;
+    color: var(--success);
+}
+
+/* Generic modal buttons */
+.btn-modal-full {
+    width: 100%;
+    margin-top: 10px;
+    font-size: 1.1rem;
+}
+
+.btn-modal-cancel {
+    width: 100%;
+    margin-top: 5px;
+    background: #555;
+}
+
+.btn-modal-cancel-mt2 {
+    width: 100%;
+    margin-top: 10px;
+    background: #555;
+}
+
+/* Product name in obs modal */
+.modal-prod-nome-accent {
+    color: var(--accent);
+    font-weight: bold;
+}
+
+/* Dinheiro label */
+.label-muted {
+    color: #aaa;
+}
+
+/* Dinheiro confirm disabled state */
+.btn-disabled-initial {
+    width: 100%;
+    margin-top: 10px;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Cartão type buttons */
+.btn-tipo-cartao {
+    width: 100%;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+}
+
+.btn-tipo-credito {
+    width: 100%;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+    background: #9c27b0;
+}
+
+/* Estoque modal */
+.modal-title-estoque {
+    color: var(--edit-mode-color);
+}
+
+.estoque-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.label-accent {
+    color: var(--accent);
+}
+
+.label-danger {
+    color: var(--danger);
+}
+
+.estoque-nota {
+    font-size: 0.8rem;
+    color: #aaa;
+    margin-top: 5px;
+}
+
+.btn-estoque-salvar {
+    background: var(--edit-mode-color);
+    width: 100%;
+}
+
+/* Preview dívida */
+.preview-divida {
+    text-align: center;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #aaa;
+    min-height: 1.2em;
+}
+
+/* Fechar conta */
+.nome-fechar-conta {
+    color: #aaa;
+    font-weight: bold;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.prompt-pagamento {
+    margin-top: 15px;
+    font-size: 0.9em;
+    color: #aaa;
+    margin-bottom: 5px;
+}
+
+/* Relatórios / Gestão */
+.operador-box {
+    padding: 10px;
+    background: #222;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.operador-nome {
+    font-size: 1.2rem;
+    margin: 5px 0 10px 0;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+}
+
+.btn-trocar-operador {
+    width: 100%;
+    background: #e91e63;
+}
+
+.btn-abrir-caixa {
+    width: 100%;
+    margin-top: 5px;
+    background: #ff9800;
+    color: white !important;
+}
+
+.btn-fechar-dia {
+    width: 100%;
+    margin-top: 5px;
+    background: #2196f3;
+}
+
+.date-range-row {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.date-range-row .config-input {
+    margin: 0;
+}
+
+.btn-gerar-periodo {
+    width: 100%;
+    margin-bottom: 10px;
+    background: #9c27b0;
+}
+
+.resultado-relatorio {
+    margin-top: 15px;
+    border-top: 1px solid #555;
+    padding-top: 10px;
 }

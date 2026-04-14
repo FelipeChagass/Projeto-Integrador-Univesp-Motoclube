@@ -11,10 +11,10 @@
  *   const resultado = await API.processarVenda(venda);
  */
 window.UIModal = {
-    confirm: function(msg, callbackOk, callbackCancel) { this.show('CONFIRMAÇÃO', msg, true, callbackOk, callbackCancel); },
-    alert: function(msg, callbackOk) { this.show('ALERTA', msg, false, callbackOk, null); },
-    prompt: function(msg, callbackOk, callbackCancel) { this.show('INSERIR DADOS', msg, true, callbackOk, callbackCancel, true); },
-    show: function(title, msg, isConfirm, onOk, onCancel, isPrompt) {
+    confirm: function (msg, callbackOk, callbackCancel) { this.show('CONFIRMAÇÃO', msg, true, callbackOk, callbackCancel); },
+    alert: function (msg, callbackOk) { this.show('ALERTA', msg, false, callbackOk, null); },
+    prompt: function (msg, callbackOk, callbackCancel) { this.show('INSERIR DADOS', msg, true, callbackOk, callbackCancel, true); },
+    show: function (title, msg, isConfirm, onOk, onCancel, isPrompt) {
         var d = document.createElement('div');
         d.style.position = 'fixed'; d.style.inset = '0'; d.style.background = 'rgba(0,0,0,0.85)';
         d.style.zIndex = '999999'; d.style.display = 'flex'; d.style.justifyContent = 'center'; d.style.alignItems = 'center';
@@ -27,10 +27,10 @@ window.UIModal = {
             '<button id="ui-btn-ok" style="padding:10px 20px; border:none; border-radius:5px; background:#b30000; color:#fff; cursor:pointer; font-weight:bold;">' + (isConfirm ? 'CONFIRMAR' : 'OK') + '</button>' +
             '</div></div>';
         document.body.appendChild(d);
-        if (isPrompt) { setTimeout(function(){ document.getElementById('ui-prompt-input').focus(); }, 100); }
-        document.getElementById('ui-btn-ok').onclick = function() { var val = isPrompt ? document.getElementById('ui-prompt-input').value : null; document.body.removeChild(d); if(onOk) onOk(val); };
+        if (isPrompt) { setTimeout(function () { document.getElementById('ui-prompt-input').focus(); }, 100); }
+        document.getElementById('ui-btn-ok').onclick = function () { var val = isPrompt ? document.getElementById('ui-prompt-input').value : null; document.body.removeChild(d); if (onOk) onOk(val); };
         var btnCancel = document.getElementById('ui-btn-cancel');
-        if(btnCancel) { btnCancel.onclick = function() { var val = isPrompt ? document.getElementById('ui-prompt-input').value : null; document.body.removeChild(d); if(onCancel) onCancel(val); }; }
+        if (btnCancel) { btnCancel.onclick = function () { var val = isPrompt ? document.getElementById('ui-prompt-input').value : null; document.body.removeChild(d); if (onCancel) onCancel(val); }; }
     }
 };
 
@@ -134,12 +134,12 @@ const API = (function () {
             const client = await initSupabase();
             if (!client) return { status: 'erro', mensagem: 'Supabase não inicializado' };
             const { data, error } = await client.auth.signUp({
-                email: email, 
+                email: email,
                 password: senha,
                 options: { data: { nome: nome } }
             });
             if (error) return { status: 'erro', mensagem: error.message };
-            
+
             // Tenta sincronizar o perfil no backend local
             try {
                 await _request('POST', '/auth/sincronizar', { nome: nome, perfil: 'operador' });
@@ -261,6 +261,13 @@ const API = (function () {
          */
         getCaixaAberto: function () {
             return _request('GET', '/caixa/aberto');
+        },
+
+        /**
+         * Verifica senha do modo estoque no servidor.
+         */
+        verificarSenhaEstoque: function (senha) {
+            return _request('POST', '/admin/verificar-senha', { senha: senha });
         },
 
         /**

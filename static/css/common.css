@@ -110,6 +110,11 @@ body {
     animation: fadein 0.5s, fadeout 0.5s 2.5s;
 }
 
+#toast.toast-error {
+    background-color: #b30000;
+    border-color: #ff4444;
+}
+
 @keyframes fadein {
     from {
         top: -50px;

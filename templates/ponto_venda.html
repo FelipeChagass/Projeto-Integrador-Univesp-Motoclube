@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PDV - Bar Moto Clube</title>
     <link rel="icon" href="{{ url_for('static', filename='img/motorhead.png') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ponto_venda.css') }}">
     <script>
@@ -39,10 +40,10 @@
     <!-- TELA DE LOADING -->
     <div id="loading">
         <div class="spinner"></div>
-        <p style="margin-top:12px; font-size:0.95rem; color:#888; letter-spacing:0.5px;">Carregando...</p>
+        <p class="loading-text">Carregando...</p>
     </div>
 
-    <img id="logo-preload" style="display:none;" />
+    <img id="logo-preload" class="d-none" />
     <div id="toast">Venda Registrada!</div>
 
     <!-- HEADER -->
@@ -50,13 +51,13 @@
         <div id="info-topo-esq">
             <div>
                 <img src="{{ url_for('static', filename='img/motorhead.png') }}" alt="Logo"
-                    style="width: 70px; height: 70px;">
+                    class="header-logo">
             </div>
             <div id="barra-operador">CAIXA FECHADO - Toque em Abrir</div>
         </div>
 
         <div class="top-buttons">
-            <button class="btn-header" id="btn-estoque" onclick="verificarSenhaEstoque()" title="Gerenciar Estoque">
+            <button class="btn-header" id="btn-estoque" onclick="alternarModoEstoque()" title="Gerenciar Estoque">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path
@@ -75,7 +76,7 @@
                 </svg>
                 <span class="btn-text">Gestão</span>
             </button>
-            <button class="btn-header" id="btn-admin" onclick="window.location.href='/admin'" style="display:none"
+            <button class="btn-header d-none" id="btn-admin" onclick="window.location.href='/admin'"
                 title="Painel Admin">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-linecap="round" stroke-linejoin="round">
@@ -102,8 +103,7 @@
                 <span class="btn-text">Sair</span>
             </button>
 
-            <button class="btn-header btn-header--accent" id="container-abrir-caixa" onclick="abrirModalAberturaCaixa()"
-                style="display:none" title="Abrir Caixa">
+            <button class="btn-header btn-header--accent d-none" id="container-abrir-caixa" onclick="abrirModalAberturaCaixa()" title="Abrir Caixa">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-linecap="round" stroke-linejoin="round">
                     <rect width="20" height="14" x="2" y="5" rx="2" />
@@ -206,14 +206,13 @@
 
     <!-- Abertura de Caixa -->
     <div id="modal-abertura-caixa" class="modal-overlay">
-        <div class="modal-content" style="text-align:center;">
-            <h2 style="color:var(--accent);">ABERTURA DE CAIXA</h2>
-            <p style="color:#ccc; margin-bottom:20px;">Informe o Fundo de Caixa (Troco Inicial):</p>
-            <input type="number" id="input-valor-abertura" class="input-cliente" placeholder="0,00"
-                style="font-size:2rem; text-align:center; color:var(--success);">
-            <button class="btn-pagar btn-success" style="width:100%; margin-top:10px; font-size:1.1rem;"
+        <div class="modal-content text-center">
+            <h2 class="modal-title-accent">ABERTURA DE CAIXA</h2>
+            <p class="modal-subtitle">Informe o Fundo de Caixa (Troco Inicial):</p>
+            <input type="number" id="input-valor-abertura" class="input-cliente input-valor-grande" placeholder="0,00">
+            <button class="btn-pagar btn-success btn-modal-full"
                 onclick="confirmarAberturaValor()">ABRIR CAIXA</button>
-            <button class="btn-pagar" style="width:100%; margin-top:5px; background:#555;"
+            <button class="btn-pagar btn-modal-cancel"
                 onclick="fecharModal('modal-abertura-caixa')">CANCELAR</button>
         </div>
     </div>
@@ -222,13 +221,11 @@
     <div id="modal-obs" class="modal-overlay">
         <div class="modal-content">
             <h3>Personalizar</h3>
-            <p id="modal-prod-nome" style="color:var(--accent); font-weight:bold;"></p>
-            <input type="text" id="custom-obs" placeholder="Ex: Sem cebola..." class="input-cliente"
-                style="margin-top:5px">
+            <p id="modal-prod-nome" class="modal-prod-nome-accent"></p>
+            <input type="text" id="custom-obs" placeholder="Ex: Sem cebola..." class="input-cliente mt-1">
             <br><br>
-            <button class="btn-pagar btn-success" style="width:100%" onclick="confirmarObs()">CONFIRMAR PEDIDO</button>
-            <button class="btn-pagar" onclick="fecharModal('modal-obs')"
-                style="margin-top:5px; background:#555; width:100%">CANCELAR</button>
+            <button class="btn-pagar btn-success w-100" onclick="confirmarObs()">CONFIRMAR PEDIDO</button>
+            <button class="btn-pagar btn-modal-cancel" onclick="fecharModal('modal-obs')">CANCELAR</button>
         </div>
     </div>
 
@@ -237,15 +234,13 @@
         <div class="modal-content">
             <h3>Pagamento em Dinheiro</h3>
             <div class="valor-pendente" id="valor-total-dinheiro">Total: R$ 0,00</div>
-            <label style="color:#aaa">Valor Recebido:</label>
-            <input type="number" id="valor-recebido" class="input-cliente" placeholder="0,00"
-                style="font-size:2rem; text-align:center; color:var(--success);" oninput="calcularTroco()">
+            <label class="label-muted">Valor Recebido:</label>
+            <input type="number" id="valor-recebido" class="input-cliente input-valor-grande" placeholder="0,00"
+                oninput="calcularTroco()">
             <div class="display-troco" id="display-troco">Troco: R$ 0,00</div>
-            <button id="btn-confirmar-dinheiro" class="btn-pagar btn-success"
-                style="width:100%; margin-top:10px; opacity:0.5; pointer-events:none;"
+            <button id="btn-confirmar-dinheiro" class="btn-pagar btn-success btn-disabled-initial"
                 onclick="finalizarPagamentoDinheiro()">CONFIRMAR PAGAMENTO</button>
-            <button class="btn-pagar" onclick="fecharModal('modal-dinheiro')"
-                style="margin-top:5px; background:#555; width:100%">CANCELAR</button>
+            <button class="btn-pagar btn-modal-cancel" onclick="fecharModal('modal-dinheiro')">CANCELAR</button>
         </div>
     </div>
 
@@ -253,38 +248,35 @@
     <div id="modal-cartao" class="modal-overlay">
         <div class="modal-content">
             <h3>Selecione o Tipo</h3>
-            <p style="color:#aaa; text-align:center; margin-bottom:20px">Qual a função do cartão?</p>
-            <button class="btn-pagar btn-info" style="width:100%; margin-bottom:10px; font-size:1.2rem"
+            <p class="modal-subtitle-muted">Qual a função do cartão?</p>
+            <button class="btn-pagar btn-info btn-tipo-cartao"
                 onclick="finalizarPagamentoCartao('DÉBITO')">DÉBITO</button>
-            <button class="btn-pagar btn-info"
-                style="width:100%; margin-bottom:10px; font-size:1.2rem; background:#9c27b0"
+            <button class="btn-pagar btn-info btn-tipo-credito"
                 onclick="finalizarPagamentoCartao('CRÉDITO')">CRÉDITO</button>
-            <button class="btn-pagar" onclick="fecharModal('modal-cartao')"
-                style="margin-top:5px; background:#555; width:100%">CANCELAR</button>
+            <button class="btn-pagar btn-modal-cancel" onclick="fecharModal('modal-cartao')">CANCELAR</button>
         </div>
     </div>
 
     <!-- Gestão de Estoque -->
     <div id="modal-estoque" class="modal-overlay">
         <div class="modal-content">
-            <h3 style="color:var(--edit-mode-color)">Gestão de Estoque</h3>
-            <p id="nome-prod-estoque" style="font-weight:bold; margin-bottom:15px;"></p>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <div class="config-option"><label style="color:var(--accent)">Estoque BAR:</label><input type="number"
+            <h3 class="modal-title-estoque">Gestão de Estoque</h3>
+            <p id="nome-prod-estoque" class="fw-bold mb-3"></p>
+            <div class="estoque-grid">
+                <div class="config-option"><label class="label-accent">Estoque BAR:</label><input type="number"
                         id="edit-est-bar" class="config-input" min="0"></div>
-                <div class="config-option"><label style="color:var(--accent)">Estoque DEPÓSITO:</label><input
+                <div class="config-option"><label class="label-accent">Estoque DEPÓSITO:</label><input
                         type="number" id="edit-est-dep" class="config-input" min="0"></div>
-                <div class="config-option"><label style="color:var(--danger)">Mínimo BAR:</label><input type="number"
+                <div class="config-option"><label class="label-danger">Mínimo BAR:</label><input type="number"
                         id="edit-min-bar" class="config-input" min="0"></div>
-                <div class="config-option"><label style="color:var(--danger)">Mínimo DEPÓSITO:</label><input
+                <div class="config-option"><label class="label-danger">Mínimo DEPÓSITO:</label><input
                         type="number" id="edit-min-dep" class="config-input" min="0"></div>
             </div>
-            <p style="font-size:0.8rem; color:#aaa; margin-top:5px;"><i>Nota: Ao aumentar o Bar, o valor será subtraído
+            <p class="estoque-nota"><i>Nota: Ao aumentar o Bar, o valor será subtraído
                     do Depósito automaticamente.</i></p>
-            <button class="btn-pagar" style="background:var(--edit-mode-color); width:100%"
+            <button class="btn-pagar btn-estoque-salvar"
                 onclick="salvarEdicaoEstoque()">SALVAR ALTERAÇÕES</button>
-            <button class="btn-pagar" onclick="fecharModal('modal-estoque')"
-                style="margin-top:5px; background:#555; width:100%">CANCELAR</button>
+            <button class="btn-pagar btn-modal-cancel" onclick="fecharModal('modal-estoque')">CANCELAR</button>
         </div>
     </div>
 
@@ -295,12 +287,10 @@
             <select id="select-membro" class="lista-membros-scroll" onchange="verificarDividaSelecionada()">
                 <option value="" disabled selected>Carregando...</option>
             </select>
-            <div id="preview-divida"
-                style="text-align:center; margin-bottom:10px; font-weight:bold; color:#aaa; min-height:1.2em;"></div>
-            <button class="btn-pagar btn-success" style="width:100%; margin-top:10px"
+            <div id="preview-divida" class="preview-divida"></div>
+            <button class="btn-pagar btn-success w-100 mt-2"
                 onclick="confirmarSelecaoMembro()">CONTINUAR</button>
-            <button class="btn-pagar" onclick="fecharModalSelecaoMembro()"
-                style="margin-top:5px; background:#555; width:100%">CANCELAR</button>
+            <button class="btn-pagar btn-modal-cancel" onclick="fecharModalSelecaoMembro()">CANCELAR</button>
         </div>
     </div>
 
@@ -308,17 +298,16 @@
     <div id="modal-fechar-conta" class="modal-overlay">
         <div class="modal-content">
             <h3>Fechar Conta</h3>
-            <p id="nome-fechar-conta" style="color:#aaa; font-weight:bold; font-size:1.2rem; text-align:center;"></p>
+            <p id="nome-fechar-conta" class="nome-fechar-conta"></p>
             <div id="lista-fechamento" class="extrato-lista">Carregando...</div>
             <div class="extrato-total" id="total-fechamento">R$ 0,00</div>
-            <div style="margin-top:15px; font-size:0.9em; color:#aaa; margin-bottom:5px">Como vai pagar?</div>
+            <div class="prompt-pagamento">Como vai pagar?</div>
             <div class="grid-pagamento">
                 <button class="btn-pagar btn-dinheiro" onclick="iniciarLiquidacao('DINHEIRO')">Dinheiro</button>
                 <button class="btn-pagar btn-pix" onclick="iniciarLiquidacao('PIX')">Pix</button>
                 <button class="btn-pagar btn-cartao" onclick="iniciarLiquidacao('CARTAO')">Cartão</button>
             </div>
-            <button class="btn-pagar" onclick="fecharModal('modal-fechar-conta')"
-                style="margin-top:10px; background:#555; width:100%">CANCELAR</button>
+            <button class="btn-pagar btn-modal-cancel-mt2" onclick="fecharModal('modal-fechar-conta')">CANCELAR</button>
         </div>
     </div>
 
@@ -327,38 +316,33 @@
         <div class="modal-content">
             <h3>Gestão de Caixa</h3>
             <div class="section-header">OPERADOR ATUAL</div>
-            <div style="padding:10px; background:#222; border-radius:5px; margin-bottom:15px;">
-                <p id="nome-operador-atual"
-                    style="font-size:1.2rem; margin:5px 0 10px 0; font-weight:bold; color:white; text-align:center;">...
-                </p>
-                <button class="btn-pagar btn-info" style="width:100%; background: #e91e63;" onclick="trocarMembro()">
+            <div class="operador-box">
+                <p id="nome-operador-atual" class="operador-nome">...</p>
+                <button class="btn-pagar btn-info btn-trocar-operador" onclick="trocarMembro()">
                     TROCAR MEMBRO (Sair)
                 </button>
             </div>
             <div class="section-header">CAIXA</div>
-            <button class="btn-pagar btn-success"
-                style="width:100%; margin-top:5px; background: #ff9800; color: black !important;"
+            <button class="btn-pagar btn-success btn-abrir-caixa"
                 onclick="abrirModalAberturaCaixa()">
                 ABRIR CAIXA (INICIO)
             </button>
             <div class="section-header">FECHAMENTOS</div>
-            <button class="btn-pagar btn-info" style="width:100%; margin-top:5px; background: #2196f3"
+            <button class="btn-pagar btn-info btn-fechar-dia"
                 onclick="gerarRelatorio('DIA')">
                 FECHAR CAIXA TOTAL (DIA)
             </button>
             <div class="section-header">RELATÓRIO PERÍODO</div>
-            <div style="display:flex; gap:5px; margin-top:5px;">
-                <input type="date" id="data-inicio" class="config-input" style="margin:0;">
-                <input type="date" id="data-fim" class="config-input" style="margin:0;">
+            <div class="date-range-row">
+                <input type="date" id="data-inicio" class="config-input">
+                <input type="date" id="data-fim" class="config-input">
             </div>
-            <button class="btn-pagar btn-info" style="width:100%; margin-bottom:10px; background: #9c27b0"
+            <button class="btn-pagar btn-info btn-gerar-periodo"
                 onclick="gerarRelatorioPeriodo()">
                 GERAR MENSAL/PERIODO
             </button>
-            <div id="resultado-relatorio"
-                style="display:none; margin-top:15px; border-top:1px solid #555; padding-top:10px;"></div>
-            <button class="btn-pagar" onclick="fecharModal('modal-relatorios')"
-                style="margin-top:10px; background:#555; width:100%">FECHAR JANELA</button>
+            <div id="resultado-relatorio" class="resultado-relatorio d-none"></div>
+            <button class="btn-pagar btn-modal-cancel-mt2" onclick="fecharModal('modal-relatorios')">FECHAR JANELA</button>
         </div>
     </div>
 
@@ -376,7 +360,7 @@
                 </select>
             </div>
             <button class="btn-pagar btn-dinheiro" onclick="salvarConfig()">SALVAR</button>
-            <button class="btn-pagar" style="margin-top:5px; background:#555;"
+            <button class="btn-pagar btn-modal-cancel"
                 onclick="fecharModal('modal-config')">CANCELAR</button>
         </div>
     </div>

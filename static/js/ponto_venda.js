@@ -1,20 +1,9 @@
-/**
- * POS.JS — Lógica do Ponto de Venda (PDV)
- *
- * Todas as funções de negócio do PDV extraídas do antigo index.html.
- * Depende de: api.js (global API), DOM do pos.html
- */
-
-/* =============================================
-   PROTEÇÃO DE MEMÓRIA E VARIÁVEIS GLOBAIS
-   ============================================= */
 var LocalDB = {
     set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) { console.warn("Storage Bloqueado"); } },
     get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
     remove: function (k) { try { localStorage.removeItem(k); } catch (e) { } }
 };
 
-var SENHA_ESTOQUE = "1234";
 var logoUrl = "/static/img/motorhead.png";
 
 var produtos = [], membros = [], carrinho = [], filaVendas = [];
@@ -39,10 +28,11 @@ var lastProcessTime = 0;
 /* =============================================
    UTILITÁRIOS
    ============================================= */
-function showToast(msg) {
-    var x = document.getElementById("toast");
-    x.innerText = msg; x.className = "show";
-    setTimeout(function () { x.className = x.className.replace("show", ""); }, 3000);
+function showToast(msg, type) {
+    var toastEl = document.getElementById("toast");
+    toastEl.innerText = msg;
+    toastEl.className = "show" + (type === 'err' ? ' toast-error' : '');
+    setTimeout(function () { toastEl.className = toastEl.className.replace("show", "").replace("toast-error", "").trim(); }, 3000);
 }
 
 // function resetarTravaFila removida
@@ -51,10 +41,10 @@ function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
 
 function converterLinkDrive(url) {
     if (!url || typeof url !== 'string') return "";
-    var m1 = url.match(new RegExp("\\/d\\/(.+?)\\/"));
-    if (m1 && m1[1]) return "https://drive.google.com/uc?export=view&id=" + m1[1];
-    var m2 = url.match(new RegExp("id=([a-zA-Z0-9_-]+)"));
-    if (m2 && m2[1]) return "https://drive.google.com/uc?export=view&id=" + m2[1];
+    var matchPath = url.match(new RegExp("\\/d\\/(.+?)\\/"));
+    if (matchPath && matchPath[1]) return "https://drive.google.com/uc?export=view&id=" + matchPath[1];
+    var matchId = url.match(new RegExp("id=([a-zA-Z0-9_-]+)"));
+    if (matchId && matchId[1]) return "https://drive.google.com/uc?export=view&id=" + matchId[1];
     return url;
 }
 
@@ -79,75 +69,75 @@ function salvarDadosLocais() {
 
 function carregarDadosLocais() {
     try {
-        var p = LocalDB.get('motoBarProdutos'); if (p) { produtos = JSON.parse(p); if (!Array.isArray(produtos)) produtos = []; }
-        var m = LocalDB.get('motoBarMembros'); if (m) { membros = JSON.parse(m); if (!Array.isArray(membros)) membros = []; }
+        var produtosJson = LocalDB.get('motoBarProdutos'); if (produtosJson) { produtos = JSON.parse(produtosJson); if (!Array.isArray(produtos)) produtos = []; }
+        var membrosJson = LocalDB.get('motoBarMembros'); if (membrosJson) { membros = JSON.parse(membrosJson); if (!Array.isArray(membros)) membros = []; }
         // var l = LocalDB.get('motoBarLogo'); if (l) logoUrl = l;
-        var op = LocalDB.get('motoBarOperador'); if (op) operadorAtual = op;
-        var ini = LocalDB.get('motoBarInicio'); if (ini) inicioTurno = new Date(ini);
-        var c = LocalDB.get('motoBarCarrinho'); if (c) { carrinho = JSON.parse(c); if (!Array.isArray(carrinho)) carrinho = []; }
-        var f = LocalDB.get('motoBarFila'); if (f) { filaVendas = JSON.parse(f); if (!Array.isArray(filaVendas)) filaVendas = []; }
-        var s = LocalDB.get('motoBarConfig'); if (s) config = JSON.parse(s);
-        var ca = LocalDB.get('motoBarCaixaAberto');
-        if (ca === 'true') caixaAberto = true; else caixaAberto = false;
-        var va = LocalDB.get('motoBarValorAbertura');
-        if (va) valorAbertura = Number(va);
-        var ci = LocalDB.get('motoBarCaixaId');
-        if (ci) caixaId = ci;
+        var operadorSalvo = LocalDB.get('motoBarOperador'); if (operadorSalvo) operadorAtual = operadorSalvo;
+        var inicioSalvo = LocalDB.get('motoBarInicio'); if (inicioSalvo) inicioTurno = new Date(inicioSalvo);
+        var carrinhoJson = LocalDB.get('motoBarCarrinho'); if (carrinhoJson) { carrinho = JSON.parse(carrinhoJson); if (!Array.isArray(carrinho)) carrinho = []; }
+        var filaJson = LocalDB.get('motoBarFila'); if (filaJson) { filaVendas = JSON.parse(filaJson); if (!Array.isArray(filaVendas)) filaVendas = []; }
+        var configJson = LocalDB.get('motoBarConfig'); if (configJson) config = JSON.parse(configJson);
+        var caixaAbertoSalvo = LocalDB.get('motoBarCaixaAberto');
+        if (caixaAbertoSalvo === 'true') caixaAberto = true; else caixaAberto = false;
+        var valorAberturaSalvo = LocalDB.get('motoBarValorAbertura');
+        if (valorAberturaSalvo) valorAbertura = Number(valorAberturaSalvo);
+        var caixaIdSalvo = LocalDB.get('motoBarCaixaId');
+        if (caixaIdSalvo) caixaId = caixaIdSalvo;
     } catch (e) { console.error("Erro cache", e); }
 }
 
 function carregarConfig() {
-    var s = LocalDB.get('motoBarConfig');
-    if (s) { try { config = JSON.parse(s); /* if (config.logo) logoUrl = config.logo; */ } catch (e) { } }
+    var configJson = LocalDB.get('motoBarConfig');
+    if (configJson) { try { config = JSON.parse(configJson); /* if (config.logo) logoUrl = config.logo; */ } catch (e) { } }
 }
 
 /* =============================================
    UI — CARRINHO / CATÁLOGO
    ============================================= */
 function atualizarUI() {
-    var lista = document.getElementById('carrinho-lista'); lista.innerHTML = '';
-    var total = 0;
+    var listaCarrinho = document.getElementById('carrinho-lista'); listaCarrinho.innerHTML = '';
+    var totalCarrinho = 0;
     if (Array.isArray(carrinho)) {
         carrinho.forEach(function (item, idx) {
-            total += Number(item.preco) * Number(item.qtd);
+            totalCarrinho += Number(item.preco) * Number(item.qtd);
             var obsHtml = item.obs ? '<div class="item-obs">' + item.obs + '<\/div>' : '';
-            lista.innerHTML += '<div class="item-carrinho"><div class="item-detalhes"><div class="item-nome">' + item.nome + '<\/div>' + obsHtml + '<\/div><div class="item-qty-controls"><button class="btn-qty" onclick="decrementarQtd(' + idx + ')">-<\/button><span>' + item.qtd + '<\/span><button class="btn-qty" onclick="incrementarQtd(' + idx + ')">+<\/button><\/div><\/div>';
+            listaCarrinho.innerHTML += '<div class="item-carrinho"><div class="item-detalhes"><div class="item-nome">' + item.nome + '<\/div>' + obsHtml + '<\/div><div class="item-qty-controls"><button class="btn-qty" onclick="decrementarQtd(' + idx + ')">-<\/button><span>' + item.qtd + '<\/span><button class="btn-qty" onclick="incrementarQtd(' + idx + ')">+<\/button><\/div><\/div>';
         });
     }
-    document.getElementById('total-display').innerText = 'R$ ' + (total || 0).toFixed(2);
+    document.getElementById('total-display').innerText = 'R$ ' + (totalCarrinho || 0).toFixed(2);
     renderizarCatalogo(); salvarEstadoLocal();
 }
 
-function getEstoqueBar(id) { var p = produtos.find(function (x) { return x.id == id; }); return p ? Number(p.estoque_bar) : 0; }
+function getEstoqueBar(id) { var produtoEncontrado = produtos.find(function (x) { return x.id == id; }); return produtoEncontrado ? Number(produtoEncontrado.estoque_bar) : 0; }
 function getQtdCarrinho(id) { var total = 0; if (Array.isArray(carrinho)) { carrinho.forEach(function (item) { if (item.id == id) total += item.qtd; }); } return total; }
 
 function renderizarCatalogo() {
-    var div = document.getElementById('grid-produtos'); div.innerHTML = '';
+    var gridContainer = document.getElementById('grid-produtos'); gridContainer.innerHTML = '';
 
     if (!produtos || !Array.isArray(produtos) || produtos.length === 0) {
-        div.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; padding: 40px; color:#aaa;"><h3>Nenhum produto encontrado.<\/h3><p>Cadastre itens no banco de dados ou verifique a conexão.<\/p><\/div>';
+        gridContainer.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; padding: 40px; color:#aaa;"><h3>Nenhum produto encontrado.<\/h3><p>Cadastre itens no banco de dados ou verifique a conexão.<\/p><\/div>';
         return;
     }
 
-    produtos.forEach(function (p) {
-        var estoqueBarTotal = Number(p.estoque_bar) || 0;
-        var qtdNoCarrinho = getQtdCarrinho(p.id);
+    produtos.forEach(function (produto) {
+        var estoqueBarTotal = Number(produto.estoque_bar) || 0;
+        var qtdNoCarrinho = getQtdCarrinho(produto.id);
         var estoqueBarDisponivel = estoqueBarTotal - qtdNoCarrinho;
-        var estoqueDep = Number(p.estoque_deposito) || 0;
-        var minBar = Number(p.estoque_min_bar) || 0; var minDep = Number(p.estoque_min_deposito) || 0;
+        var estoqueDep = Number(produto.estoque_deposito) || 0;
+        var minBar = Number(produto.estoque_min_bar) || 0; var minDep = Number(produto.estoque_min_deposito) || 0;
         var barZerado = estoqueBarDisponivel <= 0; var geralZerado = estoqueDep <= 0;
         var isLow = !barZerado && ((estoqueBarDisponivel <= minBar) || (estoqueDep <= minDep));
-        var card = document.createElement('div');
-        card.className = 'card' + (isLow ? ' card-alerta' : '');
-        card.onclick = function () { cliqueProduto(p, barZerado); };
-        var img = p.url_imagem || 'https://via.placeholder.com/150/333/FFF?text=Foto';
+        var cardElement = document.createElement('div');
+        cardElement.className = 'card' + (isLow ? ' card-alerta' : '');
+        cardElement.onclick = function () { cliqueProduto(produto, barZerado); };
+        var urlImagem = produto.url_imagem || 'https://placehold.co/150x150/333/FFF?text=Foto';
         var alertaHtml = isLow ? '<div class="badge-alerta">ESTOQUE BAIXO<\/div>' : '';
         var editHtml = modoGerenciaEstoque ? '<div class="badge-edit" style="display:block">EDITAR<\/div>' : '';
         var geralZeradoHtml = geralZerado ? '<div class="faixa-sem-geral">SEM ESTOQUE GERAL<\/div>' : '';
         var barZeradoHtml = (barZerado && !modoGerenciaEstoque) ? '<div class="overlay-esgotado-bar"><span class="icon-lock"><\/span>ACABOU<br>NO BAR<\/div>' : '';
-        var precoFmt = Number(p.preco_atual) || 0;
-        card.innerHTML = '<div class="img-container">' + alertaHtml + editHtml + '<img src="' + img + '" onerror="this.src=\'https://via.placeholder.com/150/333/FFF?text=Erro\'">' + geralZeradoHtml + barZeradoHtml + '<\/div><div class="card-info"><div class="card-name">' + p.nome + '<\/div><div class="card-price">R$ ' + precoFmt.toFixed(2) + '<\/div><div class="card-stock"><span>Bar: ' + estoqueBarDisponivel + '<\/span><span>Dep: ' + estoqueDep + '<\/span><\/div><\/div>';
-        div.appendChild(card);
+        var precoFmt = Number(produto.preco_atual) || 0;
+        cardElement.innerHTML = '<div class="img-container">' + alertaHtml + editHtml + '<img src="' + urlImagem + '" onerror="this.src=\'https://placehold.co/150x150/333/FFF?text=Erro\'">' + geralZeradoHtml + barZeradoHtml + '<\/div><div class="card-info"><div class="card-name">' + produto.nome + '<\/div><div class="card-price">R$ ' + precoFmt.toFixed(2) + '<\/div><div class="card-stock"><span>Bar: ' + estoqueBarDisponivel + '<\/span><span>Dep: ' + estoqueDep + '<\/span><\/div><\/div>';
+        gridContainer.appendChild(cardElement);
     });
 }
 
@@ -168,23 +158,23 @@ function atualizarEstadoBotoes() {
             barra.innerText += " (CAIXA ABERTO)";
             barra.classList.add('status-aberto');
             barra.classList.remove('status-fechado');
-            if (containerAbrir) containerAbrir.style.display = 'none';
+            if (containerAbrir) containerAbrir.classList.add('d-none');
         } else {
             barra.innerText += " (CAIXA FECHADO)";
             barra.classList.add('status-fechado');
             barra.classList.remove('status-aberto');
-            if (containerAbrir) containerAbrir.style.display = 'inline-flex';
+            if (containerAbrir) containerAbrir.classList.remove('d-none');
         }
 
         if (usuarioAtual && usuarioAtual.perfil === 'admin') {
-            if (btnAdmin) btnAdmin.style.display = 'inline-flex';
+            if (btnAdmin) btnAdmin.classList.remove('d-none');
         } else {
-            if (btnAdmin) btnAdmin.style.display = 'none';
+            if (btnAdmin) btnAdmin.classList.add('d-none');
         }
     } else {
         if (containerLogin) containerLogin.style.display = 'inline-flex';
-        if (containerAbrir) containerAbrir.style.display = 'none';
-        if (btnAdmin) btnAdmin.style.display = 'none';
+        if (containerAbrir) containerAbrir.classList.add('d-none');
+        if (btnAdmin) btnAdmin.classList.add('d-none');
         barra.innerText = "SISTEMA BLOQUEADO - Clique para Entrar";
         barra.style.color = "#ccc";
         barra.style.backgroundColor = "rgba(0,0,0,0.35)";
@@ -196,7 +186,7 @@ function atualizarEstadoBotoes() {
    ============================================= */
 function atualizarDados(showLoader) {
     document.getElementById('resultado-relatorio').innerHTML = '';
-    document.getElementById('resultado-relatorio').style.display = 'none';
+    document.getElementById('resultado-relatorio').classList.add('d-none');
     if (showLoader) document.getElementById('loading').style.display = 'flex';
     LocalDB.remove('motoBarProdutos'); LocalDB.remove('motoBarMembros');
 
@@ -227,24 +217,33 @@ function atualizarDados(showLoader) {
 function alternarModoEstoque() {
     UIModal.prompt("Digite a senha do estoque:", function (senha) {
         if (!senha) return;
-        if (senha !== SENHA_ESTOQUE) { showToast("Senha incorreta", 'err'); return; }
-        modoGerenciaEstoque = !modoGerenciaEstoque;
-        var btn = document.getElementById('btn-estoque');
-        var carrinhoSec = document.getElementById('secao-carrinho');
-        var header = document.getElementById('app-header');
-        if (modoGerenciaEstoque) {
-            if (btn) btn.classList.add('active');
-            if (carrinhoSec) carrinhoSec.classList.add('minimizado');
-            document.body.style.border = "3px solid #b30000";
-            if (header) header.style.borderBottom = "3px solid #b30000";
-            showToast("MODO ESTOQUE ATIVADO");
-        } else {
-            if (btn) btn.classList.remove('active');
-            if (carrinhoSec) carrinhoSec.classList.remove('minimizado');
-            document.body.style.border = "none";
-            if (header) header.style.borderBottom = "1px solid rgba(255, 152, 0, 0.25)";
-        }
-        renderizarCatalogo();
+        API.verificarSenhaEstoque(senha)
+            .then(function (res) {
+                if (!res || res.status !== 'ok') {
+                    showToast(res && res.mensagem ? res.mensagem : "Senha incorreta.", 'err');
+                    return;
+                }
+                modoGerenciaEstoque = !modoGerenciaEstoque;
+                var btn = document.getElementById('btn-estoque');
+                var carrinhoSec = document.getElementById('secao-carrinho');
+                var header = document.getElementById('app-header');
+                if (modoGerenciaEstoque) {
+                    if (btn) btn.classList.add('active');
+                    if (carrinhoSec) carrinhoSec.classList.add('minimizado');
+                    document.body.style.border = "3px solid #b30000";
+                    if (header) header.style.borderBottom = "3px solid #b30000";
+                    showToast("MODO ESTOQUE ATIVADO");
+                } else {
+                    if (btn) btn.classList.remove('active');
+                    if (carrinhoSec) carrinhoSec.classList.remove('minimizado');
+                    document.body.style.border = "none";
+                    if (header) header.style.borderBottom = "1px solid rgba(255, 152, 0, 0.25)";
+                }
+                renderizarCatalogo();
+            })
+            .catch(function (err) {
+                showToast("Erro ao verificar senha: " + (err.message || err), 'err');
+            });
     });
 }
 
@@ -287,30 +286,26 @@ function cliqueProduto(p, isBarZerado) {
     }
     else {
         if (!operadorAtual) return showToast("Faça login primeiro.");
-        if (!isComida && isBarZerado) return showToast("Produto esgotado no Bar!");
+        if (isBarZerado) return showToast("Produto esgotado no Bar!");
         if (isComida) { produtoPendente = p; abrirModalObs(p.nome); } else { adicionarAoCarrinho(p.id, p.nome, p.preco_atual, ""); }
     }
 }
 
 function adicionarAoCarrinho(id, nome, preco, obs) {
-    var prod = produtos.find(function (x) { return x.id == id && x.nome == nome; });
-    if (!prod) return;
-    var cat = String(prod.categoria || "").trim().toUpperCase();
-    var isComida = cat === 'COMIDA';
-    var limite = Number(prod.estoque_bar); var noCarrinho = getQtdCarrinho(id);
-    if (!isComida) { if (noCarrinho + 1 > limite) return showToast("Estoque do Bar insuficiente!"); }
-    var item = carrinho.find(function (i) { return i.id == id && i.nome == nome && i.obs === obs; });
-    if (item) item.qtd++; else carrinho.push({ id: id, nome: nome, preco: preco, obs: obs, qtd: 1 });
+    var produtoEncontrado = produtos.find(function (x) { return x.id == id && x.nome == nome; });
+    if (!produtoEncontrado) return;
+    var limite = Number(produtoEncontrado.estoque_bar); var noCarrinho = getQtdCarrinho(id);
+    if (noCarrinho + 1 > limite) return showToast("Estoque do Bar insuficiente!");
+    var itemExistente = carrinho.find(function (i) { return i.id == id && i.nome == nome && i.obs === obs; });
+    if (itemExistente) itemExistente.qtd++; else carrinho.push({ id: id, nome: nome, preco: preco, obs: obs, qtd: 1 });
     atualizarUI();
 }
 
 function incrementarQtd(idx) {
-    var item = carrinho[idx]; var prod = produtos.find(function (x) { return x.id == item.id && x.nome == item.nome; });
-    var cat = prod ? String(prod.categoria || "").trim().toUpperCase() : "";
-    var isComida = cat === 'COMIDA';
-    var limite = prod ? Number(prod.estoque_bar) : 0; var noCarrinho = getQtdCarrinho(item.id);
-    if (!isComida && (noCarrinho + 1 > limite)) return showToast("Limite do Bar atingido!");
-    item.qtd++; atualizarUI();
+    var itemCarrinho = carrinho[idx]; var produtoEncontrado = produtos.find(function (x) { return x.id == itemCarrinho.id && x.nome == itemCarrinho.nome; });
+    var limiteEstoqueBar = produtoEncontrado ? Number(produtoEncontrado.estoque_bar) : 0; var noCarrinho = getQtdCarrinho(itemCarrinho.id);
+    if (noCarrinho + 1 > limiteEstoqueBar) return showToast("Limite do Bar atingido!");
+    itemCarrinho.qtd++; atualizarUI();
 }
 
 function decrementarQtd(idx) { if (carrinho[idx].qtd > 1) carrinho[idx].qtd--; else carrinho.splice(idx, 1); atualizarUI(); }
@@ -332,6 +327,20 @@ function processarTrocaOperador(nomeInput) {
         operadorAtual = nomeInput;
         LocalDB.set('motoBarOperador', operadorAtual);
         atualizarUI();
+    });
+}
+
+function trocarMembro() {
+    UIModal.confirm("Deseja sair do operador atual e voltar ao login?", function () {
+        fecharModal('modal-relatorios');
+        API.logout().then(function () {
+            operadorAtual = ""; usuarioAtual = null; inicioTurno = null;
+            LocalDB.remove('motoBarOperador'); LocalDB.remove('motoBarInicio');
+            atualizarUI(); atualizarEstadoBotoes();
+            window.location.href = '/login';
+        }).catch(function () {
+            window.location.href = '/login';
+        });
     });
 }
 
@@ -384,14 +393,14 @@ function calcularTroco() {
     var recebido = parseFloat(document.getElementById('valor-recebido').value.replace(',', '.')) || 0;
     var total = pagamentoPendente.valorTotal;
     var troco = recebido - total;
-    var display = document.getElementById('display-troco');
-    var btn = document.getElementById('btn-confirmar-dinheiro');
+    var trocoDisplay = document.getElementById('display-troco');
+    var btnConfirmar = document.getElementById('btn-confirmar-dinheiro');
     if (troco >= 0) {
-        display.innerText = "Troco: R$ " + troco.toFixed(2); display.style.color = "var(--success)";
-        btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
+        trocoDisplay.innerText = "Troco: R$ " + troco.toFixed(2); trocoDisplay.style.color = "var(--success)";
+        btnConfirmar.style.opacity = '1'; btnConfirmar.style.pointerEvents = 'auto';
     } else {
-        display.innerText = "Faltam: R$ " + Math.abs(troco).toFixed(2); display.style.color = "var(--danger)";
-        btn.style.opacity = '0.5'; btn.style.pointerEvents = 'none';
+        trocoDisplay.innerText = "Faltam: R$ " + Math.abs(troco).toFixed(2); trocoDisplay.style.color = "var(--danger)";
+        btnConfirmar.style.opacity = '0.5'; btnConfirmar.style.pointerEvents = 'none';
     }
 }
 
@@ -492,10 +501,10 @@ function popularSelectMembros(idSelect) {
         return nomeA.localeCompare(nomeB);
     });
 
-    membrosOrdenados.forEach(function (m) {
-        if (m && m.nome) {
+    membrosOrdenados.forEach(function (membro) {
+        if (membro && membro.nome) {
             var option = document.createElement('option');
-            option.value = m.nome; option.innerText = m.nome;
+            option.value = membro.nome; option.innerText = membro.nome;
             select.appendChild(option);
         }
     });
@@ -563,7 +572,7 @@ function carregarDadosFechamento(nome) {
 function abrirMenuRelatorios() {
     if (!operadorAtual) return showToast("Faça login primeiro.");
     document.getElementById('modal-relatorios').style.display = 'flex';
-    document.getElementById('resultado-relatorio').style.display = 'none';
+    document.getElementById('resultado-relatorio').classList.add('d-none');
     document.getElementById('nome-operador-atual').innerText = operadorAtual;
     var hoje = new Date(); var primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
     document.getElementById('data-inicio').value = primeiroDia.toISOString().split('T')[0];
@@ -583,12 +592,12 @@ function gerarRelatorioPeriodo() {
 }
 
 function executarRelatorio(tipo, filtro) {
-    document.getElementById('resultado-relatorio').innerHTML = ''; document.getElementById('resultado-relatorio').style.display = 'none';
+    document.getElementById('resultado-relatorio').innerHTML = ''; document.getElementById('resultado-relatorio').classList.add('d-none');
     API.gerarRelatorioCaixa(tipo, filtro)
         .then(function (res) {
             dadosRelatorioAtual = res; document.getElementById('loading').style.display = 'none';
             if (!res) { return showToast("Erro: O relatório retornou vazio."); }
-            document.getElementById('resultado-relatorio').style.display = 'block';
+            document.getElementById('resultado-relatorio').classList.remove('d-none');
             var saldoIni = 0;
             if (tipoRelatorioAtual === 'PERIODO') { saldoIni = Number(res.abertura) || 0; } else if ((tipo === 'TURNO' || tipo === 'DIA') && caixaAberto) { saldoIni = Number(valorAbertura) || 0; }
             var dinheiro = Number(res.dinheiro) || 0; var pix = Number(res.pix) || 0; var cartao = Number(res.cartao) || 0; var recebimentoDivida = Number(res.recebimentoDivida) || 0; var vendasFiado = Number(res.vendasFiado) || 0;
@@ -615,7 +624,7 @@ function executarRelatorio(tipo, filtro) {
             }
             htmlCupom += '<\/div>';
             document.getElementById('resultado-relatorio').innerHTML = htmlCupom + '<br><button id="btn-imprimir-rel" class="btn-pagar btn-dinheiro" onclick="imprimirRelatorioAtual()">IMPRIMIR RELATORIO<\/button>';
-            if (tipo === 'TURNO' || tipo === 'DIA') { document.getElementById('resultado-relatorio').innerHTML += '<button id="btn-confirmar-fechamento" class="btn-pagar btn-success" style="margin-top:10px; width:100%" onclick="confirmarFechamentoCaixa()">CONFIRMAR FECHAMENTO E SAIR<\/button>'; }
+            if (tipo === 'TURNO' || tipo === 'DIA') { document.getElementById('resultado-relatorio').innerHTML += '<button id="btn-confirmar-fechamento" class="btn-pagar btn-success w-100 mt-2" onclick="confirmarFechamentoCaixa()">CONFIRMAR FECHAMENTO E SAIR<\/button>'; }
         }).catch(function (e) { document.getElementById('loading').style.display = 'none'; showToast("Erro ao gerar relatório: " + (e.message || e)); });
 }
 
@@ -624,13 +633,16 @@ function confirmarFechamentoCaixa() {
         if (caixaId) {
             API.fecharCaixa(caixaId, null).catch(function (e) { console.error("Erro ao fechar caixa:", e); });
         }
-        API.logout();
         caixaAberto = false; valorAbertura = 0; caixaId = null;
         LocalDB.remove('motoBarCaixaAberto'); LocalDB.remove('motoBarValorAbertura'); LocalDB.remove('motoBarCaixaId');
         LocalDB.remove('motoBarOperador'); LocalDB.remove('motoBarInicio'); LocalDB.remove('motoBarCarrinho');
         operadorAtual = ""; usuarioAtual = null; inicioTurno = null; carrinho = [];
         atualizarUI(); fecharModal('modal-relatorios'); atualizarEstadoBotoes();
-        window.location.href = '/login';
+        API.logout().then(function () {
+            window.location.href = '/login';
+        }).catch(function () {
+            window.location.href = '/login';
+        });
     });
 }
 
@@ -737,18 +749,18 @@ function sincronizarProdutosBackground() {
         .then(function (dados) {
             if (dados && dados.produtos) {
                 // Atualiza o estoque no array local sem perder referências
-                dados.produtos.forEach(newP => {
-                    let oldP = produtos.find(p => p.id === newP.id);
-                    if (oldP) {
-                        oldP.estoque_bar = newP.estoque_bar;
-                        oldP.estoque_deposito = newP.estoque_deposito;
+                dados.produtos.forEach(function (produtoAtualizado) {
+                    var produtoLocal = produtos.find(function (p) { return p.id === produtoAtualizado.id; });
+                    if (produtoLocal) {
+                        produtoLocal.estoque_bar = produtoAtualizado.estoque_bar;
+                        produtoLocal.estoque_deposito = produtoAtualizado.estoque_deposito;
                     }
                 });
                 renderizarCatalogo();
                 console.log('Estoque sincronizado em background.');
             }
         })
-        .catch(e => console.warn('Erro na sincronização silenciosa:', e));
+        .catch(function (e) { console.warn('Erro na sincronização silenciosa:', e); });
 }
 
 /* =============================================

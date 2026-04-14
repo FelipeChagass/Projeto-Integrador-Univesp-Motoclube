@@ -816,3 +816,81 @@ input[type="file"] {
         flex-direction: column;
     }
 }
+
+/* ─── Skeleton Loading ─── */
+@keyframes skeleton-shimmer {
+    0% {
+        background-position: -400px 0;
+    }
+
+    100% {
+        background-position: 400px 0;
+    }
+}
+
+.skeleton-row td {
+    padding: 10px 8px;
+}
+
+.skeleton-row td>.skel {
+    height: 18px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #1e1e1e 25%, #2a2a2a 50%, #1e1e1e 75%);
+    background-size: 400px 100%;
+    animation: skeleton-shimmer 1.4s ease infinite;
+}
+
+/* ─── Admin inline-style replacements ─── */
+.admin-ajuste-nome {
+    color: #e94560;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.admin-estoque-nome {
+    color: #2196f3;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+/* Table cell utilities for admin.js */
+.td-estoque {
+    font-size: 0.9rem;
+}
+
+.td-minimos {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.td-email {
+    color: #888;
+    font-size: 0.82rem;
+}
+
+.td-data {
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.td-valor {
+    font-weight: 600;
+}
+
+.td-itens {
+    font-size: 0.8rem;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.admin-loading-text {
+    text-align: center;
+    color: #888;
+}
+
+.admin-empty-text {
+    text-align: center;
+    color: #888;
+    padding: 2rem;
+}
