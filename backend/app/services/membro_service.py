@@ -9,8 +9,6 @@ from app.models.movimentacao_membro import MovimentacaoMembro
 logger = logging.getLogger(__name__)
 
 
-# ─── Listagem ───
-
 def listar_membros(db: Session) -> list:
     """Retorna todos os membros ativos."""
     membros = db.query(Membro).filter_by(ativo=True).order_by(Membro.nome).all()
