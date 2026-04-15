@@ -68,12 +68,34 @@ const API = (function () {
     }
 
 
+    // ── Cache simples para respostas GET (evita chamadas repetidas) ──
+    const _cache = {};
+    const CACHE_TTL = 30000; // 30 segundos
+
+    function _getCached(key) {
+        var entry = _cache[key];
+        if (entry && (Date.now() - entry.ts) < CACHE_TTL) return entry.data;
+        return null;
+    }
+
+    function _setCache(key, data) {
+        _cache[key] = { data: data, ts: Date.now() };
+    }
+
+    function _clearCache(key) {
+        if (key) { delete _cache[key]; } else { Object.keys(_cache).forEach(function (k) { delete _cache[k]; }); }
+    }
 
     /**
      * Função base para requisições HTTP.
      * Tokens do Supabase são enviados via cabeçalho Authorization.
+     * Inclui timeout (15s) e retry automático (até 2 tentativas).
      */
-    async function _request(method, endpoint, body) {
+    var REQUEST_TIMEOUT = 15000; // 15 segundos
+    var MAX_RETRIES = 2;
+
+    async function _request(method, endpoint, body, _retryCount) {
+        if (typeof _retryCount === 'undefined') _retryCount = 0;
         const headers = {
             'Content-Type': 'application/json',
         };
@@ -86,9 +108,21 @@ const API = (function () {
             }
         }
 
+        // Cache para requisições GET
+        var cacheKey = method === 'GET' ? endpoint : null;
+        if (cacheKey) {
+            var cached = _getCached(cacheKey);
+            if (cached) return cached;
+        }
+
+        // AbortController para timeout
+        var controller = new AbortController();
+        var timeoutId = setTimeout(function () { controller.abort(); }, REQUEST_TIMEOUT);
+
         const options = {
             method: method,
             headers: headers,
+            signal: controller.signal,
         };
 
         if (body && (method === 'POST' || method === 'PUT')) {
@@ -97,14 +131,48 @@ const API = (function () {
 
         try {
             const response = await fetch(BASE_URL + endpoint, options);
+            clearTimeout(timeoutId);
+
             if (response.status === 401) {
+                // Tenta refresh do token (uma vez) antes de desistir
+                if (_retryCount === 0 && client) {
+                    try {
+                        var refreshResult = await client.auth.refreshSession();
+                        if (refreshResult.data && refreshResult.data.session) {
+                            console.info('Token renovado automaticamente.');
+                            return _request(method, endpoint, body, 1);
+                        }
+                    } catch (refreshErr) {
+                        console.warn('Falha ao renovar token:', refreshErr);
+                    }
+                }
+                // Refresh falhou ou já tentou — redireciona para login
+                window.location.replace('/login');
                 throw new Error("Não autorizado (401). Faça login novamente.");
             }
             const data = await response.json();
+
+            // Armazena no cache se for GET
+            if (cacheKey) _setCache(cacheKey, data);
+
             return data;
         } catch (error) {
-            console.error('Erro na requisição:', endpoint, error);
-            throw error;
+            clearTimeout(timeoutId);
+
+            // Identifica se é timeout ou erro de rede (retry-able)
+            var isNetworkError = error.name === 'AbortError' || error.name === 'TypeError' || error.message === 'Failed to fetch';
+            var isTimeout = error.name === 'AbortError';
+
+            if (isNetworkError && _retryCount < MAX_RETRIES) {
+                var delay = Math.pow(2, _retryCount) * 1000; // 1s, 2s
+                console.warn('Tentativa ' + (_retryCount + 1) + '/' + MAX_RETRIES + ' para ' + endpoint + ' em ' + delay + 'ms...');
+                await new Promise(function (r) { setTimeout(r, delay); });
+                return _request(method, endpoint, body, _retryCount + 1);
+            }
+
+            var msgErro = isTimeout ? 'Tempo limite excedido (' + (REQUEST_TIMEOUT / 1000) + 's)' : (error.message || 'Erro de conexão');
+            console.error('Erro na requisição:', endpoint, msgErro);
+            throw new Error(msgErro);
         }
     }
 
@@ -150,11 +218,27 @@ const API = (function () {
         },
 
         /**
-         * Logout
+         * Logout — encerra sessão Supabase e limpa dados locais
          */
         logout: async function () {
             const client = await initSupabase();
-            if (client) await client.auth.signOut();
+            if (client) {
+                try {
+                    await client.auth.signOut({ scope: 'local' });
+                } catch (e) {
+                    console.warn('Erro no signOut:', e);
+                }
+            }
+            // Limpa todo o armazenamento local do PDV
+            var keys = Object.keys(localStorage);
+            keys.forEach(function (k) {
+                if (k.startsWith('motoBar') || k.startsWith('sb-')) {
+                    localStorage.removeItem(k);
+                }
+            });
+            // Reseta o client para forçar re-inicialização no próximo login
+            supabaseClient = null;
+            _initPromise = null;
             return { status: 'ok' };
         },
 
@@ -171,6 +255,21 @@ const API = (function () {
          */
         getDadosIniciais: function () {
             return _request('GET', '/dados-iniciais');
+        },
+
+        /**
+         * Busca apenas produtos (mais leve que getDadosIniciais).
+         * Usado para sincronização de estoque em background.
+         */
+        getProdutos: function () {
+            return _request('GET', '/produtos');
+        },
+
+        /**
+         * Invalida cache de GET. Chamado após ações que alteram dados.
+         */
+        invalidateCache: function (endpoint) {
+            _clearCache(endpoint || null);
         },
 
         /**
@@ -193,7 +292,7 @@ const API = (function () {
                 estoque_deposito: estDep,
                 estoque_min_bar: minBar,
                 estoque_min_deposito: minDep,
-            });
+            }).then(function (res) { _clearCache(); return res; });
         },
 
         /**
@@ -202,6 +301,7 @@ const API = (function () {
          */
         processarVenda: function (venda) {
             return _request('POST', '/vendas', venda).then(function (res) {
+                _clearCache();
                 if (res.status === 'ok') return 'OK';
                 if (res.status === 'duplicado') return 'Duplicado: Venda já registrada.';
                 return 'Erro: ' + (res.mensagem || 'Erro desconhecido');
@@ -224,6 +324,7 @@ const API = (function () {
                 nome_membro: nomeMembro,
                 metodo: metodo,
             }).then(function (res) {
+                _clearCache();
                 return res.mensagem || 'Conta quitada';
             });
         },

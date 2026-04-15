@@ -455,9 +455,8 @@
     margin-bottom: 6px;
 }
 
-/* Payment buttons with integrated icons */
-/* Estilo unificado para os botões de pagamento */
-.btn-pagar {
+/* Estilo unificado para todos os botões de ação */
+.btn-action {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -473,13 +472,13 @@
     cursor: pointer;
 }
 
-.btn-pagar:hover {
+.btn-action:hover {
     background: #222 !important;
     border-color: rgba(255, 255, 255, 0.1);
 }
 
 
-.btn-pagar svg {
+.btn-action svg {
     width: 20px;
     height: 20px;
     flex-shrink: 0;
@@ -491,8 +490,8 @@
 }
 
 .btn-dinheiro:hover {
-    border-color: #4caf50 !important;
-    box-shadow: 0 0 15px rgba(76, 175, 80, 0.3) !important;
+    background-color: #222 ;
+    border-color: rgba(142, 236, 145, 0.2) !important;
 }
 
 .btn-pix svg {

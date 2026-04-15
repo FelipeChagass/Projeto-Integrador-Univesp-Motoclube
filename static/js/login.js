@@ -9,12 +9,22 @@ function setLoading(show) {
     document.getElementById('login-loading').className = show ? 'login-loading active' : 'login-loading';
 }
 
-// Se já está logado, redireciona para o POS
-API.getMe().then(function (res) {
-    if (res.status === 'ok' && res.usuario) {
-        window.location.href = '/pdv';
-    }
-}).catch(function () { });
+// Se já está logado com sessão válida, redireciona para o POS
+API._initSupabase().then(function (client) {
+    if (!client) return;
+    return client.auth.getSession();
+}).then(function (result) {
+    if (!result || !result.data || !result.data.session) return;
+    // Sessão Supabase existe — verifica se é válida no backend
+    return API.getMe().then(function (res) {
+        if (res.status === 'ok' && res.usuario) {
+            window.location.replace('/pdv');
+        }
+    });
+}).catch(function () {
+    // Token inválido/expirado — limpa tudo para um login limpo
+    API.logout().catch(function () { });
+});
 
 // Enter no campo senha faz login
 document.getElementById('login-senha').addEventListener('keydown', function (e) {

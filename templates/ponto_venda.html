@@ -22,10 +22,9 @@
             UIModal.confirm("Tem certeza que deseja sair?", function() {
                 document.getElementById('loading').style.display = 'flex';
                 API.logout().then(() => {
-                    window.location.href = '/login';
+                    window.location.replace('/login');
                 }).catch(() => {
-                    // Fallback se der erro
-                    window.location.href = '/login';
+                    window.location.replace('/login');
                 });
             });
         }
@@ -146,7 +145,7 @@
                 <div class="total-display" id="total-display">R$ 0,00</div>
                 <input type="text" id="input-cliente" class="input-cliente" placeholder="Nome Visitante (Opcional)">
                 <div class="grid-pagamento">
-                    <button class="btn-pagar btn-dinheiro" onclick="iniciarPagamento('DINHEIRO')">
+                    <button class="btn-action btn-dinheiro" onclick="iniciarPagamento('DINHEIRO')">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                             <line x1="12" x2="12" y1="2" y2="22" />
@@ -154,7 +153,7 @@
                         </svg>
                         Dinheiro
                     </button>
-                    <button class="btn-pagar btn-pix" onclick="iniciarPagamento('PIX')">
+                    <button class="btn-action btn-pix" onclick="iniciarPagamento('PIX')">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                             <rect width="5" height="5" x="3" y="3" rx="1" />
@@ -172,7 +171,7 @@
                         </svg>
                         PIX
                     </button>
-                    <button class="btn-pagar btn-cartao" onclick="iniciarPagamento('CARTAO')">
+                    <button class="btn-action btn-cartao" onclick="iniciarPagamento('CARTAO')">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                             <rect width="20" height="14" x="2" y="5" rx="2" />
@@ -180,7 +179,7 @@
                         </svg>
                         Cartão
                     </button>
-                    <button class="btn-pagar btn-fiado" onclick="abrirModalMembros('FIADO')">
+                    <button class="btn-action btn-fiado" onclick="abrirModalMembros('FIADO')">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
@@ -210,9 +209,9 @@
             <h2 class="modal-title-accent">ABERTURA DE CAIXA</h2>
             <p class="modal-subtitle">Informe o Fundo de Caixa (Troco Inicial):</p>
             <input type="number" id="input-valor-abertura" class="input-cliente input-valor-grande" placeholder="0,00">
-            <button class="btn-pagar btn-modal-full"
+            <button class="btn-action btn-modal-full"
                 onclick="confirmarAberturaValor()">ABRIR CAIXA</button>
-            <button class="btn-pagar btn-modal-cancel"
+            <button class="btn-action btn-modal-cancel"
                 onclick="fecharModal('modal-abertura-caixa')">CANCELAR</button>
         </div>
     </div>
@@ -224,8 +223,8 @@
             <p id="modal-prod-nome" class="modal-prod-nome-accent"></p>
             <input type="text" id="custom-obs" placeholder="Ex: Sem cebola..." class="input-cliente mt-1">
             <br><br>
-            <button class="btn-pagar w-100" onclick="confirmarObs()">CONFIRMAR PEDIDO</button>
-            <button class="btn-pagar btn-modal-cancel" onclick="fecharModal('modal-obs')">CANCELAR</button>
+            <button class="btn-action w-100" onclick="confirmarObs()">CONFIRMAR PEDIDO</button>
+            <button class="btn-action btn-modal-cancel" onclick="fecharModal('modal-obs')">CANCELAR</button>
         </div>
     </div>
 
@@ -238,9 +237,9 @@
             <input type="number" id="valor-recebido" class="input-cliente input-valor-grande" placeholder="0,00"
                 oninput="calcularTroco()">
             <div class="display-troco" id="display-troco">Troco: R$ 0,00</div>
-            <button id="btn-confirmar-dinheiro" class="btn-pagar btn-disabled-initial"
+            <button id="btn-confirmar-dinheiro" class="btn-action btn-disabled-initial"
                 onclick="finalizarPagamentoDinheiro()">CONFIRMAR PAGAMENTO</button>
-            <button class="btn-pagar btn-modal-cancel" onclick="fecharModal('modal-dinheiro')">CANCELAR</button>
+            <button class="btn-action btn-modal-cancel" onclick="fecharModal('modal-dinheiro')">CANCELAR</button>
         </div>
     </div>
 
@@ -249,11 +248,11 @@
         <div class="modal-content">
             <h3>Selecione o Tipo</h3>
             <p class="modal-subtitle-muted">Qual a função do cartão?</p>
-            <button class="btn-pagar btn-tipo-cartao"
+            <button class="btn-action btn-tipo-cartao"
                 onclick="finalizarPagamentoCartao('DÉBITO')">DÉBITO</button>
-            <button class="btn-pagar btn-tipo-credito"
+            <button class="btn-action btn-tipo-credito"
                 onclick="finalizarPagamentoCartao('CRÉDITO')">CRÉDITO</button>
-            <button class="btn-pagar btn-modal-cancel" onclick="fecharModal('modal-cartao')">CANCELAR</button>
+            <button class="btn-action btn-modal-cancel" onclick="fecharModal('modal-cartao')">CANCELAR</button>
         </div>
     </div>
 
@@ -274,9 +273,9 @@
             </div>
             <p class="estoque-nota"><i>Nota: Ao aumentar o Bar, o valor será subtraído
                     do Depósito automaticamente.</i></p>
-            <button class="btn-pagar btn-estoque-salvar"
+            <button class="btn-action btn-estoque-salvar"
                 onclick="salvarEdicaoEstoque()">SALVAR ALTERAÇÕES</button>
-            <button class="btn-pagar btn-modal-cancel" onclick="fecharModal('modal-estoque')">CANCELAR</button>
+            <button class="btn-action btn-modal-cancel" onclick="fecharModal('modal-estoque')">CANCELAR</button>
         </div>
     </div>
 
@@ -288,9 +287,9 @@
                 <option value="" disabled selected>Carregando...</option>
             </select>
             <div id="preview-divida" class="preview-divida"></div>
-            <button class="btn-pagar w-100 mt-2"
+            <button class="btn-action w-100 mt-2"
                 onclick="confirmarSelecaoMembro()">CONTINUAR</button>
-            <button class="btn-pagar btn-modal-cancel" onclick="fecharModalSelecaoMembro()">CANCELAR</button>
+            <button class="btn-action btn-modal-cancel" onclick="fecharModalSelecaoMembro()">CANCELAR</button>
         </div>
     </div>
 
@@ -303,11 +302,11 @@
             <div class="extrato-total" id="total-fechamento">R$ 0,00</div>
             <div class="prompt-pagamento">Como vai pagar?</div>
             <div class="grid-pagamento">
-                <button class="btn-pagar btn-dinheiro" onclick="iniciarLiquidacao('DINHEIRO')">Dinheiro</button>
-                <button class="btn-pagar btn-pix" onclick="iniciarLiquidacao('PIX')">Pix</button>
-                <button class="btn-pagar btn-cartao" onclick="iniciarLiquidacao('CARTAO')">Cartão</button>
+                <button class="btn-action btn-dinheiro" onclick="iniciarLiquidacao('DINHEIRO')">Dinheiro</button>
+                <button class="btn-action btn-pix" onclick="iniciarLiquidacao('PIX')">Pix</button>
+                <button class="btn-action btn-cartao" onclick="iniciarLiquidacao('CARTAO')">Cartão</button>
             </div>
-            <button class="btn-pagar btn-modal-cancel-mt2" onclick="fecharModal('modal-fechar-conta')">CANCELAR</button>
+            <button class="btn-action btn-modal-cancel-mt2" onclick="fecharModal('modal-fechar-conta')">CANCELAR</button>
         </div>
     </div>
 
@@ -318,17 +317,17 @@
             <div class="section-header">OPERADOR ATUAL</div>
             <div class="operador-box">
                 <p id="nome-operador-atual" class="operador-nome">...</p>
-                <button class="btn-pagar btn-trocar-operador" onclick="trocarMembro()">
+                <button class="btn-action btn-trocar-operador" onclick="trocarMembro()">
                     TROCAR MEMBRO (Sair)
                 </button>
             </div>
             <div class="section-header">CAIXA</div>
-            <button class="btn-pagar btn-abrir-caixa"
+            <button class="btn-action btn-abrir-caixa"
                 onclick="abrirModalAberturaCaixa()">
                 ABRIR CAIXA (INICIO)
             </button>
             <div class="section-header">FECHAMENTOS</div>
-            <button class="btn-pagar btn-fechar-dia"
+            <button class="btn-action btn-fechar-dia"
                 onclick="gerarRelatorio('DIA')">
                 FECHAR CAIXA TOTAL (DIA)
             </button>
@@ -337,12 +336,12 @@
                 <input type="date" id="data-inicio" class="config-input">
                 <input type="date" id="data-fim" class="config-input">
             </div>
-            <button class="btn-pagar btn-gerar-periodo"
+            <button class="btn-action btn-gerar-periodo"
                 onclick="gerarRelatorioPeriodo()">
                 GERAR MENSAL/PERIODO
             </button>
             <div id="resultado-relatorio" class="resultado-relatorio d-none"></div>
-            <button class="btn-pagar btn-modal-cancel-mt2" onclick="fecharModal('modal-relatorios')">FECHAR JANELA</button>
+            <button class="btn-action btn-modal-cancel-mt2" onclick="fecharModal('modal-relatorios')">FECHAR JANELA</button>
         </div>
     </div>
 
@@ -363,8 +362,8 @@
                     <option value="ticket-58mm">58mm</option>
                 </select>
             </div>
-            <button class="btn-pagar btn-dinheiro" onclick="salvarConfig()">SALVAR</button>
-            <button class="btn-pagar btn-modal-cancel"
+            <button class="btn-action btn-dinheiro" onclick="salvarConfig()">SALVAR</button>
+            <button class="btn-action btn-modal-cancel"
                 onclick="fecharModal('modal-config')">CANCELAR</button>
         </div>
     </div>

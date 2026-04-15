@@ -10,6 +10,7 @@
     --bg-color: #0d0d0d;
     --card-bg: #1a1a1a;
     --accent: #b30000;
+    --success: #4caf50;
     --danger: #f44336;
     --edit-mode-color: #B30000;
     --warning-bg: rgba(255, 152, 0, 0.15);
@@ -165,14 +166,6 @@ body {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
-.btn-success {
-    color: black !important;
-}
-
-.btn-info {
-    background: #2196f3;
-    color: white;
-}
 
 /* IMPRESSÃO (compartilhado) */
 @media print {

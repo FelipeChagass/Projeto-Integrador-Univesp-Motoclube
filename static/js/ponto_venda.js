@@ -189,6 +189,7 @@ function atualizarDados(showLoader) {
     document.getElementById('resultado-relatorio').classList.add('d-none');
     if (showLoader) document.getElementById('loading').style.display = 'flex';
     LocalDB.remove('motoBarProdutos'); LocalDB.remove('motoBarMembros');
+    API.invalidateCache(); // Força busca fresca
 
     API.getDadosIniciais()
         .then(function (d) {
@@ -344,11 +345,10 @@ function trocarMembro() {
         fecharModal('modal-relatorios');
         API.logout().then(function () {
             operadorAtual = ""; usuarioAtual = null; inicioTurno = null;
-            LocalDB.remove('motoBarOperador'); LocalDB.remove('motoBarInicio');
             atualizarUI(); atualizarEstadoBotoes();
-            window.location.href = '/login';
+            window.location.replace('/login');
         }).catch(function () {
-            window.location.href = '/login';
+            window.location.replace('/login');
         });
     });
 }
@@ -632,8 +632,8 @@ function executarRelatorio(tipo, filtro) {
                 htmlCupom += '<\/table>';
             }
             htmlCupom += '<\/div>';
-            document.getElementById('resultado-relatorio').innerHTML = htmlCupom + '<br><button id="btn-imprimir-rel" class="btn-pagar btn-dinheiro" onclick="imprimirRelatorioAtual()">IMPRIMIR RELATORIO<\/button>';
-            if (tipo === 'TURNO' || tipo === 'DIA') { document.getElementById('resultado-relatorio').innerHTML += '<button id="btn-confirmar-fechamento" class="btn-pagar btn-success w-100 mt-2" onclick="confirmarFechamentoCaixa()">CONFIRMAR FECHAMENTO E SAIR<\/button>'; }
+            document.getElementById('resultado-relatorio').innerHTML = htmlCupom + '<br><button id="btn-imprimir-rel" class="btn-action btn-dinheiro w-100" onclick="imprimirRelatorioAtual()">IMPRIMIR RELATORIO<\/button>';
+            if (tipo === 'TURNO' || tipo === 'DIA') { document.getElementById('resultado-relatorio').innerHTML += '<button id="btn-confirmar-fechamento" class="btn-action w-100 mt-2" onclick="confirmarFechamentoCaixa()">CONFIRMAR FECHAMENTO E SAIR<\/button>'; }
         }).catch(function (e) { document.getElementById('loading').style.display = 'none'; showToast("Erro ao gerar relatório: " + (e.message || e)); });
 }
 
@@ -643,14 +643,12 @@ function confirmarFechamentoCaixa() {
             API.fecharCaixa(caixaId, null).catch(function (e) { console.error("Erro ao fechar caixa:", e); });
         }
         caixaAberto = false; valorAbertura = 0; caixaId = null;
-        LocalDB.remove('motoBarCaixaAberto'); LocalDB.remove('motoBarValorAbertura'); LocalDB.remove('motoBarCaixaId');
-        LocalDB.remove('motoBarOperador'); LocalDB.remove('motoBarInicio'); LocalDB.remove('motoBarCarrinho');
         operadorAtual = ""; usuarioAtual = null; inicioTurno = null; carrinho = [];
         atualizarUI(); fecharModal('modal-relatorios'); atualizarEstadoBotoes();
         API.logout().then(function () {
-            window.location.href = '/login';
+            window.location.replace('/login');
         }).catch(function () {
-            window.location.href = '/login';
+            window.location.replace('/login');
         });
     });
 }
@@ -754,7 +752,7 @@ function processarFilaVendas() {
 function sincronizarProdutosBackground() {
     if (filaVendas.length > 0) return; // Não sincroniza enquanto envia vendas
 
-    API.getDadosIniciais()
+    API.getProdutos()
         .then(function (dados) {
             if (dados && dados.produtos) {
                 // Atualiza o estoque no array local sem perder referências
