@@ -171,3 +171,72 @@
         font-size: 1.5rem;
     }
 }
+
+/* Campo senha com ícone de olho */
+.senha-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.senha-wrapper .login-input {
+    margin-bottom: 0;
+    padding-right: 48px; /* espaço para o botão do olho */
+}
+
+.btn-toggle-senha {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    color: #777;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+    transition: color 0.2s;
+}
+
+.btn-toggle-senha:hover {
+    color: #ccc;
+}
+
+.btn-toggle-senha svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* ícones do bootstrap-icons dentro do botão */
+.btn-toggle-senha .bi {
+    font-size: 20px;
+    line-height: 1;
+    display: block;
+}
+
+/* Checkbox lembrar-me */
+.lembrar-wrapper {
+    width: 100%;
+    margin-bottom: 8px;
+    text-align: left;
+}
+
+.lembrar-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.88rem;
+    color: #aaa;
+    user-select: none;
+}
+
+.lembrar-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #b30000;
+    cursor: pointer;
+}

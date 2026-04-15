@@ -12,7 +12,7 @@ function setLoading(show) {
 // Se já está logado, redireciona para o POS
 API.getMe().then(function (res) {
     if (res.status === 'ok' && res.usuario) {
-        window.location.href = '/pdv';
+        window.location.href = '/';
     }
 }).catch(function () { });
 
@@ -34,7 +34,7 @@ function realizarCadastro() {
         .then(function (res) {
             setLoading(false);
             if (res.status === 'ok') {
-                window.location.href = '/pdv';
+                window.location.href = '/';
             } else {
                 showToast(res.mensagem || "Erro no cadastro.");
             }

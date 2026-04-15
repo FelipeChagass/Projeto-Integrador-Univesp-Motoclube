@@ -91,6 +91,17 @@
                 </svg>
                 <span class="btn-text">Config</span>
             </button>
+
+            <button class="btn-header d-none" id="container-abrir-caixa"
+                onclick="abrirModalAberturaCaixa()" title="Abrir Caixa">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="20" height="14" x="2" y="5" rx="2" />
+                    <line x1="2" x2="22" y1="10" y2="10" />
+                </svg>
+                <span class="btn-text">Abrir Caixa</span>
+            </button>
+            
             <button class="btn-header" onclick="realizarLogout()" title="Sair do Sistema">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -101,15 +112,7 @@
                 <span class="btn-text">Sair</span>
             </button>
 
-            <button class="btn-header btn-header--accent d-none" id="container-abrir-caixa"
-                onclick="abrirModalAberturaCaixa()" title="Abrir Caixa">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="20" height="14" x="2" y="5" rx="2" />
-                    <line x1="2" x2="22" y1="10" y2="10" />
-                </svg>
-                <span class="btn-text">Abrir Cx</span>
-            </button>
+
 
             <button class="btn-header btn-header--login" id="container-btn-login"
                 onclick="window.location.href='/login'" title="Fazer Login">
@@ -190,7 +193,7 @@
                         PENDURAR
                     </button>
                 </div>
-                <button class="btn-fechar-conta" onclick="abrirModalMembros('FECHAR_CONTA')">
+                <button class="btn-action btn-fechar-conta" onclick="abrirModalMembros('FECHAR_CONTA')">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                         <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />

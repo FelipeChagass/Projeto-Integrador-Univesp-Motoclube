@@ -9,21 +9,54 @@ function setLoading(show) {
     document.getElementById('login-loading').className = show ? 'login-loading active' : 'login-loading';
 }
 
-API._initSupabase().then(function (client) {
-    if (!client) return;
-    return client.auth.getSession();
-}).then(function (result) {
-    if (!result || !result.data || !result.data.session) return;
-    // Sessão Supabase existe — verifica se é válida no backend
-    return API.getMe().then(function (res) {
-        if (res.status === 'ok' && res.usuario) {
-            window.location.replace('/pdv');
-        }
+function toggleSenha() {
+    var campo = document.getElementById('login-senha');
+    var iconeFechado = document.getElementById('icon-olho-fechado');
+    var iconeAberto = document.getElementById('icon-olho-aberto');
+    if (campo.type === 'password') {
+        campo.type = 'text';
+        iconeFechado.style.display = 'none';
+        iconeAberto.style.display = 'block';
+    } else {
+        campo.type = 'password';
+        iconeFechado.style.display = 'block';
+        iconeAberto.style.display = 'none';
+    }
+}
+
+// Auto-redirect: só redireciona se o usuário marcou "Lembrar-me" na sessão anterior
+// A flag 'motoBarLembrarMe' é gravada no localStorage ao fazer login com checkbox marcado
+var lembrarMeAtivo = localStorage.getItem('motoBarLembrarMe') === 'true';
+
+if (lembrarMeAtivo) {
+    API._initSupabase().then(function (client) {
+        if (!client) return;
+        return client.auth.getSession();
+    }).then(function (result) {
+        if (!result || !result.data || !result.data.session) return;
+        // Sessão Supabase existe — verifica se é válida no backend
+        return API.getMe().then(function (res) {
+            if (res.status === 'ok' && res.usuario) {
+                window.location.replace('/');
+            }
+        });
+    }).catch(function () {
+        // Token inválido/expirado — limpa tudo
+        localStorage.removeItem('motoBarLembrarMe');
+        API.logout().catch(function () { });
     });
-}).catch(function () {
-    // Token inválido/expirado — limpa tudo e deixa na tela de login
-    API.logout().catch(function () { });
-});
+} else {
+    // Sem lembrar-me: garante que qualquer sessão residual seja limpa
+    API._initSupabase().then(function (client) {
+        if (client) {
+            client.auth.getSession().then(function (result) {
+                if (result && result.data && result.data.session) {
+                    API.logout().catch(function () { });
+                }
+            });
+        }
+    }).catch(function () { });
+}
 
 // Enter no campo senha faz login
 document.getElementById('login-senha').addEventListener('keydown', function (e) {
@@ -33,12 +66,19 @@ document.getElementById('login-senha').addEventListener('keydown', function (e) 
 function realizarLogin() {
     var email = document.getElementById('login-email').value.trim();
     var senha = document.getElementById('login-senha').value;
+    var lembrar = document.getElementById('lembrar-me').checked;
     if (!email || !senha) return showToast("Preencha e-mail e senha.");
 
     setLoading(true);
     API.login(email, senha)
         .then(function (res) {
             if (res.status === 'ok') {
+                // Grava a preferência de "lembrar-me" para o auto-redirect futuro
+                if (lembrar) {
+                    localStorage.setItem('motoBarLembrarMe', 'true');
+                } else {
+                    localStorage.removeItem('motoBarLembrarMe');
+                }
                 // Login Supabase OK. Agora verifica se perfil existe no banco.
                 return API.getMe().then(function (meRes) {
                     if (meRes.status === 'pendente') {
@@ -53,11 +93,11 @@ function realizarLogin() {
                             body: JSON.stringify({ nome: nome, perfil: 'operador' })
                         }).then(function () {
                             setLoading(false);
-                            window.location.href = '/pdv';
+                            window.location.href = '/';
                         });
                     }
                     setLoading(false);
-                    window.location.href = '/pdv';
+                    window.location.href = '/';
                 });
             } else {
                 setLoading(false);

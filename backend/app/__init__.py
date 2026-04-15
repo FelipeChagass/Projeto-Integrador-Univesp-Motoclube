@@ -48,8 +48,8 @@ def create_app():
 
     @app.route('/')
     def index():
-        """Redireciona sempre para /login. O JS do login verifica a sessão Supabase."""
-        return redirect('/login')
+        """Serve o PDV diretamente. O JS do PDV verifica a sessão Supabase e redireciona para /login se necessário."""
+        return render_template('ponto_venda.html')
 
     @app.route('/login')
     def login_page():
@@ -61,7 +61,8 @@ def create_app():
 
     @app.route('/pdv')
     def pdv_page():
-        return render_template('ponto_venda.html')
+        """Alias mantido para compatibilidade."""
+        return redirect('/')
 
     @app.route('/admin')
     def admin_page():

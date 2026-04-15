@@ -32,7 +32,7 @@ async function authFetch(url, opts = {}) {
     const r = await fetch(url, { ...opts, headers: { ...headers, ...opts.headers } });
     if (r.status === 401 || r.status === 403) {
         toast('Acesso restrito. Apenas administradores podem acessar.', false);
-        window.location.href = '/pdv';
+        window.location.href = '/';
         return null;
     }
     return r;

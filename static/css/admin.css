@@ -32,20 +32,29 @@ header {
 }
 
 .header-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px;
 }
 
-.header-left svg {
-    color: #e94560;
+/* logo dentro do header admin */
+.header-left .logo-admin {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #b30000;
+    display: block;
+    flex-shrink: 0;
 }
 
 header h1 {
     font-size: 1.15rem;
     font-weight: 700;
-    color: #e94560;
+    color: #ff3333;
     letter-spacing: -0.5px;
+    margin: 0;
+    line-height: 1.2;
 }
 
 .btn-voltar {
