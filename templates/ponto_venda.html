@@ -19,7 +19,7 @@
             }
         };
         function realizarLogout() {
-            UIModal.confirm("Tem certeza que deseja sair?", function() {
+            UIModal.confirm("Tem certeza que deseja sair?", function () {
                 document.getElementById('loading').style.display = 'flex';
                 API.logout().then(() => {
                     window.location.replace('/login');
@@ -49,8 +49,7 @@
     <header id="app-header">
         <div id="info-topo-esq">
             <div>
-                <img src="{{ url_for('static', filename='img/motorhead.png') }}" alt="Logo"
-                    class="header-logo">
+                <img src="{{ url_for('static', filename='img/motorhead.png') }}" alt="Logo" class="header-logo">
             </div>
             <div id="barra-operador">CAIXA FECHADO - Toque em Abrir</div>
         </div>
@@ -102,7 +101,8 @@
                 <span class="btn-text">Sair</span>
             </button>
 
-            <button class="btn-header btn-header--accent d-none" id="container-abrir-caixa" onclick="abrirModalAberturaCaixa()" title="Abrir Caixa">
+            <button class="btn-header btn-header--accent d-none" id="container-abrir-caixa"
+                onclick="abrirModalAberturaCaixa()" title="Abrir Caixa">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-linecap="round" stroke-linejoin="round">
                     <rect width="20" height="14" x="2" y="5" rx="2" />
@@ -209,10 +209,8 @@
             <h2 class="modal-title-accent">ABERTURA DE CAIXA</h2>
             <p class="modal-subtitle">Informe o Fundo de Caixa (Troco Inicial):</p>
             <input type="number" id="input-valor-abertura" class="input-cliente input-valor-grande" placeholder="0,00">
-            <button class="btn-action btn-modal-full"
-                onclick="confirmarAberturaValor()">ABRIR CAIXA</button>
-            <button class="btn-action btn-modal-cancel"
-                onclick="fecharModal('modal-abertura-caixa')">CANCELAR</button>
+            <button class="btn-action btn-modal-full" onclick="confirmarAberturaValor()">ABRIR CAIXA</button>
+            <button class="btn-action btn-modal-cancel" onclick="fecharModal('modal-abertura-caixa')">CANCELAR</button>
         </div>
     </div>
 
@@ -248,10 +246,8 @@
         <div class="modal-content">
             <h3>Selecione o Tipo</h3>
             <p class="modal-subtitle-muted">Qual a função do cartão?</p>
-            <button class="btn-action btn-tipo-cartao"
-                onclick="finalizarPagamentoCartao('DÉBITO')">DÉBITO</button>
-            <button class="btn-action btn-tipo-credito"
-                onclick="finalizarPagamentoCartao('CRÉDITO')">CRÉDITO</button>
+            <button class="btn-action btn-tipo-cartao" onclick="finalizarPagamentoCartao('DÉBITO')">DÉBITO</button>
+            <button class="btn-action btn-tipo-credito" onclick="finalizarPagamentoCartao('CRÉDITO')">CRÉDITO</button>
             <button class="btn-action btn-modal-cancel" onclick="fecharModal('modal-cartao')">CANCELAR</button>
         </div>
     </div>
@@ -264,17 +260,16 @@
             <div class="estoque-grid">
                 <div class="config-option"><label class="label-accent">Estoque BAR:</label><input type="number"
                         id="edit-est-bar" class="config-input" min="0"></div>
-                <div class="config-option"><label class="label-accent">Estoque DEPÓSITO:</label><input
-                        type="number" id="edit-est-dep" class="config-input" min="0"></div>
+                <div class="config-option"><label class="label-accent">Estoque DEPÓSITO:</label><input type="number"
+                        id="edit-est-dep" class="config-input" min="0"></div>
                 <div class="config-option"><label class="label-danger">Mínimo BAR:</label><input type="number"
                         id="edit-min-bar" class="config-input" min="0"></div>
-                <div class="config-option"><label class="label-danger">Mínimo DEPÓSITO:</label><input
-                        type="number" id="edit-min-dep" class="config-input" min="0"></div>
+                <div class="config-option"><label class="label-danger">Mínimo DEPÓSITO:</label><input type="number"
+                        id="edit-min-dep" class="config-input" min="0"></div>
             </div>
             <p class="estoque-nota"><i>Nota: Ao aumentar o Bar, o valor será subtraído
                     do Depósito automaticamente.</i></p>
-            <button class="btn-action btn-estoque-salvar"
-                onclick="salvarEdicaoEstoque()">SALVAR ALTERAÇÕES</button>
+            <button class="btn-action btn-estoque-salvar" onclick="salvarEdicaoEstoque()">SALVAR ALTERAÇÕES</button>
             <button class="btn-action btn-modal-cancel" onclick="fecharModal('modal-estoque')">CANCELAR</button>
         </div>
     </div>
@@ -287,8 +282,7 @@
                 <option value="" disabled selected>Carregando...</option>
             </select>
             <div id="preview-divida" class="preview-divida"></div>
-            <button class="btn-action w-100 mt-2"
-                onclick="confirmarSelecaoMembro()">CONTINUAR</button>
+            <button class="btn-action w-100 mt-2" onclick="confirmarSelecaoMembro()">CONTINUAR</button>
             <button class="btn-action btn-modal-cancel" onclick="fecharModalSelecaoMembro()">CANCELAR</button>
         </div>
     </div>
@@ -306,7 +300,8 @@
                 <button class="btn-action btn-pix" onclick="iniciarLiquidacao('PIX')">Pix</button>
                 <button class="btn-action btn-cartao" onclick="iniciarLiquidacao('CARTAO')">Cartão</button>
             </div>
-            <button class="btn-action btn-modal-cancel-mt2" onclick="fecharModal('modal-fechar-conta')">CANCELAR</button>
+            <button class="btn-action btn-modal-cancel-mt2"
+                onclick="fecharModal('modal-fechar-conta')">CANCELAR</button>
         </div>
     </div>
 
@@ -322,13 +317,11 @@
                 </button>
             </div>
             <div class="section-header">CAIXA</div>
-            <button class="btn-action btn-abrir-caixa"
-                onclick="abrirModalAberturaCaixa()">
+            <button class="btn-action btn-abrir-caixa" onclick="abrirModalAberturaCaixa()">
                 ABRIR CAIXA (INICIO)
             </button>
             <div class="section-header">FECHAMENTOS</div>
-            <button class="btn-action btn-fechar-dia"
-                onclick="gerarRelatorio('DIA')">
+            <button class="btn-action btn-fechar-dia" onclick="gerarRelatorio('DIA')">
                 FECHAR CAIXA TOTAL (DIA)
             </button>
             <div class="section-header">RELATÓRIO PERÍODO</div>
@@ -336,12 +329,12 @@
                 <input type="date" id="data-inicio" class="config-input">
                 <input type="date" id="data-fim" class="config-input">
             </div>
-            <button class="btn-action btn-gerar-periodo"
-                onclick="gerarRelatorioPeriodo()">
+            <button class="btn-action btn-gerar-periodo" onclick="gerarRelatorioPeriodo()">
                 GERAR MENSAL/PERIODO
             </button>
             <div id="resultado-relatorio" class="resultado-relatorio d-none"></div>
-            <button class="btn-action btn-modal-cancel-mt2" onclick="fecharModal('modal-relatorios')">FECHAR JANELA</button>
+            <button class="btn-action btn-modal-cancel-mt2" onclick="fecharModal('modal-relatorios')">FECHAR
+                JANELA</button>
         </div>
     </div>
 
@@ -363,8 +356,7 @@
                 </select>
             </div>
             <button class="btn-action btn-dinheiro" onclick="salvarConfig()">SALVAR</button>
-            <button class="btn-action btn-modal-cancel"
-                onclick="fecharModal('modal-config')">CANCELAR</button>
+            <button class="btn-action btn-modal-cancel" onclick="fecharModal('modal-config')">CANCELAR</button>
         </div>
     </div>
 

@@ -1,15 +1,3 @@
-/**
- * API Client - Camada de comunicação com o backend Flask.
- *
- * Substitui todas as chamadas google.script.run por fetch() REST.
- * Cada função retorna uma Promise, facilitando o uso com async/await.
- *
- * Autenticação via Supabase JWT (Bearer token em cada requisição).
- *
- * Uso:
- *   const dados = await API.getDadosIniciais();
- *   const resultado = await API.processarVenda(venda);
- */
 window.UIModal = {
     confirm: function (msg, callbackOk, callbackCancel) { this.show('CONFIRMAÇÃO', msg, true, callbackOk, callbackCancel); },
     alert: function (msg, callbackOk) { this.show('ALERTA', msg, false, callbackOk, null); },
@@ -258,7 +246,7 @@ const API = (function () {
         },
 
         /**
-         * Busca apenas produtos (mais leve que getDadosIniciais).
+         * Busca apenas produtos.
          * Usado para sincronização de estoque em background.
          */
         getProdutos: function () {
@@ -282,9 +270,6 @@ const API = (function () {
             });
         },
 
-        /**
-         * Salva dados de estoque de um produto.
-         */
         salvarDadosProduto: function (produtoId, estBar, estDep, minBar, minDep) {
             return _request('PUT', '/produtos/estoque', {
                 produto_id: produtoId,
@@ -308,17 +293,13 @@ const API = (function () {
             });
         },
 
-        /**
-         * Busca extrato de pendências de um membro.
-         */
+        /** Busca extrato de pendências de um membro. */
         buscarExtratoMembro: function (nomeMembro) {
             var encoded = encodeURIComponent(nomeMembro);
             return _request('GET', '/membros/extrato?nome=' + encoded);
         },
 
-        /**
-         * Quita conta de um membro.
-         */
+        /** Quita conta de um membro. */
         quitarContaMembro: function (nomeMembro, metodo) {
             return _request('POST', '/vendas/pagamento', {
                 nome_membro: nomeMembro,
@@ -329,27 +310,21 @@ const API = (function () {
             });
         },
 
-        /**
-         * Gera relatório de caixa.
-         */
+        /**Gera relatório de caixa. */
         gerarRelatorioCaixa: function (tipo, dadosFiltro) {
             var body = Object.assign({}, dadosFiltro || {});
             body.tipo = tipo;
             return _request('POST', '/relatorios', body);
         },
 
-        /**
-         * Abre um caixa.
-         */
+        /**  Abre um caixa. */
         abrirCaixa: function (valorAbertura) {
             return _request('POST', '/caixa/abrir', {
                 valor_abertura: valorAbertura,
             });
         },
 
-        /**
-         * Fecha um caixa.
-         */
+        /** Fecha um caixa. */
         fecharCaixa: function (caixaId, valorFechamento) {
             return _request('POST', '/caixa/fechar', {
                 caixa_id: caixaId,
@@ -357,9 +332,7 @@ const API = (function () {
             });
         },
 
-        /**
-         * Verifica se há caixa aberto.
-         */
+        /* Verifica se há caixa aberto.*/
         getCaixaAberto: function () {
             return _request('GET', '/caixa/aberto');
         },

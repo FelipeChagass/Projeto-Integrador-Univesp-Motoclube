@@ -490,7 +490,7 @@
 }
 
 .btn-dinheiro:hover {
-    background-color: #222 ;
+    background-color: #222;
     border-color: rgba(142, 236, 145, 0.2) !important;
 }
 
@@ -741,11 +741,6 @@
     }
 }
 
-/* ============================================================
-   CLASSES EXTRAÍDAS DE INLINE STYLES — ponto_venda.html
-   ============================================================ */
-
-/* Loading screen text */
 .loading-text {
     margin-top: 12px;
     font-size: 0.95rem;

@@ -9,7 +9,6 @@ function setLoading(show) {
     document.getElementById('login-loading').className = show ? 'login-loading active' : 'login-loading';
 }
 
-// Se já está logado com sessão válida, redireciona para o POS
 API._initSupabase().then(function (client) {
     if (!client) return;
     return client.auth.getSession();
@@ -22,7 +21,7 @@ API._initSupabase().then(function (client) {
         }
     });
 }).catch(function () {
-    // Token inválido/expirado — limpa tudo para um login limpo
+    // Token inválido/expirado — limpa tudo e deixa na tela de login
     API.logout().catch(function () { });
 });
 

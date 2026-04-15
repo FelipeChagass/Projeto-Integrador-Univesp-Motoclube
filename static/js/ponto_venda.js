@@ -25,9 +25,7 @@ var enviandoVenda = false;
 var processandoFila = false;
 var lastProcessTime = 0;
 
-/* =============================================
-   UTILITÁRIOS
-   ============================================= */
+
 function showToast(msg, type) {
     var toastEl = document.getElementById("toast");
     toastEl.innerText = msg;
@@ -35,22 +33,8 @@ function showToast(msg, type) {
     setTimeout(function () { toastEl.className = toastEl.className.replace("show", "").replace("toast-error", "").trim(); }, 3000);
 }
 
-// function resetarTravaFila removida
-
 function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
 
-function converterLinkDrive(url) {
-    if (!url || typeof url !== 'string') return "";
-    var matchPath = url.match(new RegExp("\\/d\\/(.+?)\\/"));
-    if (matchPath && matchPath[1]) return "https://drive.google.com/uc?export=view&id=" + matchPath[1];
-    var matchId = url.match(new RegExp("id=([a-zA-Z0-9_-]+)"));
-    if (matchId && matchId[1]) return "https://drive.google.com/uc?export=view&id=" + matchId[1];
-    return url;
-}
-
-/* =============================================
-   PERSISTÊNCIA LOCAL
-   ============================================= */
 function salvarEstadoLocal() { LocalDB.set('motoBarCarrinho', JSON.stringify(carrinho)); }
 
 function salvarDadosLocais() {
@@ -71,7 +55,6 @@ function carregarDadosLocais() {
     try {
         var produtosJson = LocalDB.get('motoBarProdutos'); if (produtosJson) { produtos = JSON.parse(produtosJson); if (!Array.isArray(produtos)) produtos = []; }
         var membrosJson = LocalDB.get('motoBarMembros'); if (membrosJson) { membros = JSON.parse(membrosJson); if (!Array.isArray(membros)) membros = []; }
-        // var l = LocalDB.get('motoBarLogo'); if (l) logoUrl = l;
         var operadorSalvo = LocalDB.get('motoBarOperador'); if (operadorSalvo) operadorAtual = operadorSalvo;
         var inicioSalvo = LocalDB.get('motoBarInicio'); if (inicioSalvo) inicioTurno = new Date(inicioSalvo);
         var carrinhoJson = LocalDB.get('motoBarCarrinho'); if (carrinhoJson) { carrinho = JSON.parse(carrinhoJson); if (!Array.isArray(carrinho)) carrinho = []; }
@@ -88,7 +71,7 @@ function carregarDadosLocais() {
 
 function carregarConfig() {
     var configJson = LocalDB.get('motoBarConfig');
-    if (configJson) { try { config = JSON.parse(configJson); /* if (config.logo) logoUrl = config.logo; */ } catch (e) { } }
+    if (configJson) { try { config = JSON.parse(configJson); } catch (e) { } }
 }
 
 /* =============================================
@@ -141,8 +124,6 @@ function renderizarCatalogo() {
     });
 }
 
-
-
 function atualizarEstadoBotoes() {
     var barra = document.getElementById('barra-operador');
     var containerLogin = document.getElementById('container-btn-login');
@@ -181,21 +162,17 @@ function atualizarEstadoBotoes() {
     }
 }
 
-/* =============================================
-   ATUALIZAR DADOS DO SERVIDOR
-   ============================================= */
 function atualizarDados(showLoader) {
     document.getElementById('resultado-relatorio').innerHTML = '';
     document.getElementById('resultado-relatorio').classList.add('d-none');
     if (showLoader) document.getElementById('loading').style.display = 'flex';
     LocalDB.remove('motoBarProdutos'); LocalDB.remove('motoBarMembros');
-    API.invalidateCache(); // Força busca fresca
+    API.invalidateCache();
 
     API.getDadosIniciais()
         .then(function (d) {
             produtos = (d && d.produtos) ? d.produtos : [];
             membros = (d && d.membros) ? d.membros : [];
-            // se quiser usar o default logo, ignora: if (d && d.logoUrl && typeof d.logoUrl === 'string' && d.logoUrl.length > 0) logoUrl = d.logoUrl;
 
             if (produtos.length === 0 && membros.length === 0) {
                 showToast("ALERTA: Banco vazio ou não conectado.");
@@ -212,11 +189,7 @@ function atualizarDados(showLoader) {
         });
 }
 
-/* =============================================
-   ESTOQUE
-   ============================================= */
 function alternarModoEstoque() {
-    // If currently in modoGerenciaEstoque, allow disabling without password prompt
     if (modoGerenciaEstoque) {
         modoGerenciaEstoque = false;
         var btn = document.getElementById('btn-estoque');
@@ -231,7 +204,6 @@ function alternarModoEstoque() {
         return;
     }
 
-    // Otherwise (currently disabled) request password to enable
     UIModal.prompt("Digite a senha do estoque:", function (senha) {
         if (!senha) return;
         API.verificarSenhaEstoque(senha)
@@ -277,9 +249,6 @@ function salvarEdicaoEstoque() {
         .catch(function (err) { console.error("Erro ao salvar estoque:", err); });
 }
 
-/* =============================================
-   CLIQUE NO PRODUTO / CARRINHO
-   ============================================= */
 function cliqueProduto(p, isBarZerado) {
     if (!modoGerenciaEstoque && !caixaAberto && operadorAtual) return showToast("O caixa está fechado! Abra o caixa para realizar vendas.");
     var cat = String(p.categoria || "").trim().toUpperCase();
@@ -320,15 +289,11 @@ function incrementarQtd(idx) {
 
 function decrementarQtd(idx) { if (carrinho[idx].qtd > 1) carrinho[idx].qtd--; else carrinho.splice(idx, 1); atualizarUI(); }
 
-/* =============================================
-   MODAL OBSERVAÇÃO
-   ============================================= */
+
 function abrirModalObs(nome) { document.getElementById('modal-prod-nome').innerText = nome; document.getElementById('custom-obs').value = ''; document.getElementById('modal-obs').style.display = 'flex'; document.getElementById('custom-obs').focus(); }
 function confirmarObs() { var custom = document.getElementById('custom-obs').value; if (produtoPendente) { adicionarAoCarrinho(produtoPendente.id, produtoPendente.nome, produtoPendente.preco_atual, custom); } fecharModal('modal-obs'); }
 
-/* =============================================
-   OPERADOR / LOGIN
-   ============================================= */
+
 function processarTrocaOperador(nomeInput) {
     if (!nomeInput) return;
     if (operadorAtual === nomeInput) return;
@@ -353,16 +318,12 @@ function trocarMembro() {
     });
 }
 
-/* =============================================
-   CONFIGURAÇÃO
-   ============================================= */
+
 function salvarConfig() { config.imprimir = document.getElementById('cfg-imprimir').checked; config.largura = document.getElementById('cfg-largura').value; LocalDB.set('motoBarConfig', JSON.stringify(config)); fecharModal('modal-config'); }
 function abrirConfig() { document.getElementById('modal-config').style.display = 'flex'; document.getElementById('cfg-imprimir').checked = config.imprimir; document.getElementById('cfg-largura').value = config.largura; }
 function imprimirArea() { window.focus(); setTimeout(function () { window.print(); }, 1500); }
 
-/* =============================================
-   PAGAMENTO
-   ============================================= */
+
 function iniciarPagamento(metodo) {
     if (!operadorAtual) return showToast("Faça login primeiro.");
     if (!caixaAberto) return showToast("Necessário realizar a Abertura de Caixa!");
@@ -456,9 +417,6 @@ function executarPagamentoFinal(metodoFinal) {
     }
 }
 
-/* =============================================
-   MEMBROS
-   ============================================= */
 function verificarDividaSelecionada() {
     var select = document.getElementById('select-membro'); var nome = select.value; var preview = document.getElementById('preview-divida');
     if (!nome) { preview.innerText = ""; return; }
@@ -533,9 +491,7 @@ function confirmarSelecaoMembro() {
 
 function fecharModalSelecaoMembro() { fecharModal('modal-selecionar-membro'); var preview = document.getElementById('preview-divida'); if (preview) { preview.innerText = ''; } }
 
-/* =============================================
-   CAIXA
-   ============================================= */
+
 function abrirModalAberturaCaixa() {
     if (caixaAberto) { showToast("O caixa já está aberto!"); return; }
     fecharModal('modal-relatorios'); document.getElementById('modal-abertura-caixa').style.display = 'flex'; document.getElementById('input-valor-abertura').focus();
@@ -575,9 +531,7 @@ function carregarDadosFechamento(nome) {
         .catch(function () { showToast("Erro ao buscar dados."); fecharModal('modal-fechar-conta'); });
 }
 
-/* =============================================
-   RELATÓRIOS
-   ============================================= */
+
 function abrirMenuRelatorios() {
     if (!operadorAtual) return showToast("Faça login primeiro.");
     document.getElementById('modal-relatorios').style.display = 'flex';
@@ -653,9 +607,6 @@ function confirmarFechamentoCaixa() {
     });
 }
 
-/* =============================================
-   IMPRESSÃO
-   ============================================= */
 function montarImpressao(itens, metodo, cliente) {
     var area = document.getElementById('area-impressao');
     var html = '';
@@ -708,9 +659,6 @@ function montarImpressaoFechamento(dados) {
     area.innerHTML = html;
 }
 
-/* =============================================
-   FILA DE VENDAS (SINCRONIZAÇÃO)
-   ============================================= */
 function processarFilaVendas() {
     if (!Array.isArray(filaVendas) || filaVendas.length === 0) { return; }
 
@@ -723,7 +671,6 @@ function processarFilaVendas() {
     }
     processandoFila = true;
     lastProcessTime = Date.now();
-    // document.getElementById('status-conexao').className = 'status-sync';
     var vendaParaEnviar = filaVendas[0];
 
     API.processarVenda(vendaParaEnviar)
@@ -741,21 +688,16 @@ function processarFilaVendas() {
         })
         .catch(function (err) {
             console.error("Erro envio", err);
-            // document.getElementById('status-conexao').className = 'status-offline';
             processandoFila = false;
         });
 }
 
-/**
- * Re-sincroniza silenciosamente os produtos para atualizar estoque.
- */
 function sincronizarProdutosBackground() {
-    if (filaVendas.length > 0) return; // Não sincroniza enquanto envia vendas
+    if (filaVendas.length > 0) return;
 
     API.getProdutos()
         .then(function (dados) {
             if (dados && dados.produtos) {
-                // Atualiza o estoque no array local sem perder referências
                 dados.produtos.forEach(function (produtoAtualizado) {
                     var produtoLocal = produtos.find(function (p) { return p.id === produtoAtualizado.id; });
                     if (produtoLocal) {
@@ -770,9 +712,7 @@ function sincronizarProdutosBackground() {
         .catch(function (e) { console.warn('Erro na sincronização silenciosa:', e); });
 }
 
-/* =============================================
-   INICIALIZAÇÃO DO SISTEMA
-   ============================================= */
+
 function iniciarSistema() {
     try {
         carregarDadosLocais();
@@ -792,7 +732,7 @@ function iniciarSistema() {
             return Promise.all([API.getMe(), API.getDadosIniciais()]);
         })
         .then(function (results) {
-            if (!results) return; // redirecionou
+            if (!results) return;
 
             var resMe = results[0];
             var dados = results[1];
@@ -819,9 +759,7 @@ function iniciarSistema() {
         .catch(function (err) {
             console.error('Falha na inicialização:', err);
             if (loadingEl) loadingEl.style.display = 'none';
-            // document.getElementById('status-conexao').className = 'status-offline';
 
-            // Se tiver dados locais e operador, mantém funcionando offline
             if (operadorAtual) {
                 renderizarCatalogo();
                 atualizarEstadoBotoes();
@@ -832,12 +770,9 @@ function iniciarSistema() {
             }
         });
 
-    // Sincroniza fila de vendas periodicamente
     setInterval(processarFilaVendas, 10000);
 
-    // Sincroniza estoque em background a cada 60s
     setInterval(sincronizarProdutosBackground, 60000);
 }
 
-// Inicia quando o DOM carregar
 iniciarSistema();
