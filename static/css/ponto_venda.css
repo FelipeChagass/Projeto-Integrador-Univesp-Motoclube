@@ -751,33 +751,6 @@
     color: var(--success);
 }
 
-/* Generic modal buttons */
-.btn-modal-full {
-    width: 100%;
-    margin-top: 10px;
-    font-size: 1.1rem;
-}
-
-.btn-modal-cancel {
-    width: 100%;
-    margin-top: 5px;
-}
-
-.btn-modal-cancel:hover {
-    border-color: rgba(255, 255, 255, 0.15) !important;
-    box-shadow: none !important;
-}
-
-.btn-modal-cancel-mt2 {
-    width: 100%;
-    margin-top: 10px;
-}
-
-.btn-modal-cancel-mt2:hover {
-    border-color: rgba(255, 255, 255, 0.15) !important;
-    box-shadow: none !important;
-}
-
 /* Product name in obs modal */
 .modal-prod-nome-accent {
     color: var(--accent);
@@ -920,4 +893,54 @@
     margin-top: 15px;
     border-top: 1px solid #555;
     padding-top: 10px;
+}
+
+/* ─── Spin-buttons dos inputs numéricos ─── */
+/* Remove o spinner nativo e entrega um look limpo/escuro */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+/* ─── Select custom (dark premium) ─── */
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: #1a1a1a;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23b30000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    color: #e0e0e0;
+    padding: 10px 36px 10px 12px;
+    font-family: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+select:focus {
+    outline: none;
+    border-color: #b30000;
+    box-shadow: 0 0 0 2px rgba(179, 0, 0, 0.2);
+}
+select option {
+    background: #1a1a1a;
+    color: #e0e0e0;
+}
+
+/* Override específico para a lista de membros */
+.lista-membros-scroll {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+    border-color: rgba(255, 255, 255, 0.15);
+    padding: 12px 36px 12px 12px;
+    font-size: 1.05rem;
+    border-radius: 8px;
 }

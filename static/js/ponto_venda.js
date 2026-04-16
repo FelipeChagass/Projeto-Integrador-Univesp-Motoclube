@@ -33,7 +33,24 @@ function showToast(msg, type) {
     setTimeout(function () { toastEl.className = toastEl.className.replace("show", "").replace("toast-error", "").trim(); }, 3000);
 }
 
-function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
+function fecharModal(id) { var el = document.getElementById(id); if (el) el.style.display = 'none'; }
+
+// ── Padrão da indústria: ESC fecha modal aberto ──
+document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    var abertos = document.querySelectorAll('.modal-overlay');
+    for (var i = 0; i < abertos.length; i++) {
+        var d = abertos[i].style.display;
+        if (d && d !== 'none') { abertos[i].style.display = 'none'; break; }
+    }
+});
+
+// ── Clique fora do conteúdo (no overlay) fecha o modal ──
+document.addEventListener('click', function (e) {
+    if (e.target.classList.contains('modal-overlay')) {
+        e.target.style.display = 'none';
+    }
+});
 
 function salvarEstadoLocal() { LocalDB.set('motoBarCarrinho', JSON.stringify(carrinho)); }
 

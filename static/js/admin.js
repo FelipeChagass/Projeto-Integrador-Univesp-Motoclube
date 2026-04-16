@@ -517,4 +517,18 @@ function mostrarSkeleton(tbodyId, cols) {
 document.addEventListener('DOMContentLoaded', () => {
     mostrarSkeleton('tabelaProdutos', 8);
     carregarProdutos();
+
+    // ── ESC fecha modal aberto ──
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        const aberto = document.querySelector('.modal-overlay:not(.d-none)');
+        if (aberto) aberto.classList.add('d-none');
+    });
+
+    // ── Clique no overlay (fora do conteúdo) fecha o modal ──
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal-overlay') && !e.target.classList.contains('d-none')) {
+            e.target.classList.add('d-none');
+        }
+    });
 });

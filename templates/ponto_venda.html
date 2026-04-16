@@ -212,8 +212,8 @@
             <h2 class="modal-title-accent">ABERTURA DE CAIXA</h2>
             <p class="modal-subtitle">Informe o Fundo de Caixa (Troco Inicial):</p>
             <input type="number" id="input-valor-abertura" class="input-cliente input-valor-grande" placeholder="0,00">
-            <button class="btn-action btn-modal-full" onclick="confirmarAberturaValor()">ABRIR CAIXA</button>
-            <button class="btn-action btn-modal-cancel" onclick="fecharModal('modal-abertura-caixa')">CANCELAR</button>
+            <button class="btn-action" onclick="confirmarAberturaValor()">ABRIR CAIXA</button>
+            <button class="btn-action" onclick="fecharModal('modal-abertura-caixa')">CANCELAR</button>
         </div>
     </div>
 
@@ -225,7 +225,7 @@
             <input type="text" id="custom-obs" placeholder="Ex: Sem cebola..." class="input-cliente mt-1">
             <br><br>
             <button class="btn-action w-100" onclick="confirmarObs()">CONFIRMAR PEDIDO</button>
-            <button class="btn-action btn-modal-cancel" onclick="fecharModal('modal-obs')">CANCELAR</button>
+            <button class="btn-action" onclick="fecharModal('modal-obs')">CANCELAR</button>
         </div>
     </div>
 
@@ -240,7 +240,7 @@
             <div class="display-troco" id="display-troco">Troco: R$ 0,00</div>
             <button id="btn-confirmar-dinheiro" class="btn-action btn-disabled-initial"
                 onclick="finalizarPagamentoDinheiro()">CONFIRMAR PAGAMENTO</button>
-            <button class="btn-action btn-modal-cancel" onclick="fecharModal('modal-dinheiro')">CANCELAR</button>
+            <button class="btn-action" onclick="fecharModal('modal-dinheiro')">CANCELAR</button>
         </div>
     </div>
 
@@ -251,7 +251,7 @@
             <p class="modal-subtitle-muted">Qual a função do cartão?</p>
             <button class="btn-action btn-tipo-cartao" onclick="finalizarPagamentoCartao('DÉBITO')">DÉBITO</button>
             <button class="btn-action btn-tipo-credito" onclick="finalizarPagamentoCartao('CRÉDITO')">CRÉDITO</button>
-            <button class="btn-action btn-modal-cancel" onclick="fecharModal('modal-cartao')">CANCELAR</button>
+            <button class="btn-action" onclick="fecharModal('modal-cartao')">CANCELAR</button>
         </div>
     </div>
 
@@ -273,7 +273,7 @@
             <p class="estoque-nota"><i>Nota: Ao aumentar o Bar, o valor será subtraído
                     do Depósito automaticamente.</i></p>
             <button class="btn-action btn-estoque-salvar" onclick="salvarEdicaoEstoque()">SALVAR ALTERAÇÕES</button>
-            <button class="btn-action btn-modal-cancel" onclick="fecharModal('modal-estoque')">CANCELAR</button>
+            <button class="btn-action" onclick="fecharModal('modal-estoque')">CANCELAR</button>
         </div>
     </div>
 
@@ -286,7 +286,7 @@
             </select>
             <div id="preview-divida" class="preview-divida"></div>
             <button class="btn-action w-100 mt-2" onclick="confirmarSelecaoMembro()">CONTINUAR</button>
-            <button class="btn-action btn-modal-cancel" onclick="fecharModalSelecaoMembro()">CANCELAR</button>
+            <button class="btn-action" onclick="fecharModalSelecaoMembro()">CANCELAR</button>
         </div>
     </div>
 
@@ -303,7 +303,7 @@
                 <button class="btn-action btn-pix" onclick="iniciarLiquidacao('PIX')">Pix</button>
                 <button class="btn-action btn-cartao" onclick="iniciarLiquidacao('CARTAO')">Cartão</button>
             </div>
-            <button class="btn-action btn-modal-cancel-mt2"
+            <button class="btn-action mt-2"
                 onclick="fecharModal('modal-fechar-conta')">CANCELAR</button>
         </div>
     </div>
@@ -336,7 +336,7 @@
                 GERAR MENSAL/PERIODO
             </button>
             <div id="resultado-relatorio" class="resultado-relatorio d-none"></div>
-            <button class="btn-action btn-modal-cancel-mt2" onclick="fecharModal('modal-relatorios')">FECHAR
+            <button class="btn-action mt-2" onclick="fecharModal('modal-relatorios')">FECHAR
                 JANELA</button>
         </div>
     </div>
@@ -359,7 +359,7 @@
                 </select>
             </div>
             <button class="btn-action btn-dinheiro" onclick="salvarConfig()">SALVAR</button>
-            <button class="btn-action btn-modal-cancel" onclick="fecharModal('modal-config')">CANCELAR</button>
+            <button class="btn-action" onclick="fecharModal('modal-config')">CANCELAR</button>
         </div>
     </div>
 
