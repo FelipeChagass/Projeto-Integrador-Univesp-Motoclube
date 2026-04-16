@@ -41,11 +41,12 @@ Stack: **Python Flask + PostgreSQL (Supabase) + Vanilla JS + Bootstrap 5**.
 | Tela          | Rota       | Template             | CSS                  | JS                  | Acesso         |
 |---------------|------------|----------------------|----------------------|---------------------|----------------|
 | **Login**     | `/login`   | `login.html`         | `login.css`          | `login.js`          | Público        |
-| **Cadastro**  | `/cadastro`| `cadastro.html`      | `cadastro.css`       | `cadastro.js`       | Público        |
 | **PDV**       | `/`        | `ponto_venda.html`   | `ponto_venda.css`    | `ponto_venda.js`    | `@requer_login`|
 | **Admin**     | `/admin`   | `admin.html`         | `admin.css`          | `admin.js`          | `@requer_admin`|
 
-Todas as telas carregam `api.js` (client Supabase + wrapper HTTP). PDV também carrega `common.css`.
+Todas as telas carregam `api.js` (client Supabase + wrapper HTTP).
+
+> Cadastro público removido. Novos usuários são criados pelo Admin em `/admin` → aba **Usuários**.
 
 ---
 

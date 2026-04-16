@@ -57,7 +57,8 @@ def create_app():
 
     @app.route('/cadastro')
     def cadastro_page():
-        return render_template('cadastro.html')
+        """Cadastro público removido — usuários são criados pelo admin."""
+        return redirect('/login')
 
     @app.route('/pdv')
     def pdv_page():
