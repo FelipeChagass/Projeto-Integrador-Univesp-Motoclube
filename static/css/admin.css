@@ -602,7 +602,12 @@ td input[type="number"] {
     transform: translateY(0);
 }
 
-.btn-add, .btn-save, .btn-sm, .btn-info, .btn-warn, .btn-cancel {
+.btn-add,
+.btn-save,
+.btn-sm,
+.btn-info,
+.btn-warn,
+.btn-cancel {
     background: linear-gradient(145deg, #1c1c1c, #111) !important;
     color: #fff !important;
     border: 1px solid rgba(255, 255, 255, 0.15) !important;
@@ -610,7 +615,12 @@ td input[type="number"] {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
-.btn-add:hover, .btn-save:hover, .btn-sm:hover, .btn-info:hover, .btn-warn:hover, .btn-cancel:hover {
+.btn-add:hover,
+.btn-save:hover,
+.btn-sm:hover,
+.btn-info:hover,
+.btn-warn:hover,
+.btn-cancel:hover {
     background: #222 !important;
     border-color: rgba(255, 255, 255, 0.3) !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -859,6 +869,7 @@ input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
+
 input[type="number"] {
     -moz-appearance: textfield;
     appearance: textfield;
@@ -881,11 +892,13 @@ select {
     cursor: pointer;
     transition: border-color 0.2s;
 }
+
 select:focus {
     outline: none;
     border-color: #b30000;
     box-shadow: 0 0 0 2px rgba(179, 0, 0, 0.2);
 }
+
 select option {
     background: #1a1a2e;
     color: #e0e0e0;

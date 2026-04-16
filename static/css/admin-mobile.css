@@ -56,12 +56,12 @@
     }
 
     .header-left .logo-admin {
-        width: 40px;
-        height: 40px;
+        width: 46px;
+        height: 46px;
     }
 
     header h1 {
-        font-size: 0.9rem;
+        font-size: 1rem;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -106,8 +106,8 @@
         gap: 10px;
     }
 
-    .toolbar > .btn,
-    .toolbar > .btn-add {
+    .toolbar>.btn,
+    .toolbar>.btn-add {
         width: 100%;
         justify-content: center;
         padding: 12px;
@@ -218,7 +218,9 @@
     }
 
     table {
-        min-width: 560px;
+        width: 100%;
+        min-width: 0;
+        table-layout: auto;
     }
 
     th,
@@ -229,6 +231,7 @@
 
     th {
         font-size: 0.65rem;
+        white-space: nowrap;
     }
 
     .img-thumb,
@@ -258,13 +261,19 @@
     }
 
     .btn-group {
-        flex-direction: row;
-        flex-wrap: wrap;
+        flex-direction: column;
         gap: 4px;
+        align-items: stretch;
+    }
+
+    .btn-group .btn-sm {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
     }
 
     .btn-sm {
-        padding: 0.4rem 0.7rem;
+        padding: 0.45rem 0.7rem;
         font-size: 0.75rem;
     }
 
@@ -345,12 +354,13 @@
 
     th,
     td {
-        padding: 0.45rem 0.35rem;
-        font-size: 0.72rem;
+        padding: 0.45rem 0.5rem;
+        font-size: 0.75rem;
+        white-space: nowrap;
     }
 
-    table {
-        min-width: 480px;
+    #tab-produtos .table-wrapper table {
+        min-width: 720px;
     }
 
     .btn-sm {
@@ -369,6 +379,7 @@
 }
 
 @media (hover: none) and (pointer: coarse) {
+
     .btn:hover,
     .tab-btn:hover {
         transform: none;

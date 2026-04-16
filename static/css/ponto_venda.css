@@ -473,7 +473,7 @@
 }
 
 .btn-dinheiro:hover {
-    border-color: rgb(76, 175, 80)!important;
+    border-color: rgb(76, 175, 80) !important;
     box-shadow: 0 0 15px #046132 !important;
 }
 
@@ -871,6 +871,7 @@ input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
+
 input[type="number"] {
     -moz-appearance: textfield;
     appearance: textfield;
@@ -893,11 +894,13 @@ select {
     cursor: pointer;
     transition: border-color 0.2s;
 }
+
 select:focus {
     outline: none;
     border-color: #b30000;
     box-shadow: 0 0 0 2px rgba(179, 0, 0, 0.2);
 }
+
 select option {
     background: #1a1a1a;
     color: #e0e0e0;
@@ -910,4 +913,8 @@ select option {
     padding: 12px 36px 12px 12px;
     font-size: 1.05rem;
     border-radius: 8px;
+}
+
+.btn-header svg {
+    color: #b30000;
 }

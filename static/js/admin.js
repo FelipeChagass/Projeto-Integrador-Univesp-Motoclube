@@ -480,7 +480,6 @@ function toast(msg, ok) {
     setTimeout(() => el.className = 'toast', 3500);
 }
 
-// ═══════════════════════ SKELETON ═══════════════════════
 function mostrarSkeleton(tbodyId, cols) {
     const tbody = document.getElementById(tbodyId);
     if (!tbody) return;
@@ -497,7 +496,6 @@ function mostrarSkeleton(tbodyId, cols) {
     tbody.innerHTML = html;
 }
 
-// ═══════════════════════ INIT ═══════════════════════
 document.addEventListener('DOMContentLoaded', () => {
     mostrarSkeleton('tabelaProdutos', 8);
     carregarProdutos();
