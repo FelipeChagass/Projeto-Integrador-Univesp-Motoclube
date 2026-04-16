@@ -155,11 +155,14 @@ def atualizar_estoque(db: Session, dados: dict) -> dict:
             return {'status': 'erro', 'mensagem': 'Valores negativos não permitidos.'}
 
         # Transferência automática depósito → bar
-        diferenca = novo_bar - produto.estoque_bar
-        if diferenca > 0:
-            if novo_dep - diferenca < 0:
-                return {'status': 'erro', 'mensagem': 'Depósito insuficiente para transferência.'}
-            novo_dep = novo_dep - diferenca
+        # Só aplica se o chamador solicitar (ex: PDV).
+        # No admin, os valores são definidos manualmente.
+        if dados.get('auto_transferir'):
+            diferenca = novo_bar - produto.estoque_bar
+            if diferenca > 0:
+                if novo_dep - diferenca < 0:
+                    return {'status': 'erro', 'mensagem': 'Depósito insuficiente para transferência.'}
+                novo_dep = novo_dep - diferenca
 
         ajuste = AjusteEstoque(
             produto_id=produto_id,

@@ -200,7 +200,7 @@
                 <div class="form-card-header">
                     <h3>Cadastrar Novo Membro</h3>
                     <button class="btn-icon-close"
-                        onclick="document.getElementById('formNovoMembro').style.display='none'">
+                        onclick="document.getElementById('formNovoMembro').classList.add('d-none')">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2">
                             <path d="M18 6 6 18" />
@@ -215,7 +215,7 @@
                 <div class="form-actions">
                     <button class="btn btn-save" onclick="criarNovoMembro()">Salvar</button>
                     <button class="btn btn-cancel"
-                        onclick="document.getElementById('formNovoMembro').style.display='none'">Cancelar</button>
+                        onclick="document.getElementById('formNovoMembro').classList.add('d-none')">Cancelar</button>
                 </div>
             </div>
 
@@ -257,7 +257,7 @@
                 <div class="form-card-header">
                     <h3>Cadastrar Novo Usuário</h3>
                     <button class="btn-icon-close"
-                        onclick="document.getElementById('formNovoUsuario').style.display='none'">
+                        onclick="document.getElementById('formNovoUsuario').classList.add('d-none')">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2">
                             <path d="M18 6 6 18" />
@@ -282,7 +282,7 @@
                 <div class="form-actions">
                     <button class="btn btn-save" onclick="criarNovoUsuario()">Salvar Usuário</button>
                     <button class="btn btn-cancel"
-                        onclick="document.getElementById('formNovoUsuario').style.display='none'">Cancelar</button>
+                        onclick="document.getElementById('formNovoUsuario').classList.add('d-none')">Cancelar</button>
                 </div>
             </div>
             <div class="table-wrapper">
@@ -372,7 +372,7 @@
         <div class="modal-content modal-lg">
             <div class="modal-header">
                 <h3 id="extrato-titulo">Extrato</h3>
-                <button class="btn-icon-close" onclick="document.getElementById('modalExtrato').style.display='none'">
+                <button class="btn-icon-close" onclick="document.getElementById('modalExtrato').classList.add('d-none')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2">
                         <path d="M18 6 6 18" />
@@ -390,7 +390,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Ajuste de Saldo</h3>
-                <button class="btn-icon-close" onclick="document.getElementById('modalAjuste').style.display='none'">
+                <button class="btn-icon-close" onclick="document.getElementById('modalAjuste').classList.add('d-none')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2">
                         <path d="M18 6 6 18" />
@@ -419,7 +419,7 @@
             <div class="form-actions">
                 <button class="btn btn-save" onclick="confirmarAjusteSaldo()">Confirmar Ajuste</button>
                 <button class="btn btn-cancel"
-                    onclick="document.getElementById('modalAjuste').style.display='none'">Cancelar</button>
+                    onclick="document.getElementById('modalAjuste').classList.add('d-none')">Cancelar</button>
             </div>
         </div>
     </div>
@@ -430,7 +430,7 @@
             <div class="modal-header">
                 <h3>Ajuste de Estoque</h3>
                 <button class="btn-icon-close"
-                    onclick="document.getElementById('modalAjusteEstoque').style.display='none'">
+                    onclick="document.getElementById('modalAjusteEstoque').classList.add('d-none')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2">
                         <path d="M18 6 6 18" />
@@ -456,7 +456,7 @@
             <div class="form-actions">
                 <button class="btn btn-save" onclick="confirmarAjusteEstoque()">Salvar</button>
                 <button class="btn btn-cancel"
-                    onclick="document.getElementById('modalAjusteEstoque').style.display='none'">Cancelar</button>
+                    onclick="document.getElementById('modalAjusteEstoque').classList.add('d-none')">Cancelar</button>
             </div>
         </div>
     </div>

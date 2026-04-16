@@ -3,14 +3,9 @@
    Professional dark theme with Inter font
    ───────────────────────────────────────────────── */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* Font Inter já importada no HTML via <link> — sem @import duplicado */
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
+/* Bootstrap já fornece reset (* box-sizing) — apenas override visual */
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     background: #0f0f17;
@@ -25,7 +20,7 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(233, 69, 96, 0.2);
+    border-bottom: 1px solid rgba(179, 0, 0, 0.2);
     position: sticky;
     top: 0;
     z-index: 200;
@@ -113,8 +108,8 @@ header h1 {
 }
 
 .tab-btn.active {
-    color: #e94560;
-    border-bottom-color: #e94560;
+    color: #b30000;
+    border-bottom-color: #b30000;
 }
 
 .tab-btn svg {
@@ -164,7 +159,7 @@ header h1 {
 }
 
 .toggle-label input[type="checkbox"] {
-    accent-color: #e94560;
+    accent-color: #b30000;
     width: 15px;
     height: 15px;
 }
@@ -195,7 +190,7 @@ header h1 {
 
 .filter-input:focus {
     outline: none;
-    border-color: #e94560;
+    border-color: #b30000;
 }
 
 /* ─── Stats Row ─── */
@@ -219,7 +214,7 @@ header h1 {
 .stat-number {
     font-size: 1.2rem;
     font-weight: 700;
-    color: #e94560;
+    color: #b30000;
 }
 
 .stat-label {
@@ -260,7 +255,7 @@ header h1 {
 }
 
 .form-card-header h3 svg {
-    color: #e94560;
+    color: #b30000;
 }
 
 .btn-icon-close {
@@ -318,13 +313,14 @@ header h1 {
 .form-group input:focus,
 .form-group select:focus {
     outline: none;
-    border-color: #e94560;
+    border-color: #b30000;
 }
 
 .form-actions {
     display: flex;
-    gap: 10px;
-    padding: 0 1.5rem 1.5rem;
+    gap: 12px;
+    padding: 1rem 1.5rem 1.5rem;
+    justify-content: flex-end;
 }
 
 /* Upload Zone */
@@ -344,9 +340,9 @@ header h1 {
 }
 
 .upload-zone:hover {
-    border-color: #e94560;
-    color: #e94560;
-    background: rgba(233, 69, 96, 0.05);
+    border-color: #b30000;
+    color: #b30000;
+    background: rgba(179, 0, 0, 0.05);
 }
 
 .upload-zone span {
@@ -409,12 +405,12 @@ td {
 
 th {
     background: #0f1129;
-    color: #e94560;
+    color: #b30000;
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.7rem;
     letter-spacing: 0.5px;
-    border-bottom: 1px solid rgba(233, 69, 96, 0.15);
+    border-bottom: 1px solid rgba(179, 0, 0, 0.15);
     white-space: nowrap;
 }
 
@@ -446,7 +442,7 @@ td select {
 td input:focus,
 td select:focus {
     outline: none;
-    border-color: #e94560;
+    border-color: #b30000;
 }
 
 td input[type="number"] {
@@ -506,8 +502,8 @@ td input[type="number"] {
 }
 
 .btn-upload-sm:hover {
-    border-color: #e94560;
-    color: #e94560;
+    border-color: #b30000;
+    color: #b30000;
 }
 
 /* Inner table (for extrato) */
@@ -658,7 +654,7 @@ td input[type="number"] {
 
 .btn-group {
     display: flex;
-    gap: 4px;
+    gap: 6px;
     flex-wrap: wrap;
 }
 
@@ -704,7 +700,7 @@ input[type="file"] {
 .modal-header h3 {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #e94560;
+    color: #b30000;
     margin: 0;
 }
 
