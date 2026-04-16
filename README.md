@@ -189,7 +189,7 @@ pi univesp/
 ## 🎨 Design System
 
 - **Tema**: Dark premium (`#0d0d0d` / `#0f0f17`) + vermelho `#b30000`
-- **Fonts**: Inter (sistema inteiro)
+- **Fonts**: Inter 
 
 ---
 

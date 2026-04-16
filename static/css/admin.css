@@ -391,7 +391,7 @@ table {
 th,
 td {
     padding: 0.6rem 0.75rem;
-    text-align: left;
+    text-align: center;
     font-size: 0.82rem;
 }
 
@@ -404,6 +404,7 @@ th {
     letter-spacing: 0.5px;
     border-bottom: 1px solid rgba(179, 0, 0, 0.15);
     white-space: nowrap;
+    vertical-align: middle;
 }
 
 tr {
