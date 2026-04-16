@@ -242,10 +242,9 @@
     }
 
     .grid-produtos {
-        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
         gap: 6px;
     }
-
     .card {
         border-radius: 8px;
     }
@@ -443,13 +442,13 @@
 
 @media (max-width: 380px) {
     .grid-produtos {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr); 
         gap: 5px;
     }
 
     .header-logo {
-        width: 36px;
-        height: 36px;
+        width: 55px;
+        height: 55px;
     }
 
     .total-display {
