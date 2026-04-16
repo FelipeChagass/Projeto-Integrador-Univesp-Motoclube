@@ -127,6 +127,9 @@
         align-items: center;
         width: 100%;
     }
+    .filter-group select.filter-input {
+        grid-column: 1 / -1; /* Força o select a ocupar a largura total no mobile */
+    }
 
     .filter-group .btn {
         grid-column: 1 / -1;
@@ -219,7 +222,7 @@
 
     table {
         width: 100%;
-        min-width: 0;
+        min-width: max-content;
         table-layout: auto;
     }
 
@@ -250,10 +253,14 @@
         font-size: 16px;
         padding: 0.4rem 0.5rem;
         min-height: 36px;
+        min-width: 120px; 
+        max-width: 180px;
+        width: auto; 
     }
 
     td input[type="number"] {
-        width: 64px;
+        min-width: 75px; 
+        width: 75px;
     }
 
     .btn {
@@ -264,6 +271,7 @@
         flex-direction: column;
         gap: 4px;
         align-items: stretch;
+        min-width: 85px;
     }
 
     .btn-group .btn-sm {
@@ -336,6 +344,40 @@
         bottom: calc(0.8rem + env(safe-area-inset-bottom));
         text-align: center;
     }
+
+    /* Reorganiza a aba de Vendas usando ordem visual do Flexbox */
+    #tab-vendas .container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    #vendas-resumo {
+        order: 1; /* Garante que os Cards fiquem no topo */
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    #tab-vendas .toolbar {
+        order: 2; /* Joga a barra de filtro para o meio */
+        margin-bottom: 0;
+    }
+
+    #tab-vendas .table-wrapper {
+        order: 3; /* Deixa a tabela no final */
+    }
+
+    /* Deixa os cards mais proporcionais ("quadrados") */
+    .stat-card {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 24px 12px; /* Aumentar o padding vertical deixa com aspecto mais quadrado mesmo com menos conteúdo */
+        text-align: center;
+    }
 }
 
 @media (max-width: 420px) {
@@ -357,10 +399,6 @@
         padding: 0.45rem 0.5rem;
         font-size: 0.75rem;
         white-space: nowrap;
-    }
-
-    #tab-produtos .table-wrapper table {
-        min-width: 720px;
     }
 
     .btn-sm {
