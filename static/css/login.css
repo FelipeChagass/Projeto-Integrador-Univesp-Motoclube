@@ -139,8 +139,23 @@
 }
 
 @media (max-width: 480px) {
+    .login-wrapper {
+        padding: 0;
+    }
+
     .login-card {
         padding: 30px 20px;
+        height: 100vh;
+        height: 100dvh;
+        max-width: 100%;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        background: transparent;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 
     .login-card h1 {
