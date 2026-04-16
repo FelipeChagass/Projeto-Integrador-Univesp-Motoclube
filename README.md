@@ -176,11 +176,11 @@ pi univesp/
 
 | Decisão | Justificativa |
 |---------|---------------|
-| **Flask** (não Django/FastAPI) | Simplicidade didática, sem "magia" |
+| **Flask** (não Django/FastAPI) | Simplicidade didática |
 | **SQLAlchemy ORM** | Proteção contra SQL injection, portabilidade |
 | **Supabase Auth** (JWT) | Stateless, sem sessões server-side |
 | **Fila de vendas local** | Offline-first — UX instantâneo, sincroniza depois |
-| **Bootstrap 5 + CSS custom** | Grid/utilidades + identidade visual dark premium |
+| **Bootstrap 5 + CSS custom** | Grid/utilidades + identidade visual |
 | **Tabela `caixas` separada** | Semântica própria, sem misturar com vendas |
 | **`id_externo` nas vendas** | Idempotência para offline-first |
 
@@ -189,8 +189,7 @@ pi univesp/
 ## 🎨 Design System
 
 - **Tema**: Dark premium (`#0d0d0d` / `#0f0f17`) + vermelho `#b30000`
-- **Fonts**: Inter (admin) / Roboto (PDV)
-- **UX**: Modais com ESC + click-outside, selects/inputs estilizados, toast notifications
+- **Fonts**: Inter (sistema inteiro)
 
 ---
 

@@ -1,11 +1,3 @@
-/* ─────────────────────────────────────────────────
-   Bar Moto Clube — Painel Admin (Tabbed Interface)
-   Professional dark theme with Inter font
-   ───────────────────────────────────────────────── */
-
-/* Font Inter já importada no HTML via <link> — sem @import duplicado */
-
-/* Bootstrap já fornece reset (* box-sizing) — apenas override visual */
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     background: #0f0f17;
