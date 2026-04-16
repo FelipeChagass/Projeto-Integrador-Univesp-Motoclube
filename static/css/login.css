@@ -139,27 +139,53 @@
 }
 
 @media (max-width: 480px) {
+    /* Tira o espaçamento em volta do card e o centraliza verticalmente na tela cheia */
     .login-wrapper {
         padding: 0;
     }
 
     .login-card {
-        padding: 30px 20px;
-        height: 100vh;
-        height: 100dvh;
-        max-width: 100%;
+        padding: 30px 20px; 
+        height: 100dvh; /* Altura total da tela, sem barras */
+        max-width: 100%; /* Largura total da tela */
         border: none;
         border-radius: 0;
         box-shadow: none;
         background: transparent;
-
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: center; /* Centraliza tudo verticalmente no meio da tela */
+        align-items: center; /* Centraliza tudo horizontalmente (logo div, form groups, etc.) */
+    }
+
+    /* Garante que o container do logo e a própria imagem estejam centralizados */
+    .brand-logo {
+        text-align: center; /* Maneira simples de centralizar a imagem dentro do div */
+        width: 100%; /* Garante que o div ocupa toda a largura permitindo a centralização */
+        margin-bottom: 20px; /* Espaçamento abaixo do logo */
+    }
+    
+    .brand-logo img {
+        display: inline-block; /* Importante para o text-align: center funcionar na imagem */
+        margin: 0 auto; /* Centralização extra por margens automáticas */
+    }
+
+    /* Faz os inputs e o botão ocuparem a largura total centralizada dentro do card */
+    .form-group {
+        width: 100%; /* Garante que o div do form-group ocupa toda a largura */
+    }
+
+    .form-group input,
+    .login-btn {
+        width: 100%; /* Faz os inputs e o botão ocuparem 100% da largura do form-group/card */
+        font-size: 16px; /* Aumentar um pouco a fonte nos inputs no mobile ajuda a evitar zoom automático */
+        margin-left: 0; /* Garante que não há margem esquerda deslocando */
+        margin-right: 0; /* Garante que não há margem direita deslocando */
     }
 
     .login-card h1 {
         font-size: 1.5rem;
+        margin-bottom: 30px; 
     }
 }
 
