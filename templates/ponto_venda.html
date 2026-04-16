@@ -9,6 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ponto_venda.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ponto_venda-mobile.css') }}">
     <script>
         window.onerror = function (msg, url, line, col, error) {
             var l = document.getElementById('loading');
@@ -120,7 +121,64 @@
                 <span class="btn-text">Login</span>
             </button>
         </div>
+
+        <button class="btn-hamburger" id="btn-hamburger" onclick="document.getElementById('sidebar-mobile').classList.add('open')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="4" x2="20" y1="6" y2="6" />
+                <line x1="4" x2="20" y1="12" y2="12" />
+                <line x1="4" x2="20" y1="18" y2="18" />
+            </svg>
+        </button>
     </header>
+
+    <div id="sidebar-mobile" class="sidebar-mobile">
+        <div class="sidebar-backdrop" onclick="document.getElementById('sidebar-mobile').classList.remove('open')"></div>
+        <nav class="sidebar-panel">
+            <div class="sidebar-header">
+                <img src="{{ url_for('static', filename='img/motorhead.png') }}" alt="Logo" class="sidebar-logo">
+                <span class="sidebar-title">MENU</span>
+                <button class="sidebar-close" onclick="document.getElementById('sidebar-mobile').classList.remove('open')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="sidebar-body">
+                <button class="sidebar-item" id="sidebar-btn-estoque" onclick="document.getElementById('sidebar-mobile').classList.remove('open');alternarModoEstoque()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                    Gerenciar Estoque
+                </button>
+                <button class="sidebar-item" onclick="document.getElementById('sidebar-mobile').classList.remove('open');abrirMenuRelatorios()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                    Gestão de Caixa
+                </button>
+                <button class="sidebar-item d-none" id="sidebar-btn-admin" onclick="window.location.href='/admin'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Painel Admin
+                </button>
+                <button class="sidebar-item" onclick="document.getElementById('sidebar-mobile').classList.remove('open');abrirConfig()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/></svg>
+                    Configurações
+                </button>
+                <button class="sidebar-item d-none" id="sidebar-abrir-caixa" onclick="document.getElementById('sidebar-mobile').classList.remove('open');abrirModalAberturaCaixa()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                    Abrir Caixa
+                </button>
+                <button class="sidebar-item" onclick="document.getElementById('sidebar-mobile').classList.remove('open');atualizarDados(true)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+                    Atualizar Dados
+                </button>
+            </div>
+            <div class="sidebar-footer">
+                <button class="sidebar-item sidebar-item--danger" onclick="document.getElementById('sidebar-mobile').classList.remove('open');realizarLogout()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Sair do Sistema
+                </button>
+            </div>
+        </nav>
+    </div>
 
     <div id="main-content">
         <section id="catalogo-section">
@@ -136,6 +194,7 @@
                     <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
                 </svg>
                 <h3 id="titulo-carrinho">PEDIDO ATUAL</h3>
+                <span id="carrinho-badge-mobile">0</span>
             </div>
             <div id="carrinho-lista" class="carrinho-lista"></div>
             <div class="carrinho-footer">
@@ -348,6 +407,57 @@
     <div id="area-impressao"></div>
 
     <script src="{{ url_for('static', filename='js/ponto_venda.js') }}"></script>
+    <script>
+        (function () {
+            var MOBILE_MQ = window.matchMedia('(max-width: 768px)');
+            var carrinho = document.getElementById('carrinho-section');
+            var header = carrinho ? carrinho.querySelector('.carrinho-header') : null;
+            var lista = document.getElementById('carrinho-lista');
+            var badge = document.getElementById('carrinho-badge-mobile');
+
+            if (!carrinho || !header || !lista || !badge) return;
+
+            function fecharSheet() { carrinho.classList.remove('mobile-aberto'); }
+            function abrirSheet() { carrinho.classList.add('mobile-aberto'); }
+            function toggleSheet() {
+                if (!MOBILE_MQ.matches) return;
+                if (carrinho.classList.contains('mobile-aberto')) fecharSheet();
+                else abrirSheet();
+            }
+
+            header.addEventListener('click', toggleSheet);
+
+            function atualizarBadge() {
+                var qtd = 0;
+                try {
+                    if (Array.isArray(window.carrinho)) {
+                        for (var i = 0; i < window.carrinho.length; i++) {
+                            qtd += Number(window.carrinho[i].qtd) || 0;
+                        }
+                    } else {
+                        qtd = lista.querySelectorAll('.item-carrinho').length;
+                    }
+                } catch (e) { qtd = 0; }
+                if (qtd > 0) { badge.textContent = qtd; badge.classList.add('show'); }
+                else { badge.classList.remove('show'); }
+            }
+
+            var obs = new MutationObserver(atualizarBadge);
+            obs.observe(lista, { childList: true, subtree: true });
+            atualizarBadge();
+
+            MOBILE_MQ.addEventListener && MOBILE_MQ.addEventListener('change', function (e) {
+                if (!e.matches) fecharSheet();
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!MOBILE_MQ.matches) return;
+                if (!carrinho.classList.contains('mobile-aberto')) return;
+                if (carrinho.contains(e.target)) return;
+                fecharSheet();
+            });
+        })();
+    </script>
 </body>
 
 </html>

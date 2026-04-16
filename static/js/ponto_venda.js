@@ -142,6 +142,9 @@ function atualizarEstadoBotoes() {
 
     var btnAdmin = document.getElementById('btn-admin');
 
+    var sidebarAdmin = document.getElementById('sidebar-btn-admin');
+    var sidebarAbrir = document.getElementById('sidebar-abrir-caixa');
+
     if (operadorAtual) {
         if (containerLogin) containerLogin.style.display = 'none';
         barra.innerText = "OPERADOR: " + operadorAtual.toUpperCase();
@@ -151,22 +154,28 @@ function atualizarEstadoBotoes() {
             barra.classList.add('status-aberto');
             barra.classList.remove('status-fechado');
             if (containerAbrir) containerAbrir.classList.add('d-none');
+            if (sidebarAbrir) sidebarAbrir.classList.add('d-none');
         } else {
             barra.innerText += " (CAIXA FECHADO)";
             barra.classList.add('status-fechado');
             barra.classList.remove('status-aberto');
             if (containerAbrir) containerAbrir.classList.remove('d-none');
+            if (sidebarAbrir) sidebarAbrir.classList.remove('d-none');
         }
 
         if (usuarioAtual && usuarioAtual.perfil === 'admin') {
             if (btnAdmin) btnAdmin.classList.remove('d-none');
+            if (sidebarAdmin) sidebarAdmin.classList.remove('d-none');
         } else {
             if (btnAdmin) btnAdmin.classList.add('d-none');
+            if (sidebarAdmin) sidebarAdmin.classList.add('d-none');
         }
     } else {
         if (containerLogin) containerLogin.style.display = 'inline-flex';
         if (containerAbrir) containerAbrir.classList.add('d-none');
+        if (sidebarAbrir) sidebarAbrir.classList.add('d-none');
         if (btnAdmin) btnAdmin.classList.add('d-none');
+        if (sidebarAdmin) sidebarAdmin.classList.add('d-none');
         barra.innerText = "SISTEMA BLOQUEADO - Clique para Entrar";
         barra.style.color = "#ccc";
         barra.style.backgroundColor = "rgba(0,0,0,0.35)";
