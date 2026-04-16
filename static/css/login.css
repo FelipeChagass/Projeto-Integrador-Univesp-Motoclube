@@ -145,7 +145,7 @@
     }
 
     .login-card {
-        padding: 20px 20px 12vh 20px; 
+        padding: 20px 20px 14vh 20px; 
         height: 100dvh; /* Altura total da tela, sem barras */
         max-width: 100%; /* Largura total da tela */
         border: none;
