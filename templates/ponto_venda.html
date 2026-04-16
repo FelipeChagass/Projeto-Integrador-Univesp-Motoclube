@@ -31,11 +31,10 @@
 </head>
 
 <body>
-    <!-- API Client -->
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="{{ url_for('static', filename='js/api.js') }}"></script>
 
-    <!-- TELA DE LOADING -->
     <div id="loading">
         <div class="spinner"></div>
         <p class="loading-text">Carregando...</p>
@@ -44,7 +43,6 @@
     <img id="logo-preload" class="d-none" />
     <div id="toast">Venda Registrada!</div>
 
-    <!-- HEADER -->
     <header id="app-header">
         <div id="info-topo-esq">
             <div>
@@ -100,7 +98,7 @@
                 </svg>
                 <span class="btn-text">Abrir Caixa</span>
             </button>
-            
+
             <button class="btn-header" onclick="realizarLogout()" title="Sair do Sistema">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -110,8 +108,6 @@
                 </svg>
                 <span class="btn-text">Sair</span>
             </button>
-
-
 
             <button class="btn-header btn-header--login" id="container-btn-login"
                 onclick="window.location.href='/login'" title="Fazer Login">
@@ -126,14 +122,13 @@
         </div>
     </header>
 
-    <!-- CONTEÚDO PRINCIPAL -->
     <div id="main-content">
         <section id="catalogo-section">
             <div id="grid-produtos" class="grid-produtos"></div>
         </section>
         <section id="carrinho-section">
             <div class="carrinho-header">
-                <!-- Lucide Shopping Cart icon -->
+
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                     <circle cx="8" cy="21" r="1" />
@@ -203,9 +198,6 @@
         </section>
     </div>
 
-    <!-- MODAIS -->
-
-    <!-- Abertura de Caixa -->
     <div id="modal-abertura-caixa" class="modal-overlay">
         <div class="modal-content text-center">
             <h2 class="modal-title-accent">ABERTURA DE CAIXA</h2>
@@ -216,7 +208,6 @@
         </div>
     </div>
 
-    <!-- Observação do Pedido -->
     <div id="modal-obs" class="modal-overlay">
         <div class="modal-content">
             <h3>Personalizar</h3>
@@ -227,7 +218,6 @@
         </div>
     </div>
 
-    <!-- Pagamento Dinheiro -->
     <div id="modal-dinheiro" class="modal-overlay">
         <div class="modal-content">
             <h3>Pagamento em Dinheiro</h3>
@@ -242,7 +232,6 @@
         </div>
     </div>
 
-    <!-- Tipo de Cartão -->
     <div id="modal-cartao" class="modal-overlay">
         <div class="modal-content">
             <h3>Selecione o Tipo</h3>
@@ -253,7 +242,6 @@
         </div>
     </div>
 
-    <!-- Gestão de Estoque -->
     <div id="modal-estoque" class="modal-overlay">
         <div class="modal-content">
             <h3 class="modal-title-estoque">Gestão de Estoque</h3>
@@ -275,7 +263,6 @@
         </div>
     </div>
 
-    <!-- Selecionar Membro -->
     <div id="modal-selecionar-membro" class="modal-overlay">
         <div class="modal-content">
             <h3>Selecione o Membro</h3>
@@ -288,7 +275,6 @@
         </div>
     </div>
 
-    <!-- Fechar Conta Membro -->
     <div id="modal-fechar-conta" class="modal-overlay">
         <div class="modal-content">
             <h3>Fechar Conta</h3>
@@ -306,7 +292,6 @@
         </div>
     </div>
 
-    <!-- Relatórios / Gestão de Caixa -->
     <div id="modal-relatorios" class="modal-overlay">
         <div class="modal-content">
             <h3>Gestão de Caixa</h3>
@@ -339,7 +324,6 @@
         </div>
     </div>
 
-    <!-- Configuração -->
     <div id="modal-config" class="modal-overlay">
         <div class="modal-content">
             <h3>Configuração</h3>
@@ -361,10 +345,8 @@
         </div>
     </div>
 
-    <!-- Área de Impressão -->
     <div id="area-impressao"></div>
 
-    <!-- JS do POS (toda lógica de negócio) -->
     <script src="{{ url_for('static', filename='js/ponto_venda.js') }}"></script>
 </body>
 

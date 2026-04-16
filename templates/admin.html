@@ -28,7 +28,6 @@
         </a>
     </header>
 
-    <!-- Tabs Navigation -->
     <nav class="tabs-nav">
         <button class="tab-btn active" onclick="switchTab('produtos')" id="tab-btn-produtos">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -77,7 +76,6 @@
         </button>
     </nav>
 
-    <!-- ═══════════════ TAB: PRODUTOS ═══════════════ -->
     <section class="tab-content active" id="tab-produtos">
         <div class="container">
             <div class="toolbar">
@@ -95,7 +93,6 @@
                 </label>
             </div>
 
-            <!-- Form: Novo Produto -->
             <div id="formNovoProduto" class="form-card d-none">
                 <div class="form-card-header">
                     <h3>
@@ -176,7 +173,6 @@
         </div>
     </section>
 
-    <!-- ═══════════════ TAB: MEMBROS ═══════════════ -->
     <section class="tab-content" id="tab-membros">
         <div class="container">
             <div class="toolbar">
@@ -233,7 +229,6 @@
         </div>
     </section>
 
-    <!-- ═══════════════ TAB: USUARIOS ═══════════════ -->
     <section class="tab-content" id="tab-usuarios">
         <div class="container">
             <div class="toolbar">
@@ -300,7 +295,6 @@
         </div>
     </section>
 
-    <!-- ═══════════════ TAB: VENDAS ═══════════════ -->
     <section class="tab-content" id="tab-vendas">
         <div class="container">
             <div class="toolbar">
@@ -335,7 +329,6 @@
         </div>
     </section>
 
-    <!-- ═══════════════ TAB: CONFIG ═══════════════ -->
     <section class="tab-content" id="tab-config">
         <div class="container">
             <div class="form-card d-block">
@@ -365,7 +358,6 @@
         </div>
     </section>
 
-    <!-- Modal: Extrato do Membro -->
     <div class="modal-overlay d-none" id="modalExtrato">
         <div class="modal-content modal-lg">
             <div class="modal-header">
@@ -383,7 +375,6 @@
         </div>
     </div>
 
-    <!-- Modal: Ajuste de Saldo -->
     <div class="modal-overlay d-none" id="modalAjuste">
         <div class="modal-content">
             <div class="modal-header">
@@ -422,7 +413,6 @@
         </div>
     </div>
 
-    <!-- Modal: Ajuste de Estoque -->
     <div class="modal-overlay d-none" id="modalAjusteEstoque">
         <div class="modal-content">
             <div class="modal-header">
@@ -459,10 +449,8 @@
         </div>
     </div>
 
-    <!-- Toast -->
     <div class="toast" id="toast"></div>
 
-    <!-- Hidden file inputs -->
     <input type="file" id="fileInput" accept="image/*" onchange="uploadImagem(this)" class="d-none">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

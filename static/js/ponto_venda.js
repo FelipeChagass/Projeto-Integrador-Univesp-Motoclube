@@ -25,7 +25,6 @@ var enviandoVenda = false;
 var processandoFila = false;
 var lastProcessTime = 0;
 
-
 function showToast(msg, type) {
     var toastEl = document.getElementById("toast");
     toastEl.innerText = msg;
@@ -35,7 +34,6 @@ function showToast(msg, type) {
 
 function fecharModal(id) { var el = document.getElementById(id); if (el) el.style.display = 'none'; }
 
-// ── Padrão da indústria: ESC fecha modal aberto ──
 document.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape') return;
     var abertos = document.querySelectorAll('.modal-overlay');
@@ -45,7 +43,6 @@ document.addEventListener('keydown', function (e) {
     }
 });
 
-// ── Clique fora do conteúdo (no overlay) fecha o modal ──
 document.addEventListener('click', function (e) {
     if (e.target.classList.contains('modal-overlay')) {
         e.target.style.display = 'none';
@@ -57,7 +54,7 @@ function salvarEstadoLocal() { LocalDB.set('motoBarCarrinho', JSON.stringify(car
 function salvarDadosLocais() {
     LocalDB.set('motoBarProdutos', JSON.stringify(produtos));
     LocalDB.set('motoBarMembros', JSON.stringify(membros));
-    // LocalDB.set('motoBarLogo', logoUrl);
+
     LocalDB.set('motoBarOperador', operadorAtual);
     LocalDB.set('motoBarInicio', inicioTurno ? inicioTurno.toString() : "");
     LocalDB.set('motoBarCarrinho', JSON.stringify(carrinho));
@@ -91,9 +88,6 @@ function carregarConfig() {
     if (configJson) { try { config = JSON.parse(configJson); } catch (e) { } }
 }
 
-/* =============================================
-   UI — CARRINHO / CATÁLOGO
-   ============================================= */
 function atualizarUI() {
     var listaCarrinho = document.getElementById('carrinho-lista'); listaCarrinho.innerHTML = '';
     var totalCarrinho = 0;
@@ -306,10 +300,8 @@ function incrementarQtd(idx) {
 
 function decrementarQtd(idx) { if (carrinho[idx].qtd > 1) carrinho[idx].qtd--; else carrinho.splice(idx, 1); atualizarUI(); }
 
-
 function abrirModalObs(nome) { document.getElementById('modal-prod-nome').innerText = nome; document.getElementById('custom-obs').value = ''; document.getElementById('modal-obs').style.display = 'flex'; document.getElementById('custom-obs').focus(); }
 function confirmarObs() { var custom = document.getElementById('custom-obs').value; if (produtoPendente) { adicionarAoCarrinho(produtoPendente.id, produtoPendente.nome, produtoPendente.preco_atual, custom); } fecharModal('modal-obs'); }
-
 
 function processarTrocaOperador(nomeInput) {
     if (!nomeInput) return;
@@ -335,11 +327,9 @@ function trocarMembro() {
     });
 }
 
-
 function salvarConfig() { config.imprimir = document.getElementById('cfg-imprimir').checked; config.largura = document.getElementById('cfg-largura').value; LocalDB.set('motoBarConfig', JSON.stringify(config)); fecharModal('modal-config'); }
 function abrirConfig() { document.getElementById('modal-config').style.display = 'flex'; document.getElementById('cfg-imprimir').checked = config.imprimir; document.getElementById('cfg-largura').value = config.largura; }
 function imprimirArea() { window.focus(); setTimeout(function () { window.print(); }, 1500); }
-
 
 function iniciarPagamento(metodo) {
     if (!operadorAtual) return showToast("Faça login primeiro.");
@@ -508,7 +498,6 @@ function confirmarSelecaoMembro() {
 
 function fecharModalSelecaoMembro() { fecharModal('modal-selecionar-membro'); var preview = document.getElementById('preview-divida'); if (preview) { preview.innerText = ''; } }
 
-
 function abrirModalAberturaCaixa() {
     if (caixaAberto) { showToast("O caixa já está aberto!"); return; }
     fecharModal('modal-relatorios'); document.getElementById('modal-abertura-caixa').style.display = 'flex'; document.getElementById('input-valor-abertura').focus();
@@ -547,7 +536,6 @@ function carregarDadosFechamento(nome) {
         })
         .catch(function () { showToast("Erro ao buscar dados."); fecharModal('modal-fechar-conta'); });
 }
-
 
 function abrirMenuRelatorios() {
     if (!operadorAtual) return showToast("Faça login primeiro.");
@@ -728,7 +716,6 @@ function sincronizarProdutosBackground() {
         })
         .catch(function (e) { console.warn('Erro na sincronização silenciosa:', e); });
 }
-
 
 function iniciarSistema() {
     try {

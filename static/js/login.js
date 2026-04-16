@@ -24,8 +24,6 @@ function toggleSenha() {
     }
 }
 
-// Auto-redirect: só redireciona se o usuário marcou "Lembrar-me" na sessão anterior
-// A flag 'motoBarLembrarMe' é gravada no localStorage ao fazer login com checkbox marcado
 var lembrarMeAtivo = localStorage.getItem('motoBarLembrarMe') === 'true';
 
 if (lembrarMeAtivo) {
@@ -34,19 +32,19 @@ if (lembrarMeAtivo) {
         return client.auth.getSession();
     }).then(function (result) {
         if (!result || !result.data || !result.data.session) return;
-        // Sessão Supabase existe — verifica se é válida no backend
+
         return API.getMe().then(function (res) {
             if (res.status === 'ok' && res.usuario) {
                 window.location.replace('/');
             }
         });
     }).catch(function () {
-        // Token inválido/expirado — limpa tudo
+
         localStorage.removeItem('motoBarLembrarMe');
         API.logout().catch(function () { });
     });
 } else {
-    // Sem lembrar-me: garante que qualquer sessão residual seja limpa
+
     API._initSupabase().then(function (client) {
         if (client) {
             client.auth.getSession().then(function (result) {
@@ -58,7 +56,6 @@ if (lembrarMeAtivo) {
     }).catch(function () { });
 }
 
-// Enter no campo senha faz login
 document.getElementById('login-senha').addEventListener('keydown', function (e) {
     if (e.key === 'Enter') realizarLogin();
 });
@@ -73,16 +70,16 @@ function realizarLogin() {
     API.login(email, senha)
         .then(function (res) {
             if (res.status === 'ok') {
-                // Grava a preferência de "lembrar-me" para o auto-redirect futuro
+
                 if (lembrar) {
                     localStorage.setItem('motoBarLembrarMe', 'true');
                 } else {
                     localStorage.removeItem('motoBarLembrarMe');
                 }
-                // Login Supabase OK. Agora verifica se perfil existe no banco.
+
                 return API.getMe().then(function (meRes) {
                     if (meRes.status === 'pendente') {
-                        // Perfil não existe ainda — sincroniza automaticamente
+
                         var nome = (res.usuario && res.usuario.user_metadata && res.usuario.user_metadata.nome) || email.split('@')[0];
                         return fetch(window.location.origin + '/api/auth/sincronizar', {
                             method: 'POST',

@@ -5,7 +5,6 @@ let ajusteMemberId = null;
 let supabaseStorageClient = null;
 const STORAGE_BUCKET = 'produto-imagens';
 
-// ═══════════════════════ AUTH ═══════════════════════
 async function getAuthHeaders() {
     const client = await API._initSupabase();
     const headers = { 'Content-Type': 'application/json' };
@@ -25,9 +24,9 @@ async function getSupabaseClient() {
 async function authFetch(url, opts = {}) {
     const headers = await getAuthHeaders();
     if (opts.body && typeof opts.body === 'string') {
-        // JSON request
+
     } else if (opts.body instanceof FormData) {
-        delete headers['Content-Type']; // let browser set multipart
+        delete headers['Content-Type']; 
     }
     const r = await fetch(url, { ...opts, headers: { ...headers, ...opts.headers } });
     if (r.status === 401 || r.status === 403) {
@@ -38,21 +37,18 @@ async function authFetch(url, opts = {}) {
     return r;
 }
 
-// ═══════════════════════ TABS ═══════════════════════
 function switchTab(name) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
     document.getElementById('tab-btn-' + name).classList.add('active');
     document.getElementById('tab-' + name).classList.add('active');
 
-    // Lazy load data
     if (name === 'membros' && membros.length === 0) carregarMembros();
     if (name === 'usuarios' && usuarios.length === 0) carregarUsuarios();
     if (name === 'vendas') carregarVendas();
     if (name === 'config') carregarConfig();
 }
 
-// ═══════════════════════ PRODUTOS ═══════════════════════
 async function carregarProdutos() {
     const r = await authFetch(`${BASE}/api/admin/produtos`);
     if (!r) return;
@@ -96,7 +92,6 @@ function renderProdutos() {
     });
 }
 
-// Produto CRUD
 function abrirFormNovoProduto() { document.getElementById('formNovoProduto').classList.remove('d-none'); document.getElementById('novo-nome').focus(); }
 function fecharFormNovoProduto() { document.getElementById('formNovoProduto').classList.add('d-none'); }
 
@@ -154,7 +149,6 @@ async function salvarProduto(id) {
     if (data.status === 'ok') carregarProdutos();
 }
 
-// ═══════════════════════ AJUSTE DE ESTOQUE ═══════════════════════
 let ajusteProdutoId = null;
 
 function abrirAjusteEstoque(id) {
@@ -190,7 +184,6 @@ async function confirmarAjusteEstoque() {
     }
 }
 
-// ═══════════════════════ UPLOAD DE IMAGEM ═══════════════════════
 function abrirUpload(produtoId) { uploadingProdutoId = produtoId; document.getElementById('fileInput').click(); }
 
 async function uploadImagem(input) {
@@ -225,7 +218,6 @@ async function uploadImagemParaProduto(produtoId, file) {
     }
 }
 
-// ═══════════════════════ MEMBROS ═══════════════════════
 async function carregarMembros() {
     mostrarSkeleton('tabelaMembros', 4);
     const r = await authFetch(`${BASE}/api/admin/membros`);
@@ -297,7 +289,6 @@ async function reativarMembro(id) {
     if (data.status === 'ok') carregarMembros();
 }
 
-// ═══════════════════════ EXTRATO ═══════════════════════
 async function verExtrato(id, nome) {
     document.getElementById('extrato-titulo').textContent = `Extrato — ${nome}`;
     document.getElementById('extrato-body').innerHTML = '<p class="admin-loading-text">Carregando...</p>';
@@ -319,7 +310,6 @@ async function verExtrato(id, nome) {
     document.getElementById('extrato-body').innerHTML = html;
 }
 
-// ═══════════════════════ AJUSTE DE SALDO ═══════════════════════
 function abrirAjusteSaldo(id, nome) {
     ajusteMemberId = id;
     document.getElementById('ajuste-membro-nome').textContent = nome;
@@ -341,7 +331,6 @@ async function confirmarAjusteSaldo() {
     if (data.status === 'ok') { document.getElementById('modalAjuste').classList.add('d-none'); carregarMembros(); }
 }
 
-// ═══════════════════════ USUÁRIOS ═══════════════════════
 async function carregarUsuarios() {
     mostrarSkeleton('tabelaUsuarios', 5);
     const r = await authFetch(`${BASE}/api/admin/usuarios`);
@@ -421,7 +410,6 @@ async function toggleUsuario(id, ativo) {
     if (data.status === 'ok') carregarUsuarios();
 }
 
-// ═══════════════════════ VENDAS ═══════════════════════
 async function carregarVendas() {
     mostrarSkeleton('tabelaVendas', 6);
     const params = new URLSearchParams();
@@ -438,7 +426,6 @@ async function carregarVendas() {
     const data = await r.json();
     const vendas = data.vendas || [];
 
-    // Resumo
     const total = vendas.reduce((s, v) => s + v.valor_total, 0);
     const resumoEl = document.getElementById('vendas-resumo');
     resumoEl.innerHTML = `
@@ -446,7 +433,6 @@ async function carregarVendas() {
         <div class="stat-card"><span class="stat-number">R$ ${total.toFixed(2)}</span><span class="stat-label">Total</span></div>
     `;
 
-    // Tabela
     const tbody = document.getElementById('tabelaVendas');
     tbody.innerHTML = '';
     vendas.forEach(v => {
@@ -465,7 +451,6 @@ async function carregarVendas() {
     });
 }
 
-// ═══════════════════════ CONFIG ═══════════════════════
 async function carregarConfig() {
     const r = await authFetch(`${BASE}/api/admin/config`);
     if (!r) return;
@@ -486,7 +471,6 @@ async function salvarConfig() {
     toast(data.mensagem, data.status === 'ok');
 }
 
-// ═══════════════════════ UTILS ═══════════════════════
 function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
 function toast(msg, ok) {

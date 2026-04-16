@@ -18,7 +18,6 @@
     }
 }
 
-/* BARRA OPERADOR */
 #info-topo-esq {
     display: flex;
     align-items: center;
@@ -106,7 +105,6 @@
     box-shadow: 0 0 8px rgba(156, 39, 176, 0.3);
 }
 
-
 .btn-header--login {
     border-color: var(--success);
     color: var(--success);
@@ -117,17 +115,15 @@
     color: var(--success);
 }
 
-/* === AREA DE CONTEUDO === */
 #main-content {
     display: flex;
     flex: 1;
-    /* Ocupa todo o espaço restante do body */
+
     overflow: hidden;
     position: relative;
     flex-direction: row;
 }
 
-/* CATÁLOGO */
 #catalogo-section {
     flex: 1;
     padding: 15px;
@@ -142,7 +138,6 @@
     gap: 10px;
 }
 
-/* CARDS */
 .card {
     background: var(--card-bg);
     border-radius: 10px;
@@ -289,7 +284,6 @@
     display: none;
 }
 
-/* === CARRINHO (Sidebar 100vh) === */
 #carrinho-section {
     width: 380px;
     min-width: 320px;
@@ -444,7 +438,6 @@
     margin-bottom: 6px;
 }
 
-/* Estilo unificado para todos os botões de ação */
 .btn-action {
     display: flex;
     align-items: center;
@@ -469,14 +462,12 @@
     border-color: rgba(255, 255, 255, 0.1);
 }
 
-
 .btn-action svg {
     width: 20px;
     height: 20px;
     flex-shrink: 0;
 }
 
-/* Cores específicas apenas no ícone e no efeito hover/glow */
 .btn-dinheiro svg {
     color: #4caf50;
 }
@@ -531,8 +522,6 @@
     box-shadow: none !important;
 }
 
-
-/* === MODAIS POS (sobrescritas específicas) === */
 #modal-login {
     background: rgba(0, 0, 0, 0.95);
     z-index: 9999;
@@ -545,7 +534,6 @@
     text-align: center;
 }
 
-/* CONFIGURAÇÕES */
 .config-option {
     margin-bottom: 15px;
 }
@@ -559,7 +547,6 @@
     cursor: pointer;
 }
 
-/* Rótulo de texto simples (ex: "Papel:") sem checkbox dentro */
 .config-option>label:not(:has(input)) {
     display: block;
     margin-bottom: 6px;
@@ -600,7 +587,6 @@
     cursor: pointer;
 }
 
-/* SEÇÕES DO RELATÓRIO */
 .section-header {
     color: var(--accent);
     font-weight: bold;
@@ -611,7 +597,6 @@
     margin: 12px 0 6px 0;
 }
 
-/* EXTRATO / FECHAMENTO */
 .extrato-lista {
     max-height: 200px;
     overflow-y: auto;
@@ -637,7 +622,6 @@
     margin: 10px 0;
 }
 
-/* TROCO DISPLAY */
 .valor-pendente {
     text-align: center;
     font-size: 1.3rem;
@@ -657,7 +641,6 @@
     border-radius: 5px;
 }
 
-/* CUPOM VISUAL */
 .cupom-visual {
     background-color: #fffbe6;
     color: #000;
@@ -679,7 +662,6 @@
     font-size: 0.95rem;
 }
 
-/* === RESPONSIVO POS === */
 @media (max-width: 850px) {
     #main-content {
         flex-direction: column;
@@ -722,13 +704,11 @@
     letter-spacing: 0.5px;
 }
 
-/* Header logo */
 .header-logo {
     width: 70px;
     height: 70px;
 }
 
-/* Modal titles / subtitles */
 .modal-title-accent {
     color: var(--accent);
 }
@@ -744,25 +724,21 @@
     margin-bottom: 20px;
 }
 
-/* Big centered input (valor abertura, valor recebido) */
 .input-valor-grande {
     font-size: 2rem;
     text-align: center;
     color: var(--success);
 }
 
-/* Product name in obs modal */
 .modal-prod-nome-accent {
     color: var(--accent);
     font-weight: bold;
 }
 
-/* Dinheiro label */
 .label-muted {
     color: #aaa;
 }
 
-/* Dinheiro confirm disabled state */
 .btn-disabled-initial {
     width: 100%;
     margin-top: 10px;
@@ -770,7 +746,6 @@
     pointer-events: none;
 }
 
-/* Cartão type buttons */
 .btn-tipo-cartao {
     width: 100%;
     margin-bottom: 10px;
@@ -783,7 +758,6 @@
     font-size: 1.2rem;
 }
 
-/* Estoque modal */
 .modal-title-estoque {
     color: var(--edit-mode-color);
 }
@@ -819,7 +793,6 @@
     box-shadow: 0 0 15px rgba(179, 0, 0, 0.3) !important;
 }
 
-/* Preview dívida */
 .preview-divida {
     text-align: center;
     margin-bottom: 10px;
@@ -828,7 +801,6 @@
     min-height: 1.2em;
 }
 
-/* Fechar conta */
 .nome-fechar-conta {
     color: #aaa;
     font-weight: bold;
@@ -843,7 +815,6 @@
     margin-bottom: 5px;
 }
 
-/* Relatórios / Gestão */
 .operador-box {
     padding: 10px;
     background: #222;
@@ -895,8 +866,6 @@
     padding-top: 10px;
 }
 
-/* ─── Spin-buttons dos inputs numéricos ─── */
-/* Remove o spinner nativo e entrega um look limpo/escuro */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
@@ -907,7 +876,6 @@ input[type="number"] {
     appearance: textfield;
 }
 
-/* ─── Select custom (dark premium) ─── */
 select {
     appearance: none;
     -webkit-appearance: none;
@@ -935,7 +903,6 @@ select option {
     color: #e0e0e0;
 }
 
-/* Override específico para a lista de membros */
 .lista-membros-scroll {
     background-color: #1a1a1a;
     color: #e0e0e0;

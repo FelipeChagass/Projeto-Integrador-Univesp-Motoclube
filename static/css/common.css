@@ -1,9 +1,3 @@
-/* ===========================
-   COMMON.CSS — Variáveis globais, reset, componentes compartilhados
-   Importado por TODAS as páginas (login, cadastro, pos, admin)
-   =========================== */
-
-/* Google Font */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
@@ -30,12 +24,11 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
-    /* Altura fixa da viewport */
+
     overflow: hidden;
-    /* Evita scroll na página toda, o scroll será interno nas seções */
+
 }
 
-/* SCROLLBAR */
 ::-webkit-scrollbar {
     width: 6px;
 }
@@ -49,7 +42,6 @@ body {
     border-radius: 3px;
 }
 
-/* LOADING SCREEN */
 #loading {
     position: fixed;
     top: 0;
@@ -86,7 +78,6 @@ body {
     }
 }
 
-/* TOAST NOTIFICATION */
 #toast {
     visibility: hidden;
     min-width: 200px;
@@ -139,7 +130,6 @@ body {
     }
 }
 
-/* MODAL GENÉRICO */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -166,8 +156,6 @@ body {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
-
-/* IMPRESSÃO (compartilhado) */
 @media print {
     @page {
         margin: 0;

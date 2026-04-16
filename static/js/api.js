@@ -23,12 +23,11 @@ window.UIModal = {
 };
 
 const API = (function () {
-    // URL base da API (ajustar em produção)
+
     const BASE_URL = window.location.origin + '/api';
 
-    // Cliente do Supabase iniciado dinamicamente
     let supabaseClient = null;
-    let _initPromise = null; // mutex: evita múltiplos fetches simultâneos
+    let _initPromise = null; 
 
     async function initSupabase() {
         if (supabaseClient) return supabaseClient;
@@ -36,7 +35,7 @@ const API = (function () {
             console.error("Supabase SDK não foi carregado via CDN no HTML.");
             return null;
         }
-        // Se já existe uma inicialização em andamento, aguarda ela terminar
+
         if (_initPromise) return _initPromise;
 
         _initPromise = (async () => {
@@ -55,10 +54,8 @@ const API = (function () {
         return _initPromise;
     }
 
-
-    // ── Cache simples para respostas GET (evita chamadas repetidas) ──
     const _cache = {};
-    const CACHE_TTL = 30000; // 30 segundos
+    const CACHE_TTL = 30000; 
 
     function _getCached(key) {
         var entry = _cache[key];
@@ -74,12 +71,7 @@ const API = (function () {
         if (key) { delete _cache[key]; } else { Object.keys(_cache).forEach(function (k) { delete _cache[k]; }); }
     }
 
-    /**
-     * Função base para requisições HTTP.
-     * Tokens do Supabase são enviados via cabeçalho Authorization.
-     * Inclui timeout (15s) e retry automático (até 2 tentativas).
-     */
-    var REQUEST_TIMEOUT = 15000; // 15 segundos
+    var REQUEST_TIMEOUT = 15000; 
     var MAX_RETRIES = 2;
 
     async function _request(method, endpoint, body, _retryCount) {
@@ -96,14 +88,12 @@ const API = (function () {
             }
         }
 
-        // Cache para requisições GET
         var cacheKey = method === 'GET' ? endpoint : null;
         if (cacheKey) {
             var cached = _getCached(cacheKey);
             if (cached) return cached;
         }
 
-        // AbortController para timeout
         var controller = new AbortController();
         var timeoutId = setTimeout(function () { controller.abort(); }, REQUEST_TIMEOUT);
 
@@ -122,7 +112,7 @@ const API = (function () {
             clearTimeout(timeoutId);
 
             if (response.status === 401) {
-                // Tenta refresh do token (uma vez) antes de desistir
+
                 if (_retryCount === 0 && client) {
                     try {
                         var refreshResult = await client.auth.refreshSession();
@@ -134,25 +124,23 @@ const API = (function () {
                         console.warn('Falha ao renovar token:', refreshErr);
                     }
                 }
-                // Refresh falhou ou já tentou — redireciona para login
+
                 window.location.replace('/login');
                 throw new Error("Não autorizado (401). Faça login novamente.");
             }
             const data = await response.json();
 
-            // Armazena no cache se for GET
             if (cacheKey) _setCache(cacheKey, data);
 
             return data;
         } catch (error) {
             clearTimeout(timeoutId);
 
-            // Identifica se é timeout ou erro de rede (retry-able)
             var isNetworkError = error.name === 'AbortError' || error.name === 'TypeError' || error.message === 'Failed to fetch';
             var isTimeout = error.name === 'AbortError';
 
             if (isNetworkError && _retryCount < MAX_RETRIES) {
-                var delay = Math.pow(2, _retryCount) * 1000; // 1s, 2s
+                var delay = Math.pow(2, _retryCount) * 1000; 
                 console.warn('Tentativa ' + (_retryCount + 1) + '/' + MAX_RETRIES + ' para ' + endpoint + ' em ' + delay + 'ms...');
                 await new Promise(function (r) { setTimeout(r, delay); });
                 return _request(method, endpoint, body, _retryCount + 1);
@@ -164,17 +152,10 @@ const API = (function () {
         }
     }
 
-    // --- Funções públicas da API ---
-
     return {
-        /**
-         * Expõe initSupabase para uso externo (ex: upload de imagem no admin)
-         */
+
         _initSupabase: initSupabase,
 
-        /**
-         * Login com email e senha usando Supabase Auth
-         */
         login: async function (email, senha) {
             const client = await initSupabase();
             if (!client) return { status: 'erro', mensagem: 'Supabase não inicializado' };
@@ -183,9 +164,6 @@ const API = (function () {
             return { status: 'ok', usuario: data.user };
         },
 
-        /**
-         * Cadastro de novo usuário usando Supabase Auth
-         */
         signup: async function (email, senha, nome) {
             const client = await initSupabase();
             if (!client) return { status: 'erro', mensagem: 'Supabase não inicializado' };
@@ -196,7 +174,6 @@ const API = (function () {
             });
             if (error) return { status: 'erro', mensagem: error.message };
 
-            // Tenta sincronizar o perfil no backend local
             try {
                 await _request('POST', '/auth/sincronizar', { nome: nome, perfil: 'operador' });
             } catch (e) {
@@ -205,9 +182,6 @@ const API = (function () {
             return { status: 'ok', usuario: data.user };
         },
 
-        /**
-         * Logout — encerra sessão Supabase e limpa dados locais
-         */
         logout: async function () {
             const client = await initSupabase();
             if (client) {
@@ -217,53 +191,35 @@ const API = (function () {
                     console.warn('Erro no signOut:', e);
                 }
             }
-            // Limpa todo o armazenamento local do PDV
+
             var keys = Object.keys(localStorage);
             keys.forEach(function (k) {
                 if (k.startsWith('motoBar') || k.startsWith('sb-')) {
                     localStorage.removeItem(k);
                 }
             });
-            // Reseta o client para forçar re-inicialização no próximo login
+
             supabaseClient = null;
             _initPromise = null;
             return { status: 'ok' };
         },
 
-        /**
-         * Busca dados do usuário logado
-         */
         getMe: function () {
             return _request('GET', '/auth/me');
         },
 
-        /**
-         * Busca dados iniciais (produtos + membros + config).
-         * Retorna dicts: {produtos: [{id, nome, preco_atual, ...}], membros: [{id, nome, ...}]}
-         */
         getDadosIniciais: function () {
             return _request('GET', '/dados-iniciais');
         },
 
-        /**
-         * Busca apenas produtos.
-         * Usado para sincronização de estoque em background.
-         */
         getProdutos: function () {
             return _request('GET', '/produtos');
         },
 
-        /**
-         * Invalida cache de GET. Chamado após ações que alteram dados.
-         */
         invalidateCache: function (endpoint) {
             _clearCache(endpoint || null);
         },
 
-        /**
-         * Lista membros ativos (formato dict).
-         * Retorna: [{id, nome, saldo_devedor, ...}, ...]
-         */
         getListaMembros: function () {
             return _request('GET', '/membros').then(function (res) {
                 return res.membros || [];
@@ -280,10 +236,6 @@ const API = (function () {
             }).then(function (res) { _clearCache(); return res; });
         },
 
-        /**
-         * Processa uma venda (normal ou fiado).
-         * O operador é identificado pela sessão no servidor.
-         */
         processarVenda: function (venda) {
             return _request('POST', '/vendas', venda).then(function (res) {
                 _clearCache();
@@ -293,13 +245,11 @@ const API = (function () {
             });
         },
 
-        /** Busca extrato de pendências de um membro. */
         buscarExtratoMembro: function (nomeMembro) {
             var encoded = encodeURIComponent(nomeMembro);
             return _request('GET', '/membros/extrato?nome=' + encoded);
         },
 
-        /** Quita conta de um membro. */
         quitarContaMembro: function (nomeMembro, metodo) {
             return _request('POST', '/vendas/pagamento', {
                 nome_membro: nomeMembro,
@@ -310,21 +260,18 @@ const API = (function () {
             });
         },
 
-        /**Gera relatório de caixa. */
         gerarRelatorioCaixa: function (tipo, dadosFiltro) {
             var body = Object.assign({}, dadosFiltro || {});
             body.tipo = tipo;
             return _request('POST', '/relatorios', body);
         },
 
-        /**  Abre um caixa. */
         abrirCaixa: function (valorAbertura) {
             return _request('POST', '/caixa/abrir', {
                 valor_abertura: valorAbertura,
             });
         },
 
-        /** Fecha um caixa. */
         fecharCaixa: function (caixaId, valorFechamento) {
             return _request('POST', '/caixa/fechar', {
                 caixa_id: caixaId,
@@ -332,21 +279,14 @@ const API = (function () {
             });
         },
 
-        /* Verifica se há caixa aberto.*/
         getCaixaAberto: function () {
             return _request('GET', '/caixa/aberto');
         },
 
-        /**
-         * Verifica senha do modo estoque no servidor.
-         */
         verificarSenhaEstoque: function (senha) {
             return _request('POST', '/admin/verificar-senha', { senha: senha });
         },
 
-        /**
-         * Health check
-         */
         health: function () {
             return _request('GET', '/health');
         },

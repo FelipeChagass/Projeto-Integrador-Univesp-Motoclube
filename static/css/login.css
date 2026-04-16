@@ -1,8 +1,3 @@
-/* ===========================
-   LOGIN.CSS — Estilos exclusivos da tela de Login
-   =========================== */
-
-/* Google Font — Inter (unified across system) */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 .login-wrapper {
@@ -108,7 +103,6 @@
     text-decoration: underline;
 }
 
-/* Toast dentro do login */
 .login-toast {
     position: fixed;
     top: 20px;
@@ -130,7 +124,6 @@
     animation: fadein 0.4s;
 }
 
-/* Loading overlay para login */
 .login-loading {
     position: fixed;
     inset: 0;
@@ -145,7 +138,6 @@
     display: flex;
 }
 
-/* Responsivo */
 @media (max-width: 480px) {
     .login-card {
         padding: 30px 20px;
@@ -156,7 +148,6 @@
     }
 }
 
-/* Campo senha com ícone de olho */
 .senha-wrapper {
     position: relative;
     width: 100%;
@@ -165,7 +156,7 @@
 
 .senha-wrapper .login-input {
     margin-bottom: 0;
-    padding-right: 48px; /* espaço para o botão do olho */
+    padding-right: 48px; 
 }
 
 .btn-toggle-senha {
@@ -194,14 +185,12 @@
     height: 20px;
 }
 
-/* ícones do bootstrap-icons dentro do botão */
 .btn-toggle-senha .bi {
     font-size: 20px;
     line-height: 1;
     display: block;
 }
 
-/* Checkbox lembrar-me */
 .lembrar-wrapper {
     width: 100%;
     margin-bottom: 8px;
