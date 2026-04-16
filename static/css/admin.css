@@ -600,22 +600,26 @@ td input[type="number"] {
 
 /* ─── Buttons ─── */
 .btn {
-    padding: 0.4rem 0.85rem;
-    border: none;
+    padding: 0.5rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: transparent;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     font-weight: 600;
-    color: #fff;
+    color: #ccc;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     font-family: inherit;
-    transition: all 0.15s;
+    transition: all 0.2s ease;
     white-space: nowrap;
 }
 
 .btn:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #fff;
     transform: translateY(-1px);
 }
 
@@ -623,59 +627,33 @@ td input[type="number"] {
     transform: translateY(0);
 }
 
-.btn-sm {
-    padding: 0.3rem 0.65rem;
-    font-size: 0.72rem;
-}
-
-.btn-add {
-    background: linear-gradient(135deg, #2ecc71, #27ae60);
+.btn-add, .btn-save, .btn-sm, .btn-info, .btn-warn, .btn-cancel {
+    background: linear-gradient(145deg, #1c1c1c, #111) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
     font-size: 0.85rem;
-    padding: 0.55rem 1.1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
-.btn-add:hover {
-    box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
-}
-
-.btn-save {
-    background: linear-gradient(135deg, #3498db, #2980b9);
-}
-
-.btn-save:hover {
-    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+.btn-add:hover, .btn-save:hover, .btn-sm:hover, .btn-info:hover, .btn-warn:hover, .btn-cancel:hover {
+    background: #222 !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .btn-del {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    background: linear-gradient(145deg, #1c1c1c, #111) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    font-size: 0.85rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 .btn-del:hover {
-    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
-}
-
-.btn-reativar {
-    background: linear-gradient(135deg, #2ecc71, #27ae60);
-}
-
-.btn-info {
-    background: linear-gradient(135deg, #3498db, #2980b9);
-}
-
-.btn-warn {
-    background: linear-gradient(135deg, #f39c12, #d68910);
-    color: #000 !important;
-}
-
-.btn-cancel {
-    background: rgba(255, 255, 255, 0.06);
-    color: #8a8a9a;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.btn-cancel:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
+    background: #222 !important;
+    border-color: rgba(255, 107, 107, 0.8) !important;
+    color: #ff6b6b !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .btn-group {
@@ -719,21 +697,27 @@ input[type="file"] {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 1.5rem;
+    padding: 1.25rem 1.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .modal-header h3 {
-    font-size: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
     color: #e94560;
+    margin: 0;
 }
 
 .modal-content .form-grid {
-    padding: 1rem 1.5rem;
+    padding: 1.5rem;
+    gap: 1.2rem;
 }
 
 .modal-content .form-actions {
-    padding: 0 1.5rem 1.5rem;
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
 }
 
 /* ─── Toast ─── */
@@ -850,16 +834,13 @@ input[type="file"] {
 }
 
 /* ─── Admin inline-style replacements ─── */
-.admin-ajuste-nome {
-    color: #e94560;
-    font-weight: 600;
-    margin-bottom: 1rem;
-}
-
+.admin-ajuste-nome,
 .admin-estoque-nome {
-    color: #2196f3;
+    font-size: 1.1rem;
+    color: #fff;
     font-weight: 600;
-    margin-bottom: 1rem;
+    padding: 1.25rem 1.5rem 0 1.5rem;
+    margin: 0;
 }
 
 /* Table cell utilities for admin.js */

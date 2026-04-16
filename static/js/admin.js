@@ -87,10 +87,10 @@ function renderProdutos() {
             <td class="col-status">${p.ativo ? '<span class="badge badge-active">Ativo</span>' : '<span class="badge badge-inactive">Inativo</span>'}</td>
             <td><div class="btn-group">
                 <button class="btn btn-save btn-sm" onclick="salvarProduto(${p.id})">Salvar</button>
-                <button class="btn btn-info btn-sm" onclick="abrirAjusteEstoque(${p.id})">Estoque</button>
+                <button class="btn btn-sm" onclick="abrirAjusteEstoque(${p.id})">Estoque</button>
                 ${p.ativo
-                    ? `<button class="btn btn-del btn-sm" onclick="deletarProduto(${p.id},'${esc(p.nome)}')">Desativar</button>`
-                    : `<button class="btn btn-reativar btn-sm" onclick="reativarProduto(${p.id})">Reativar</button>`}
+                ? `<button class="btn btn-del btn-sm" onclick="deletarProduto(${p.id},'${esc(p.nome)}')">Desativar</button>`
+                : `<button class="btn btn-reativar btn-sm" onclick="reativarProduto(${p.id})">Reativar</button>`}
             </div></td>`;
         tbody.appendChild(tr);
     });
@@ -249,7 +249,7 @@ function renderMembros() {
             <td class="col-status">${m.ativo ? '<span class="badge badge-active">Ativo</span>' : '<span class="badge badge-inactive">Inativo</span>'}</td>
             <td><div class="btn-group">
                 <button class="btn btn-save btn-sm" onclick="salvarMembro('${m.id}')">Salvar</button>
-                <button class="btn btn-info btn-sm" onclick="verExtrato('${m.id}','${esc(m.nome)}')">Extrato</button>
+                <button class="btn btn-sm" onclick="verExtrato('${m.id}','${esc(m.nome)}')">Extrato</button>
                 <button class="btn btn-warn btn-sm" onclick="abrirAjusteSaldo('${m.id}','${esc(m.nome)}')">Ajuste</button>
                 ${m.ativo ? `<button class="btn btn-del btn-sm" onclick="desativarMembro('${m.id}','${esc(m.nome)}')">Desativar</button>` : `<button class="btn btn-reativar btn-sm" onclick="reativarMembro('${m.id}')">Reativar</button>`}
             </div></td>`;
@@ -396,8 +396,8 @@ function renderUsuarios() {
             <td><div class="btn-group">
                 <button class="btn btn-save btn-sm" onclick="salvarUsuario('${u.id}')">Salvar</button>
                 ${u.ativo
-                    ? `<button class="btn btn-del btn-sm" onclick="toggleUsuario('${u.id}',false)">Desativar</button>`
-                    : `<button class="btn btn-reativar btn-sm" onclick="toggleUsuario('${u.id}',true)">Reativar</button>`}
+                ? `<button class="btn btn-del btn-sm" onclick="toggleUsuario('${u.id}',false)">Desativar</button>`
+                : `<button class="btn btn-reativar btn-sm" onclick="toggleUsuario('${u.id}',true)">Reativar</button>`}
             </div></td>`;
         tbody.appendChild(tr);
     });
