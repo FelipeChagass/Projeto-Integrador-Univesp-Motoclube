@@ -1,8 +1,10 @@
 from decimal import Decimal
 from datetime import datetime, timezone
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models.caixa import Caixa
+from app.models.venda import Venda
 
 
 def abrir_caixa(db: Session, dados: dict) -> dict:
@@ -82,15 +84,34 @@ def fechar_caixa(db: Session, dados: dict) -> dict:
 
         usuario_id = dados.get('usuario_id')
 
+        agora = datetime.now(timezone.utc)
+
         caixa.status = 'fechado'
-        caixa.fechado_em = datetime.now(timezone.utc)
+        caixa.fechado_em = agora
         caixa.usuario_fechamento_id = usuario_id
 
-        if dados.get('valor_fechamento') is not None:
-            caixa.valor_fechamento = Decimal(str(dados['valor_fechamento']))
+        valor_fechamento_informado = dados.get('valor_fechamento')
+        if valor_fechamento_informado is not None:
+            caixa.valor_fechamento = Decimal(str(valor_fechamento_informado))
+        else:
+            # Calcula automaticamente: fundo de caixa + total de vendas em dinheiro no turno.
+            # Vendas do tipo 'fiado' não entram no caixa físico, portanto são excluídas.
+            total_dinheiro_no_turno = db.query(
+                func.coalesce(func.sum(Venda.valor_total), 0)
+            ).filter(
+                Venda.criado_em >= caixa.aberto_em,
+                Venda.criado_em <= agora,
+                Venda.metodo_pagamento == 'dinheiro',
+                Venda.tipo_venda != 'fiado',
+            ).scalar() or Decimal('0')
 
-        if dados.get('observacoes'):
-            caixa.observacoes = dados['observacoes']
+            caixa.valor_fechamento = caixa.valor_abertura + Decimal(str(total_dinheiro_no_turno))
+
+        observacoes_informadas = dados.get('observacoes', '').strip() if dados.get('observacoes') else ''
+        if observacoes_informadas:
+            caixa.observacoes = observacoes_informadas
+        else:
+            caixa.observacoes = 'Fechamento realizado sem observações.'
 
         db.commit()
 

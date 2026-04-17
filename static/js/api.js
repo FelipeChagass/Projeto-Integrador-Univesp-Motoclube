@@ -272,10 +272,11 @@ const API = (function () {
             });
         },
 
-        fecharCaixa: function (caixaId, valorFechamento) {
+        fecharCaixa: function (caixaId, valorFechamento, observacoes) {
             return _request('POST', '/caixa/fechar', {
                 caixa_id: caixaId,
                 valor_fechamento: valorFechamento,
+                observacoes: observacoes || null,
             });
         },
 

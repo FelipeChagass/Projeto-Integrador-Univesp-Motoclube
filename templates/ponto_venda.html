@@ -383,9 +383,19 @@
         </div>
     </div>
 
+    <div id="modal-fechar-caixa" class="modal-overlay">
+        <div class="modal-content text-center">
+            <h2 class="modal-title-accent">FECHAMENTO DE CAIXA</h2>
+            <p class="modal-subtitle">Informe o total físico em caixa no momento do fechamento:</p>
+            <input type="number" id="input-valor-fechamento" class="input-cliente input-valor-grande" placeholder="0,00" min="0" step="0.01">
+            <p class="modal-subtitle" style="margin-top: 12px;">Observações (opcional):</p>
+            <input type="text" id="input-obs-fechamento" class="input-cliente" placeholder="Ex: Fechamento do dia, sem ocorrências.">
+            <button class="btn-action btn-fechar-dia mt-2" onclick="executarFechamentoCaixa()">CONFIRMAR FECHAMENTO</button>
+            <button class="btn-action" onclick="fecharModal('modal-fechar-caixa')">CANCELAR</button>
+        </div>
+    </div>
+
     <div id="modal-config" class="modal-overlay">
-        <div class="modal-content">
-            <h3>Configuração</h3>
             <div class="config-option">
                 <label>
                     <input type="checkbox" id="cfg-imprimir" class="config-check" checked>

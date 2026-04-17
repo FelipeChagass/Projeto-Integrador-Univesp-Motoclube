@@ -606,18 +606,42 @@ function executarRelatorio(tipo, filtro) {
 }
 
 function confirmarFechamentoCaixa() {
-    UIModal.confirm("Confirma o fechamento definitivo do caixa?", function () {
-        if (caixaId) {
-            API.fecharCaixa(caixaId, null).catch(function (e) { console.error("Erro ao fechar caixa:", e); });
-        }
-        caixaAberto = false; valorAbertura = 0; caixaId = null;
-        operadorAtual = ""; usuarioAtual = null; inicioTurno = null; carrinho = [];
-        atualizarUI(); fecharModal('modal-relatorios'); atualizarEstadoBotoes();
-        API.logout().then(function () {
-            window.location.replace('/login');
-        }).catch(function () {
-            window.location.replace('/login');
-        });
+    if (!caixaId) {
+        showToast("Nenhum caixa aberto identificado.");
+        return;
+    }
+    // Limpa os campos e abre o modal de coleta de dados de fechamento.
+    document.getElementById('input-valor-fechamento').value = '';
+    document.getElementById('input-obs-fechamento').value = '';
+    document.getElementById('modal-fechar-caixa').style.display = 'flex';
+    document.getElementById('input-valor-fechamento').focus();
+}
+
+function executarFechamentoCaixa() {
+    var valorInput = document.getElementById('input-valor-fechamento').value;
+    var obsInput = document.getElementById('input-obs-fechamento').value.trim();
+
+    var valorFechamento = valorInput !== '' ? parseFloat(valorInput) : null;
+    if (valorFechamento !== null && (isNaN(valorFechamento) || valorFechamento < 0)) {
+        showToast("Informe um valor em caixa válido.");
+        return;
+    }
+
+    var observacoes = obsInput || null;
+
+    fecharModal('modal-fechar-caixa');
+
+    API.fecharCaixa(caixaId, valorFechamento, observacoes)
+        .catch(function (e) { console.error("Erro ao fechar caixa no servidor:", e); });
+
+    caixaAberto = false; valorAbertura = 0; caixaId = null;
+    operadorAtual = ""; usuarioAtual = null; inicioTurno = null; carrinho = [];
+    atualizarUI(); fecharModal('modal-relatorios'); atualizarEstadoBotoes();
+
+    API.logout().then(function () {
+        window.location.replace('/login');
+    }).catch(function () {
+        window.location.replace('/login');
     });
 }
 

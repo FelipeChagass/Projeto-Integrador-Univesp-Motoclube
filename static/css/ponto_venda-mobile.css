@@ -2,28 +2,35 @@
     .btn-header .btn-text {
         display: none;
     }
+
     .btn-header svg {
         width: 18px;
         height: 18px;
     }
+
     .header-logo {
         width: 55px;
         height: 55px;
     }
+
     #barra-operador {
         font-size: 0.72rem;
         padding: 6px 10px;
     }
+
     .btn-hamburger {
         display: none;
     }
+
     .sidebar-mobile {
         display: none;
     }
 }
 
 @media (max-width: 768px) {
-    html, body {
+
+    html,
+    body {
         height: 100vh;
         overflow: hidden;
         overscroll-behavior: none;
@@ -245,6 +252,7 @@
         grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
         gap: 6px;
     }
+
     .card {
         border-radius: 8px;
     }
@@ -442,7 +450,7 @@
 
 @media (max-width: 380px) {
     .grid-produtos {
-        grid-template-columns: repeat(3, 1fr); 
+        grid-template-columns: repeat(3, 1fr);
         gap: 5px;
     }
 
@@ -477,15 +485,18 @@
     .btn-hamburger {
         display: none;
     }
+
     .sidebar-mobile {
         display: none !important;
     }
+
     #carrinho-badge-mobile {
         display: none !important;
     }
 }
 
 @media (hover: none) and (pointer: coarse) {
+
     .btn-action:hover,
     .btn-header:hover,
     .btn:hover,
