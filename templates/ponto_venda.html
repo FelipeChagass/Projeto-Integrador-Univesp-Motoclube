@@ -316,7 +316,7 @@
             <p class="modal-subtitle">Digite a senha para gerenciar o estoque:</p>
             <input type="password" id="input-senha-estoque" class="input-cliente" placeholder="Senha"
                 onkeydown="if(event.key==='Enter') confirmarSenhaEstoque()">
-            <p id="erro-senha-estoque" style="color: #ff6b6b; font-size: 0.85rem; min-height: 1.2em; margin: 4px 0 8px;"></p>
+            <p id="erro-senha-estoque" class="d-none" style="color: #ff6b6b; font-size: 0.85rem; margin: 4px 0 8px;"></p>
             <button class="btn-action btn-fechar-dia" onclick="confirmarSenhaEstoque()">CONFIRMAR</button>
             <button class="btn-action" onclick="fecharModal('modal-senha-estoque')">CANCELAR</button>
         </div>

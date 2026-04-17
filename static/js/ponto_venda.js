@@ -237,15 +237,18 @@ function confirmarSenhaEstoque() {
 
     if (!senha) {
         erroEl.textContent = 'Por favor, digite a senha.';
+        erroEl.classList.remove('d-none');
         return;
     }
 
     erroEl.textContent = '';
+    erroEl.classList.add('d-none');
 
     API.verificarSenhaEstoque(senha)
         .then(function (res) {
             if (!res || res.status !== 'ok') {
                 erroEl.textContent = (res && res.mensagem) ? res.mensagem : 'Senha incorreta.';
+                erroEl.classList.remove('d-none');
                 document.getElementById('input-senha-estoque').value = '';
                 document.getElementById('input-senha-estoque').focus();
                 return;
@@ -265,6 +268,7 @@ function confirmarSenhaEstoque() {
         })
         .catch(function (err) {
             erroEl.textContent = 'Erro ao verificar senha. Tente novamente.';
+            erroEl.classList.remove('d-none');
             console.error("Erro ao verificar senha:", err);
         });
 }
