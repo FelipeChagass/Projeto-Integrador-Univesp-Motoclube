@@ -310,6 +310,18 @@
         </div>
     </div>
 
+    <div id="modal-senha-estoque" class="modal-overlay">
+        <div class="modal-content text-center">
+            <h2 class="modal-title-accent">MODO ESTOQUE</h2>
+            <p class="modal-subtitle">Digite a senha para gerenciar o estoque:</p>
+            <input type="password" id="input-senha-estoque" class="input-cliente" placeholder="Senha"
+                onkeydown="if(event.key==='Enter') confirmarSenhaEstoque()">
+            <p id="erro-senha-estoque" style="color: #ff6b6b; font-size: 0.85rem; min-height: 1.2em; margin: 4px 0 8px;"></p>
+            <button class="btn-action btn-fechar-dia" onclick="confirmarSenhaEstoque()">CONFIRMAR</button>
+            <button class="btn-action" onclick="fecharModal('modal-senha-estoque')">CANCELAR</button>
+        </div>
+    </div>
+
     <div id="modal-obs" class="modal-overlay">
         <div class="modal-content">
             <h3>Personalizar</h3>
@@ -441,22 +453,24 @@
     </div>
 
     <div id="modal-config" class="modal-overlay">
-        <div class="config-option">
-            <label>
-                <input type="checkbox" id="cfg-imprimir" class="config-check" checked>
-                Imprimir Auto
-            </label>
+        <div class="modal-content">
+            <h3>Configuração</h3>
+            <div class="config-option">
+                <label>
+                    <input type="checkbox" id="cfg-imprimir" class="config-check" checked>
+                    Imprimir Auto
+                </label>
+            </div>
+            <div class="config-option">
+                <label for="cfg-largura">Papel:</label>
+                <select id="cfg-largura" class="config-select">
+                    <option value="ticket-80mm">80mm</option>
+                    <option value="ticket-58mm">58mm</option>
+                </select>
+            </div>
+            <button class="btn-action btn-dinheiro" onclick="salvarConfig()">SALVAR</button>
+            <button class="btn-action" onclick="fecharModal('modal-config')">CANCELAR</button>
         </div>
-        <div class="config-option">
-            <label for="cfg-largura">Papel:</label>
-            <select id="cfg-largura" class="config-select">
-                <option value="ticket-80mm">80mm</option>
-                <option value="ticket-58mm">58mm</option>
-            </select>
-        </div>
-        <button class="btn-action btn-dinheiro" onclick="salvarConfig()">SALVAR</button>
-        <button class="btn-action" onclick="fecharModal('modal-config')">CANCELAR</button>
-    </div>
     </div>
 
     <div id="area-impressao"></div>

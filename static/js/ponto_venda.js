@@ -224,29 +224,49 @@ function alternarModoEstoque() {
         return;
     }
 
-    UIModal.prompt("Digite a senha do estoque:", function (senha) {
-        if (!senha) return;
-        API.verificarSenhaEstoque(senha)
-            .then(function (res) {
-                if (!res || res.status !== 'ok') {
-                    showToast(res && res.mensagem ? res.mensagem : "Senha incorreta.", 'err');
-                    return;
-                }
-                modoGerenciaEstoque = true;
-                var btn = document.getElementById('btn-estoque');
-                var carrinhoSec = document.getElementById('secao-carrinho');
-                var header = document.getElementById('app-header');
-                if (btn) btn.classList.add('active');
-                if (carrinhoSec) carrinhoSec.classList.add('minimizado');
-                document.body.style.border = "3px solid #b30000";
-                if (header) header.style.borderBottom = "3px solid #b30000";
-                showToast("MODO ESTOQUE ATIVADO");
-                renderizarCatalogo();
-            })
-            .catch(function (err) {
-                showToast("Erro ao verificar senha: " + (err.message || err), 'err');
-            });
-    });
+    // Abre o modal dedicado de senha, limpando estado anterior.
+    document.getElementById('input-senha-estoque').value = '';
+    document.getElementById('erro-senha-estoque').textContent = '';
+    document.getElementById('modal-senha-estoque').style.display = 'flex';
+    document.getElementById('input-senha-estoque').focus();
+}
+
+function confirmarSenhaEstoque() {
+    var senha = document.getElementById('input-senha-estoque').value;
+    var erroEl = document.getElementById('erro-senha-estoque');
+
+    if (!senha) {
+        erroEl.textContent = 'Por favor, digite a senha.';
+        return;
+    }
+
+    erroEl.textContent = '';
+
+    API.verificarSenhaEstoque(senha)
+        .then(function (res) {
+            if (!res || res.status !== 'ok') {
+                erroEl.textContent = (res && res.mensagem) ? res.mensagem : 'Senha incorreta.';
+                document.getElementById('input-senha-estoque').value = '';
+                document.getElementById('input-senha-estoque').focus();
+                return;
+            }
+
+            fecharModal('modal-senha-estoque');
+            modoGerenciaEstoque = true;
+            var btn = document.getElementById('btn-estoque');
+            var carrinhoSec = document.getElementById('secao-carrinho');
+            var header = document.getElementById('app-header');
+            if (btn) btn.classList.add('active');
+            if (carrinhoSec) carrinhoSec.classList.add('minimizado');
+            document.body.style.border = "3px solid #b30000";
+            if (header) header.style.borderBottom = "3px solid #b30000";
+            showToast("MODO ESTOQUE ATIVADO");
+            renderizarCatalogo();
+        })
+        .catch(function (err) {
+            erroEl.textContent = 'Erro ao verificar senha. Tente novamente.';
+            console.error("Erro ao verificar senha:", err);
+        });
 }
 
 function salvarEdicaoEstoque() {

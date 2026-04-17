@@ -77,7 +77,7 @@ def verificar_senha():
 
     if hmac.compare_digest(senha_informada, senha_correta):
         return jsonify({'status': 'ok'})
-    return jsonify({'status': 'erro', 'mensagem': 'Senha incorreta.'}), 401
+    return jsonify({'status': 'erro', 'mensagem': 'Senha incorreta.'}), 403
 
 
 # ═══════════════════════════════════════════════════════════
