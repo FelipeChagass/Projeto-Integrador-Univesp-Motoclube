@@ -90,8 +90,8 @@
                 <span class="btn-text">Config</span>
             </button>
 
-            <button class="btn-header d-none" id="container-abrir-caixa"
-                onclick="abrirModalAberturaCaixa()" title="Abrir Caixa">
+            <button class="btn-header d-none" id="container-abrir-caixa" onclick="abrirModalAberturaCaixa()"
+                title="Abrir Caixa">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-linecap="round" stroke-linejoin="round">
                     <rect width="20" height="14" x="2" y="5" rx="2" />
@@ -122,7 +122,8 @@
             </button>
         </div>
 
-        <button class="btn-hamburger" id="btn-hamburger" onclick="document.getElementById('sidebar-mobile').classList.add('open')">
+        <button class="btn-hamburger" id="btn-hamburger"
+            onclick="document.getElementById('sidebar-mobile').classList.add('open')">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="4" x2="20" y1="6" y2="6" />
@@ -133,47 +134,89 @@
     </header>
 
     <div id="sidebar-mobile" class="sidebar-mobile">
-        <div class="sidebar-backdrop" onclick="document.getElementById('sidebar-mobile').classList.remove('open')"></div>
+        <div class="sidebar-backdrop" onclick="document.getElementById('sidebar-mobile').classList.remove('open')">
+        </div>
         <nav class="sidebar-panel">
             <div class="sidebar-header">
                 <img src="{{ url_for('static', filename='img/motorhead.png') }}" alt="Logo" class="sidebar-logo">
                 <span class="sidebar-title">MENU</span>
-                <button class="sidebar-close" onclick="document.getElementById('sidebar-mobile').classList.remove('open')">
+                <button class="sidebar-close"
+                    onclick="document.getElementById('sidebar-mobile').classList.remove('open')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
                     </svg>
                 </button>
             </div>
             <div class="sidebar-body">
-                <button class="sidebar-item" id="sidebar-btn-estoque" onclick="document.getElementById('sidebar-mobile').classList.remove('open');alternarModoEstoque()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                <button class="sidebar-item" id="sidebar-btn-estoque"
+                    onclick="document.getElementById('sidebar-mobile').classList.remove('open');alternarModoEstoque()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                        <path d="m3.3 7 8.7 5 8.7-5" />
+                        <path d="M12 22V12" />
+                    </svg>
                     Gerenciar Estoque
                 </button>
-                <button class="sidebar-item" onclick="document.getElementById('sidebar-mobile').classList.remove('open');abrirMenuRelatorios()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                <button class="sidebar-item"
+                    onclick="document.getElementById('sidebar-mobile').classList.remove('open');abrirMenuRelatorios()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 3v18h18" />
+                        <path d="m19 9-5 5-4-4-3 3" />
+                    </svg>
                     Gestão de Caixa
                 </button>
                 <button class="sidebar-item d-none" id="sidebar-btn-admin" onclick="window.location.href='/admin'">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
                     Painel Admin
                 </button>
-                <button class="sidebar-item" onclick="document.getElementById('sidebar-mobile').classList.remove('open');abrirConfig()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/></svg>
+                <button class="sidebar-item"
+                    onclick="document.getElementById('sidebar-mobile').classList.remove('open');abrirConfig()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                    </svg>
                     Configurações
                 </button>
-                <button class="sidebar-item d-none" id="sidebar-abrir-caixa" onclick="document.getElementById('sidebar-mobile').classList.remove('open');abrirModalAberturaCaixa()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                <button class="sidebar-item d-none" id="sidebar-abrir-caixa"
+                    onclick="document.getElementById('sidebar-mobile').classList.remove('open');abrirModalAberturaCaixa()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="20" height="14" x="2" y="5" rx="2" />
+                        <line x1="2" x2="22" y1="10" y2="10" />
+                    </svg>
                     Abrir Caixa
                 </button>
-                <button class="sidebar-item" onclick="document.getElementById('sidebar-mobile').classList.remove('open');atualizarDados(true)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+                <button class="sidebar-item"
+                    onclick="document.getElementById('sidebar-mobile').classList.remove('open');atualizarDados(true)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                        <path d="M3 3v5h5" />
+                        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                        <path d="M16 16h5v5" />
+                    </svg>
                     Atualizar Dados
                 </button>
             </div>
             <div class="sidebar-footer">
-                <button class="sidebar-item sidebar-item--danger" onclick="document.getElementById('sidebar-mobile').classList.remove('open');realizarLogout()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <button class="sidebar-item sidebar-item--danger"
+                    onclick="document.getElementById('sidebar-mobile').classList.remove('open');realizarLogout()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
                     Sair do Sistema
                 </button>
             </div>
@@ -346,8 +389,7 @@
                 <button class="btn-action btn-pix" onclick="iniciarLiquidacao('PIX')">Pix</button>
                 <button class="btn-action btn-cartao" onclick="iniciarLiquidacao('CARTAO')">Cartão</button>
             </div>
-            <button class="btn-action mt-2"
-                onclick="fecharModal('modal-fechar-conta')">CANCELAR</button>
+            <button class="btn-action mt-2" onclick="fecharModal('modal-fechar-conta')">CANCELAR</button>
         </div>
     </div>
 
@@ -387,31 +429,34 @@
         <div class="modal-content text-center">
             <h2 class="modal-title-accent">FECHAMENTO DE CAIXA</h2>
             <p class="modal-subtitle">Informe o total físico em caixa no momento do fechamento:</p>
-            <input type="number" id="input-valor-fechamento" class="input-cliente input-valor-grande" placeholder="0,00" min="0" step="0.01">
+            <input type="number" id="input-valor-fechamento" class="input-cliente input-valor-grande" placeholder="0,00"
+                min="0" step="0.01">
             <p class="modal-subtitle" style="margin-top: 12px;">Observações (opcional):</p>
-            <input type="text" id="input-obs-fechamento" class="input-cliente" placeholder="Ex: Fechamento do dia, sem ocorrências.">
-            <button class="btn-action btn-fechar-dia mt-2" onclick="executarFechamentoCaixa()">CONFIRMAR FECHAMENTO</button>
+            <input type="text" id="input-obs-fechamento" class="input-cliente"
+                placeholder="Ex: Fechamento do dia, sem ocorrências.">
+            <button class="btn-action btn-fechar-dia mt-2" onclick="executarFechamentoCaixa()">CONFIRMAR
+                FECHAMENTO</button>
             <button class="btn-action" onclick="fecharModal('modal-fechar-caixa')">CANCELAR</button>
         </div>
     </div>
 
     <div id="modal-config" class="modal-overlay">
-            <div class="config-option">
-                <label>
-                    <input type="checkbox" id="cfg-imprimir" class="config-check" checked>
-                    Imprimir Auto
-                </label>
-            </div>
-            <div class="config-option">
-                <label for="cfg-largura">Papel:</label>
-                <select id="cfg-largura" class="config-select">
-                    <option value="ticket-80mm">80mm</option>
-                    <option value="ticket-58mm">58mm</option>
-                </select>
-            </div>
-            <button class="btn-action btn-dinheiro" onclick="salvarConfig()">SALVAR</button>
-            <button class="btn-action" onclick="fecharModal('modal-config')">CANCELAR</button>
+        <div class="config-option">
+            <label>
+                <input type="checkbox" id="cfg-imprimir" class="config-check" checked>
+                Imprimir Auto
+            </label>
         </div>
+        <div class="config-option">
+            <label for="cfg-largura">Papel:</label>
+            <select id="cfg-largura" class="config-select">
+                <option value="ticket-80mm">80mm</option>
+                <option value="ticket-58mm">58mm</option>
+            </select>
+        </div>
+        <button class="btn-action btn-dinheiro" onclick="salvarConfig()">SALVAR</button>
+        <button class="btn-action" onclick="fecharModal('modal-config')">CANCELAR</button>
+    </div>
     </div>
 
     <div id="area-impressao"></div>

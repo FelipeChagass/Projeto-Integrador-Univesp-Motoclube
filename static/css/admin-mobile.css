@@ -127,8 +127,10 @@
         align-items: center;
         width: 100%;
     }
+
     .filter-group select.filter-input {
-        grid-column: 1 / -1; /* Força o select a ocupar a largura total no mobile */
+        grid-column: 1 / -1;
+        /* Força o select a ocupar a largura total no mobile */
     }
 
     .filter-group .btn {
@@ -253,13 +255,13 @@
         font-size: 16px;
         padding: 0.4rem 0.5rem;
         min-height: 36px;
-        min-width: 120px; 
+        min-width: 120px;
         max-width: 180px;
-        width: auto; 
+        width: auto;
     }
 
     td input[type="number"] {
-        min-width: 75px; 
+        min-width: 75px;
         width: 75px;
     }
 
@@ -353,19 +355,22 @@
     }
 
     #vendas-resumo {
-        order: 1; /* Garante que os Cards fiquem no topo */
+        order: 1;
+        /* Garante que os Cards fiquem no topo */
         display: flex;
         flex-direction: row;
         gap: 10px;
     }
 
     #tab-vendas .toolbar {
-        order: 2; /* Joga a barra de filtro para o meio */
+        order: 2;
+        /* Joga a barra de filtro para o meio */
         margin-bottom: 0;
     }
 
     #tab-vendas .table-wrapper {
-        order: 3; /* Deixa a tabela no final */
+        order: 3;
+        /* Deixa a tabela no final */
     }
 
     /* Deixa os cards mais proporcionais ("quadrados") */
@@ -375,7 +380,8 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        padding: 24px 12px; /* Aumentar o padding vertical deixa com aspecto mais quadrado mesmo com menos conteúdo */
+        padding: 24px 12px;
+        /* Aumentar o padding vertical deixa com aspecto mais quadrado mesmo com menos conteúdo */
         text-align: center;
     }
 }
