@@ -26,7 +26,7 @@ async function authFetch(url, opts = {}) {
     if (opts.body && typeof opts.body === 'string') {
 
     } else if (opts.body instanceof FormData) {
-        delete headers['Content-Type']; 
+        delete headers['Content-Type'];
     }
     const r = await fetch(url, { ...opts, headers: { ...headers, ...opts.headers } });
     if (r.status === 401 || r.status === 403) {

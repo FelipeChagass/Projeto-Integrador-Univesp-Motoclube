@@ -27,7 +27,7 @@ const API = (function () {
     const BASE_URL = window.location.origin + '/api';
 
     let supabaseClient = null;
-    let _initPromise = null; 
+    let _initPromise = null;
 
     async function initSupabase() {
         if (supabaseClient) return supabaseClient;
@@ -55,7 +55,7 @@ const API = (function () {
     }
 
     const _cache = {};
-    const CACHE_TTL = 30000; 
+    const CACHE_TTL = 30000;
 
     function _getCached(key) {
         var entry = _cache[key];
@@ -71,7 +71,7 @@ const API = (function () {
         if (key) { delete _cache[key]; } else { Object.keys(_cache).forEach(function (k) { delete _cache[k]; }); }
     }
 
-    var REQUEST_TIMEOUT = 15000; 
+    var REQUEST_TIMEOUT = 15000;
     var MAX_RETRIES = 2;
 
     async function _request(method, endpoint, body, _retryCount) {
@@ -140,7 +140,7 @@ const API = (function () {
             var isTimeout = error.name === 'AbortError';
 
             if (isNetworkError && _retryCount < MAX_RETRIES) {
-                var delay = Math.pow(2, _retryCount) * 1000; 
+                var delay = Math.pow(2, _retryCount) * 1000;
                 console.warn('Tentativa ' + (_retryCount + 1) + '/' + MAX_RETRIES + ' para ' + endpoint + ' em ' + delay + 'ms...');
                 await new Promise(function (r) { setTimeout(r, delay); });
                 return _request(method, endpoint, body, _retryCount + 1);
