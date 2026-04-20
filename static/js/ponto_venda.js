@@ -213,7 +213,7 @@ function alternarModoEstoque() {
     if (modoGerenciaEstoque) {
         modoGerenciaEstoque = false;
         var btn = document.getElementById('btn-estoque');
-        var carrinhoSec = document.getElementById('secao-carrinho');
+        var carrinhoSec = document.getElementById('carrinho-section');
         var header = document.getElementById('app-header');
         if (btn) btn.classList.remove('active');
         if (carrinhoSec) carrinhoSec.classList.remove('minimizado');
@@ -224,7 +224,6 @@ function alternarModoEstoque() {
         return;
     }
 
-    // Abre o modal dedicado de senha, limpando estado anterior.
     document.getElementById('input-senha-estoque').value = '';
     document.getElementById('erro-senha-estoque').textContent = '';
     document.getElementById('modal-senha-estoque').style.display = 'flex';
@@ -257,7 +256,7 @@ function confirmarSenhaEstoque() {
             fecharModal('modal-senha-estoque');
             modoGerenciaEstoque = true;
             var btn = document.getElementById('btn-estoque');
-            var carrinhoSec = document.getElementById('secao-carrinho');
+            var carrinhoSec = document.getElementById('carrinho-section');
             var header = document.getElementById('app-header');
             if (btn) btn.classList.add('active');
             if (carrinhoSec) carrinhoSec.classList.add('minimizado');
@@ -634,7 +633,7 @@ function confirmarFechamentoCaixa() {
         showToast("Nenhum caixa aberto identificado.");
         return;
     }
-    // Limpa os campos e abre o modal de coleta de dados de fechamento.
+    
     document.getElementById('input-valor-fechamento').value = '';
     document.getElementById('input-obs-fechamento').value = '';
     document.getElementById('modal-fechar-caixa').style.display = 'flex';
