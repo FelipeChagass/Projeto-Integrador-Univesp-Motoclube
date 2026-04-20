@@ -1,4 +1,20 @@
+"""
+Serviço: Vendas
+
+Responsável por toda a lógica de negócio relacionada ao processamento de vendas.
+Nenhuma lógica de HTTP reside aqui — apenas validações de domínio, cálculos e
+persistência.
+
+Princípios aplicados:
+- DRY: lógica comum extraída em helpers privados (prefixo _)
+- SRP: cada helper tem uma única responsabilidade
+- Fail-fast: VendaError é lançado imediatamente em falhas de negócio previstas
+- Logging: erros de infraestrutura são logados com stack trace completo
+"""
+
+import logging
 from decimal import Decimal, ROUND_HALF_UP
+
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
@@ -6,7 +22,33 @@ from app.models.venda import Venda, ItemVenda
 from app.models.produto import Produto
 from app.models.membro import Membro
 from app.models.movimentacao_membro import MovimentacaoMembro
+from app.schemas.venda_schemas import (
+    ItemPayload,
+    VendaNormalPayload,
+    VendaFiadoPayload,
+    PagamentoDividaPayload,
+)
 
+logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Exceção de Domínio
+# ---------------------------------------------------------------------------
+
+class VendaError(Exception):
+    """
+    Erro de regra de negócio em uma transação de venda.
+
+    Distingue falhas previsíveis de domínio (ex: estoque insuficiente,
+    produto não encontrado) de erros de infraestrutura (ex: falha no banco).
+    """
+    pass
+
+
+# ---------------------------------------------------------------------------
+# Helpers Privados
+# ---------------------------------------------------------------------------
 
 def _normalizar_metodo(metodo_frontend: str) -> str:
     """
@@ -28,98 +70,190 @@ def _normalizar_metodo(metodo_frontend: str) -> str:
     return mapa.get(metodo, 'dinheiro')
 
 
-def criar_venda_normal(db: Session, dados: dict) -> dict:
+def _verificar_duplicidade(db: Session, id_externo: str | None) -> dict | None:
     """
-    Processa uma venda normal (não fiado).
+    Verifica se uma venda com o mesmo id_externo já foi registrada.
+
+    Retorna um dict de resposta 'duplicado' se encontrar, ou None se for nova.
+    """
+    if id_externo:
+        existente = db.query(Venda).filter_by(id_externo=id_externo).first()
+        if existente:
+            return {'status': 'duplicado', 'mensagem': 'Venda já registrada.'}
+    return None
+
+
+def _consolidar_itens(itens: list[ItemPayload]) -> dict[int, int]:
+    """
+    Agrupa itens duplicados e retorna um mapa {produto_id: quantidade_total}.
+
+    Garante que múltiplas entradas do mesmo produto sejam consolidadas antes
+    de consultar o banco, evitando N queries individuais.
+    """
+    mapa: dict[int, int] = {}
+    for item in itens:
+        mapa[item.id] = mapa.get(item.id, 0) + item.qtd
+    return mapa
+
+
+def _buscar_e_validar_produtos(
+    db: Session, mapa_reducao: dict[int, int]
+) -> dict[int, Produto]:
+    """
+    Busca todos os produtos necessários em uma única query e valida:
+    - Se o produto existe no banco
+    - Se há estoque suficiente no bar
+
+    Retorna um dict {produto_id: Produto}.
+    Lança VendaError em qualquer falha de validação.
+    """
+    ids = list(mapa_reducao.keys())
+    produtos = db.query(Produto).filter(Produto.id.in_(ids)).all()
+    produtos_dict = {p.id: p for p in produtos}
+
+    for pid, qtd_necessaria in mapa_reducao.items():
+        produto = produtos_dict.get(pid)
+        if not produto:
+            raise VendaError(f'Produto ID {pid} não encontrado.')
+        if produto.estoque_bar < qtd_necessaria:
+            raise VendaError(
+                f'Porções insuficientes para "{produto.nome}". '
+                f'Disponível: {produto.estoque_bar}, solicitado: {qtd_necessaria}.'
+            )
+
+    return produtos_dict
+
+
+def _calcular_total(
+    itens: list[ItemPayload], produtos_dict: dict[int, Produto]
+) -> Decimal:
+    """
+    Recalcula o total da venda usando preços do banco (ignora o total do frontend).
+
+    Previne manipulação de preço por clientes maliciosos que poderiam forjar
+    descontos ou itens de graça no payload enviado.
+    """
+    total = Decimal('0.00')
+    for item in itens:
+        preco_db = Decimal(str(produtos_dict[item.id].preco_atual))
+        total += (preco_db * item.qtd).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    return total
+
+
+def _criar_itens_venda(
+    db: Session,
+    venda_id,
+    itens: list[ItemPayload],
+    produtos_dict: dict[int, Produto],
+) -> None:
+    """
+    Persiste todos os ItemVenda de uma venda, usando preços do banco.
+
+    O `db.flush()` da venda pai deve ter sido chamado antes para que
+    `venda_id` já exista na sessão.
+    """
+    for item in itens:
+        produto = produtos_dict[item.id]
+        preco_unit = Decimal(str(produto.preco_atual)).quantize(
+            Decimal('0.01'), rounding=ROUND_HALF_UP
+        )
+        preco_total = (preco_unit * item.qtd).quantize(
+            Decimal('0.01'), rounding=ROUND_HALF_UP
+        )
+        item_venda = ItemVenda(
+            venda_id=venda_id,
+            produto_id=item.id,
+            nome_produto=produto.nome,
+            quantidade=item.qtd,
+            preco_unitario=preco_unit,
+            preco_total=preco_total,
+            observacoes=item.obs,
+        )
+        db.add(item_venda)
+
+
+def _baixar_estoque(
+    produtos_dict: dict[int, Produto], mapa_reducao: dict[int, int]
+) -> None:
+    """
+    Decrementa o estoque_bar de cada produto vendido.
+
+    Opera sobre os objetos já carregados na sessão do SQLAlchemy,
+    sem emitir queries adicionais.
+    """
+    for pid, qtd in mapa_reducao.items():
+        produtos_dict[pid].estoque_bar -= qtd
+
+
+def _resolver_membro(
+    db: Session, membro_id: str | None, nome_cliente: str
+) -> Membro:
+    """
+    Resolve um Membro a partir do membro_id ou, como fallback, pelo nome.
+
+    Lança VendaError se o membro não for encontrado ou não estiver ativo.
+    """
+    if not membro_id and nome_cliente.strip():
+        membro = db.query(Membro).filter(
+            Membro.nome.ilike(nome_cliente.strip()),
+            Membro.ativo == True,
+        ).first()
+        if membro:
+            membro_id = str(membro.id)
+
+    if not membro_id:
+        raise VendaError('Membro não encontrado para venda fiado.')
+
+    membro = db.query(Membro).filter_by(id=membro_id).first()
+    if not membro:
+        raise VendaError('Membro não encontrado.')
+
+    return membro
+
+
+# ---------------------------------------------------------------------------
+# Funções Públicas
+# ---------------------------------------------------------------------------
+
+def criar_venda_normal(db: Session, dados: VendaNormalPayload) -> dict:
+    """
+    Processa uma venda de pagamento imediato (não fiado).
 
     Fluxo:
-    1. Resolve operador nome → UUID
-    2. Verifica duplicidade (id_externo)
-    3. Valida estoque de cada item
-    4. Cria registro de venda + itens
-    5. Baixa estoque do bar
+    1. Verifica duplicidade por id_externo
+    2. Valida e carrega produtos (estoque)
+    3. Recalcula total no servidor
+    4. Persiste Venda + ItemVenda
+    5. Decrementa estoque
     6. Commit atômico
     """
     try:
-        operador_id = dados.get('usuario_id')
+        duplicado = _verificar_duplicidade(db, dados.id_externo)
+        if duplicado:
+            return duplicado
 
-        # 1. VERIFICAÇÃO DE DUPLICIDADE
-        id_externo = dados.get('id_externo')
-        if id_externo:
-            existente = db.query(Venda).filter_by(id_externo=id_externo).first()
-            if existente:
-                return {'status': 'duplicado', 'mensagem': 'Venda já registrada.'}
-
-        itens_dados = dados.get('itens', [])
-        if not itens_dados:
+        if not dados.itens:
             return {'status': 'erro', 'mensagem': 'Nenhum item na venda.'}
 
-        metodo_banco = _normalizar_metodo(dados.get('metodo', 'DINHEIRO'))
+        mapa_reducao = _consolidar_itens(dados.itens)
+        produtos_dict = _buscar_e_validar_produtos(db, mapa_reducao)
+        total_calculado = _calcular_total(dados.itens, produtos_dict)
+        metodo_banco = _normalizar_metodo(dados.metodo)
 
-        # 2. VERIFICAÇÃO E CONSOLIDAÇÃO DE ESTOQUE
-        mapa_reducao = {}
-        for item in itens_dados:
-            pid = int(item['id'])
-            qtd = int(item['qtd'])
-            mapa_reducao[pid] = mapa_reducao.get(pid, 0) + qtd
-
-        produtos_ids = list(mapa_reducao.keys())
-        produtos = db.query(Produto).filter(Produto.id.in_(produtos_ids)).all()
-        produtos_dict = {p.id: p for p in produtos}
-
-        for pid, qtd_necessaria in mapa_reducao.items():
-            produto = produtos_dict.get(pid)
-            if not produto:
-                return {'status': 'erro', 'mensagem': f'Produto ID {pid} não encontrado.'}
-            if produto.estoque_bar < qtd_necessaria:
-                return {'status': 'erro', 'mensagem': f'Porções insuficientes para "{produto.nome}". Disponível: {produto.estoque_bar}, solicitado: {qtd_necessaria}.'}
-
-        # 3. RECALCULA TOTAL NO SERVIDOR (ignora o total enviado pelo frontend)
-        # Isso previne manipulação de preço por clientes maliciosos.
-        total_calculado = Decimal('0.00')
-        for item in itens_dados:
-            pid = int(item['id'])
-            qtd = int(item['qtd'])
-            preco_db = Decimal(str(produtos_dict[pid].preco_atual))
-            total_calculado += (preco_db * qtd).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-
-        # 4. CRIA REGISTRO DE VENDA
         venda = Venda(
-            id_externo=id_externo,
-            caixa_id=dados.get('caixa_id'),
-            usuario_id=operador_id,
+            id_externo=dados.id_externo,
+            caixa_id=dados.caixa_id,
+            usuario_id=dados.usuario_id,
             tipo_venda='normal',
             metodo_pagamento=metodo_banco,
-            nome_cliente=dados.get('cliente', 'BALCÃO'),
+            nome_cliente=dados.cliente,
             valor_total=total_calculado,
         )
         db.add(venda)
         db.flush()
 
-        # 5. CRIA ITENS DA VENDA com preços do banco
-        for item in itens_dados:
-            pid = int(item['id'])
-            qtd = int(item['qtd'])
-            preco_unit = Decimal(str(produtos_dict[pid].preco_atual)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-            preco_total = (preco_unit * qtd).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-
-            item_venda = ItemVenda(
-                venda_id=venda.id,
-                produto_id=pid,
-                nome_produto=produtos_dict[pid].nome,
-                quantidade=qtd,
-                preco_unitario=preco_unit,
-                preco_total=preco_total,
-                observacoes=item.get('obs', ''),
-            )
-            db.add(item_venda)
-
-        # 6. BAIXA ESTOQUE DO BAR
-        for pid, qtd in mapa_reducao.items():
-            produto = produtos_dict[pid]
-            produto.estoque_bar = produto.estoque_bar - qtd
-
-        # 7. COMMIT ATÔMICO
+        _criar_itens_venda(db, venda.id, dados.itens, produtos_dict)
+        _baixar_estoque(produtos_dict, mapa_reducao)
         db.commit()
 
         return {
@@ -129,198 +263,117 @@ def criar_venda_normal(db: Session, dados: dict) -> dict:
             'total_calculado': float(total_calculado),
         }
 
+    except VendaError as e:
+        db.rollback()
+        return {'status': 'erro', 'mensagem': str(e)}
     except IntegrityError:
         db.rollback()
         return {'status': 'duplicado', 'mensagem': 'Venda já registrada (duplicidade).'}
-    except Exception as e:
+    except Exception:
+        logger.exception("Erro inesperado em criar_venda_normal")
         db.rollback()
-        return {'status': 'erro', 'mensagem': f'Erro no processamento: {str(e)}'}
+        return {'status': 'erro', 'mensagem': 'Erro interno no processamento.'}
 
 
-def criar_venda_fiado(db: Session, dados: dict) -> dict:
+def criar_venda_fiado(db: Session, dados: VendaFiadoPayload) -> dict:
     """
-    Processa uma venda fiado.
+    Processa uma venda fiado (crédito para membro).
 
     Fluxo adicional em relação à venda normal:
-    - Resolve membro por nome
-    - Cria movimentação de débito
+    - Resolve membro por ID ou nome (fallback)
+    - Cria movimentação de débito associada
     - Atualiza saldo_devedor do membro
     """
     try:
-        operador_id = dados.get('usuario_id')
+        membro = _resolver_membro(db, dados.membro_id, dados.cliente)
 
-        # Resolve membro
-        membro_id = dados.get('membro_id')
-        if not membro_id:
-            nome_cliente = dados.get('cliente', '').strip()
-            if nome_cliente:
-                membro = db.query(Membro).filter(
-                    Membro.nome.ilike(nome_cliente),
-                    Membro.ativo == True
-                ).first()
-                if membro:
-                    membro_id = str(membro.id)
+        duplicado = _verificar_duplicidade(db, dados.id_externo)
+        if duplicado:
+            return duplicado
 
-        if not membro_id:
-            return {'status': 'erro', 'mensagem': 'Membro não encontrado para venda fiado.'}
-
-        membro = db.query(Membro).filter_by(id=membro_id).first()
-        if not membro:
-            return {'status': 'erro', 'mensagem': 'Membro não encontrado.'}
-
-        # Duplicidade
-        id_externo = dados.get('id_externo')
-        if id_externo:
-            existente = db.query(Venda).filter_by(id_externo=id_externo).first()
-            if existente:
-                return {'status': 'duplicado', 'mensagem': 'Venda já registrada.'}
-
-        itens_dados = dados.get('itens', [])
-        if not itens_dados:
+        if not dados.itens:
             return {'status': 'erro', 'mensagem': 'Nenhum item na venda.'}
 
-        # Verificação de estoque
-        mapa_reducao = {}
-        for item in itens_dados:
-            pid = int(item['id'])
-            qtd = int(item['qtd'])
-            mapa_reducao[pid] = mapa_reducao.get(pid, 0) + qtd
+        mapa_reducao = _consolidar_itens(dados.itens)
+        produtos_dict = _buscar_e_validar_produtos(db, mapa_reducao)
+        total_calculado = _calcular_total(dados.itens, produtos_dict)
 
-        produtos_ids = list(mapa_reducao.keys())
-        produtos = db.query(Produto).filter(Produto.id.in_(produtos_ids)).all()
-        produtos_dict = {p.id: p for p in produtos}
-
-        for pid, qtd_necessaria in mapa_reducao.items():
-            produto = produtos_dict.get(pid)
-            if not produto:
-                return {'status': 'erro', 'mensagem': f'Produto ID {pid} não encontrado.'}
-            if produto.estoque_bar < qtd_necessaria:
-                return {'status': 'erro', 'mensagem': f'Porções insuficientes para "{produto.nome}". Disponível: {produto.estoque_bar}, solicitado: {qtd_necessaria}.'}
-
-        # RECALCULA TOTAL NO SERVIDOR
-        total_calculado = Decimal('0.00')
-        for item in itens_dados:
-            pid = int(item['id'])
-            qtd = int(item['qtd'])
-            preco_db = Decimal(str(produtos_dict[pid].preco_atual))
-            total_calculado += (preco_db * qtd).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-
-        valor_total = total_calculado
-
-        # 1. Cria venda
         venda = Venda(
-            id_externo=id_externo,
-            caixa_id=dados.get('caixa_id'),
-            usuario_id=operador_id,
-            membro_id=membro_id,
+            id_externo=dados.id_externo,
+            caixa_id=dados.caixa_id,
+            usuario_id=dados.usuario_id,
+            membro_id=str(membro.id),
             tipo_venda='fiado',
             metodo_pagamento='fiado',
             nome_cliente=membro.nome,
-            valor_total=valor_total,
+            valor_total=total_calculado,
         )
         db.add(venda)
         db.flush()
 
-        # 2. Cria itens da venda com preços do banco
-        for item in itens_dados:
-            pid = int(item['id'])
-            qtd = int(item['qtd'])
-            preco_unit = Decimal(str(produtos_dict[pid].preco_atual)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-            preco_total = (preco_unit * qtd).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        _criar_itens_venda(db, venda.id, dados.itens, produtos_dict)
 
-            item_venda = ItemVenda(
-                venda_id=venda.id,
-                produto_id=pid,
-                nome_produto=produtos_dict[pid].nome,
-                quantidade=qtd,
-                preco_unitario=preco_unit,
-                preco_total=preco_total,
-                observacoes=item.get('obs', ''),
-            )
-            db.add(item_venda)
-
-        # 3. Cria movimentação de débito
-        resumo_itens = ', '.join([f"{i['qtd']}x {i['nome']}" for i in itens_dados])
+        resumo_itens = ', '.join([f"{i.qtd}x {i.nome}" for i in dados.itens])
         movimentacao = MovimentacaoMembro(
-            membro_id=membro_id,
+            membro_id=str(membro.id),
             venda_id=venda.id,
-            usuario_id=operador_id,
+            usuario_id=dados.usuario_id,
             tipo_movimentacao='debito',
             origem='venda_fiado',
             descricao=f'Venda fiado: {resumo_itens}',
-            valor=valor_total,
+            valor=total_calculado,
         )
         db.add(movimentacao)
 
-        # 4. Atualiza saldo devedor do membro
-        membro.saldo_devedor = Decimal(str(membro.saldo_devedor)) + valor_total
+        membro.saldo_devedor = Decimal(str(membro.saldo_devedor)) + total_calculado
 
-        # 5. Baixa estoque
-        for pid, qtd in mapa_reducao.items():
-            produto = produtos_dict[pid]
-            produto.estoque_bar = produto.estoque_bar - qtd
-
-        # 6. Commit atômico
+        _baixar_estoque(produtos_dict, mapa_reducao)
         db.commit()
 
         return {
             'status': 'ok',
             'mensagem': 'Venda fiado registrada com sucesso.',
             'venda_id': str(venda.id),
+            'total_calculado': float(total_calculado),
         }
 
+    except VendaError as e:
+        db.rollback()
+        return {'status': 'erro', 'mensagem': str(e)}
     except IntegrityError:
         db.rollback()
         return {'status': 'duplicado', 'mensagem': 'Venda já registrada (duplicidade).'}
-    except Exception as e:
+    except Exception:
+        logger.exception("Erro inesperado em criar_venda_fiado")
         db.rollback()
-        return {'status': 'erro', 'mensagem': f'Erro no processamento: {str(e)}'}
+        return {'status': 'erro', 'mensagem': 'Erro interno no processamento.'}
 
 
-def registrar_pagamento_divida(db: Session, dados: dict) -> dict:
+def registrar_pagamento_divida(db: Session, dados: PagamentoDividaPayload) -> dict:
     """
-    Registra o pagamento de dívida de um membro.
+    Registra o pagamento total da dívida de um membro.
 
     Fluxo:
-    1. Resolve operador
-    2. Encontra membro por nome ou id
-    3. Cria venda recebimento_divida
+    1. Resolve membro por ID ou nome
+    2. Valida existência de dívida
+    3. Cria venda de tipo 'recebimento_divida'
     4. Cria movimentação de crédito
-    5. Zera saldo devedor
+    5. Zera saldo_devedor
+    6. Commit atômico
     """
     try:
-        operador_id = dados.get('usuario_id')
-
-        # Encontra o membro
-        membro_id = dados.get('membro_id')
-        nome_membro = dados.get('nome_membro', '').strip()
-
-        if not membro_id and nome_membro:
-            membro = db.query(Membro).filter(
-                Membro.nome.ilike(nome_membro),
-                Membro.ativo == True
-            ).first()
-            if membro:
-                membro_id = str(membro.id)
-
-        if not membro_id:
-            return {'status': 'erro', 'mensagem': 'Membro não identificado.'}
-
-        membro = db.query(Membro).filter_by(id=membro_id).first()
-        if not membro:
-            return {'status': 'erro', 'mensagem': 'Membro não encontrado.'}
+        membro = _resolver_membro(db, dados.membro_id, dados.nome_membro)
 
         saldo_atual = Decimal(str(membro.saldo_devedor))
         if saldo_atual <= 0:
             return {'status': 'erro', 'mensagem': 'Este membro não possui dívidas pendentes.'}
 
-        metodo_banco = _normalizar_metodo(dados.get('metodo', 'DINHEIRO'))
+        metodo_banco = _normalizar_metodo(dados.metodo)
 
-        # 1. Cria venda de recebimento
         venda = Venda(
-            caixa_id=dados.get('caixa_id'),
-            usuario_id=operador_id,
-            membro_id=membro_id,
+            caixa_id=dados.caixa_id,
+            usuario_id=dados.usuario_id,
+            membro_id=str(membro.id),
             tipo_venda='recebimento_divida',
             metodo_pagamento=metodo_banco,
             nome_cliente=membro.nome,
@@ -330,11 +383,10 @@ def registrar_pagamento_divida(db: Session, dados: dict) -> dict:
         db.add(venda)
         db.flush()
 
-        # 2. Cria movimentação de crédito
         movimentacao = MovimentacaoMembro(
-            membro_id=membro_id,
+            membro_id=str(membro.id),
             venda_id=venda.id,
-            usuario_id=operador_id,
+            usuario_id=dados.usuario_id,
             tipo_movimentacao='credito',
             origem='pagamento',
             descricao=f'Pagamento conta via {metodo_banco} - R$ {saldo_atual:.2f}',
@@ -342,10 +394,7 @@ def registrar_pagamento_divida(db: Session, dados: dict) -> dict:
         )
         db.add(movimentacao)
 
-        # 3. Zera saldo devedor
         membro.saldo_devedor = Decimal('0.00')
-
-        # 4. Commit atômico
         db.commit()
 
         return {
@@ -355,12 +404,16 @@ def registrar_pagamento_divida(db: Session, dados: dict) -> dict:
             'venda_id': str(venda.id),
         }
 
-    except Exception as e:
+    except VendaError as e:
         db.rollback()
-        return {'status': 'erro', 'mensagem': f'Erro ao quitar: {str(e)}'}
+        return {'status': 'erro', 'mensagem': str(e)}
+    except Exception:
+        logger.exception("Erro inesperado em registrar_pagamento_divida")
+        db.rollback()
+        return {'status': 'erro', 'mensagem': 'Erro interno ao quitar conta.'}
 
 
-def processar_venda(db: Session, dados: dict) -> dict:
+def processar_venda(db: Session, dados: VendaNormalPayload | VendaFiadoPayload) -> dict:
     """
     Ponto de entrada único para processar qualquer tipo de venda.
     Decide qual função chamar baseado no método de pagamento.
@@ -368,9 +421,7 @@ def processar_venda(db: Session, dados: dict) -> dict:
     Este método é chamado pelo endpoint /api/vendas e mantém
     compatibilidade com o formato de dados do frontend legado.
     """
-    metodo = dados.get('metodo', '').upper().strip()
-
-    if metodo == 'FIADO':
-        return criar_venda_fiado(db, dados)
-    else:
-        return criar_venda_normal(db, dados)
+    if dados.metodo.upper().strip() == 'FIADO':
+        fiado_dados = dados if isinstance(dados, VendaFiadoPayload) else VendaFiadoPayload(**dados.model_dump())
+        return criar_venda_fiado(db, fiado_dados)
+    return criar_venda_normal(db, dados)

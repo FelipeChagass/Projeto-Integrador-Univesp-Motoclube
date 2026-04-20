@@ -7,8 +7,11 @@ O operador é identificado pelo JWT do Supabase (header Authorization).
 """
 
 from flask import Blueprint, request, jsonify, g
+from pydantic import ValidationError
+
 from app.database import get_db
 from app.services import venda_service
+from app.schemas.venda_schemas import VendaFiadoPayload, PagamentoDividaPayload
 from app.auth_middleware import requer_login
 
 bp = Blueprint('vendas', __name__, url_prefix='/api/vendas')
@@ -34,22 +37,24 @@ def processar_venda():
     """
     db = next(get_db())
     try:
-        dados = request.get_json()
-        if not dados:
+        dados_raw = request.get_json()
+        if not dados_raw:
             return jsonify({'status': 'erro', 'mensagem': 'Dados inválidos.'}), 400
 
-        dados_servico = {
-            'id_externo': dados.get('id'),
-            'itens': dados.get('itens', []),
-            'total': dados.get('total', 0),
-            'metodo': dados.get('metodo', 'DINHEIRO'),
-            'cliente': dados.get('cliente', 'BALCÃO'),
+        # Mapeia chave 'id' do frontend para 'id_externo' do schema interno
+        payload_dict = {
+            'id_externo': dados_raw.get('id'),
+            'itens': dados_raw.get('itens', []),
+            'metodo': dados_raw.get('metodo', 'DINHEIRO'),
+            'cliente': dados_raw.get('cliente', 'BALCÃO'),
             'usuario_id': g.usuario_id,
-            'caixa_id': dados.get('caixa_id'),
-            'membro_id': dados.get('membro_id'),
+            'caixa_id': dados_raw.get('caixa_id'),
+            'membro_id': dados_raw.get('membro_id'),
         }
 
-        resultado = venda_service.processar_venda(db, dados_servico)
+        # Valida e tipifica a entrada via Pydantic
+        dados = VendaFiadoPayload.model_validate(payload_dict)
+        resultado = venda_service.processar_venda(db, dados)
 
         if resultado['status'] == 'ok':
             return jsonify(resultado)
@@ -57,6 +62,9 @@ def processar_venda():
             return jsonify(resultado)
         else:
             return jsonify(resultado), 400
+
+    except ValidationError as e:
+        return jsonify({'status': 'erro', 'mensagem': 'Payload inválido.', 'detalhes': e.errors()}), 422
 
     finally:
         db.close()
@@ -77,12 +85,13 @@ def registrar_pagamento():
     """
     db = next(get_db())
     try:
-        dados = request.get_json()
-        if not dados:
+        dados_raw = request.get_json()
+        if not dados_raw:
             return jsonify({'status': 'erro', 'mensagem': 'Dados inválidos.'}), 400
 
-        # Injeta usuario_id do JWT
-        dados['usuario_id'] = g.usuario_id
+        # Injeta usuario_id do JWT e valida via Pydantic
+        dados_raw['usuario_id'] = g.usuario_id
+        dados = PagamentoDividaPayload.model_validate(dados_raw)
 
         resultado = venda_service.registrar_pagamento_divida(db, dados)
 
@@ -91,6 +100,8 @@ def registrar_pagamento():
         else:
             return jsonify(resultado), 400
 
+    except ValidationError as e:
+        return jsonify({'status': 'erro', 'mensagem': 'Payload inválido.', 'detalhes': e.errors()}), 422
+
     finally:
         db.close()
-
