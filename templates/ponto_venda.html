@@ -11,23 +11,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ponto_venda.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ponto_venda-mobile.css') }}">
     <script>
-        window.onerror = function (msg, url, line, col, error) {
+        window.onerror = function (msg, url, line) {
             var l = document.getElementById('loading');
             if (l) {
+                var safe = String(msg).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
                 l.style.display = 'flex';
-                l.innerHTML = '<div style="background:white; color:red; padding: 20px; border-radius:8px; max-width:80%; margin:auto; text-align:left; font-family:sans-serif;"><h3 style="margin-top:0;">Erro Crítico Detectado!</h3><p><b>Motivo:</b> ' + msg + '</p><p style="font-size:0.8rem">Linha: ' + line + '</p><button onclick="document.getElementById(\'loading\').style.display=\'none\'" style="margin-top:10px; padding:10px; background:#333; color:white; border:none; border-radius:4px; cursor:pointer;">Fechar Aviso</button></div>';
+                l.innerHTML = '<div style="background:white; color:red; padding: 20px; border-radius:8px; max-width:80%; margin:auto; text-align:left; font-family:sans-serif;"><h3 style="margin-top:0;">Erro Crítico Detectado!</h3><p><b>Motivo:</b> ' + safe + '</p><p style="font-size:0.8rem">Linha: ' + line + '</p><button id="btn-fechar-erro" style="margin-top:10px; padding:10px; background:#333; color:white; border:none; border-radius:4px; cursor:pointer;">Fechar Aviso</button></div>';
+                document.getElementById('btn-fechar-erro').addEventListener('click', function() { l.style.display = 'none'; });
             }
         };
-        function realizarLogout() {
-            UIModal.confirm("Tem certeza que deseja sair?", function () {
-                document.getElementById('loading').style.display = 'flex';
-                API.logout().then(() => {
-                    window.location.replace('/login');
-                }).catch(() => {
-                    window.location.replace('/login');
-                });
-            });
-        }
     </script>
 </head>
 
@@ -53,7 +45,7 @@
         </div>
 
         <div class="top-buttons">
-            <button class="btn-header" id="btn-estoque" onclick="alternarModoEstoque()" title="Gerenciar Estoque">
+            <button class="btn-header" id="btn-estoque" title="Gerenciar Estoque">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path
@@ -64,7 +56,7 @@
                 <span class="btn-text">Estoque</span>
             </button>
 
-            <button class="btn-header" onclick="abrirMenuRelatorios()" title="Gestão de Caixa">
+            <button class="btn-header" id="btn-gestao" title="Gestão de Caixa">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 3v18h18" />
@@ -72,16 +64,14 @@
                 </svg>
                 <span class="btn-text">Gestão</span>
             </button>
-            <button class="btn-header d-none" id="btn-admin" onclick="window.location.href='/admin'"
-                title="Painel Admin">
+            <button class="btn-header d-none" id="btn-admin" title="Painel Admin">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 </svg>
                 <span class="btn-text">Admin</span>
             </button>
-            <button class="btn-header d-none" id="container-abrir-caixa" onclick="abrirModalAberturaCaixa()"
-                title="Abrir Caixa">
+            <button class="btn-header d-none" id="container-abrir-caixa" title="Abrir Caixa">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-linecap="round" stroke-linejoin="round">
                     <rect width="20" height="14" x="2" y="5" rx="2" />
@@ -90,7 +80,7 @@
                 <span class="btn-text">Abrir Caixa</span>
             </button>
 
-            <button class="btn-header" onclick="abrirConfig()" title="Configurações">
+            <button class="btn-header" id="btn-config" title="Configurações">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path
@@ -100,7 +90,7 @@
                 <span class="btn-text">Config</span>
             </button>
 
-            <button class="btn-header" onclick="realizarLogout()" title="Sair do Sistema">
+            <button class="btn-header" id="btn-logout" title="Sair do Sistema">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -110,8 +100,7 @@
                 <span class="btn-text">Sair</span>
             </button>
 
-            <button class="btn-header btn-header--login" id="container-btn-login"
-                onclick="window.location.href='/login'" title="Fazer Login">
+            <button class="btn-header btn-header--login" id="container-btn-login" title="Fazer Login">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
@@ -122,8 +111,7 @@
             </button>
         </div>
 
-        <button class="btn-hamburger" id="btn-hamburger"
-            onclick="document.getElementById('sidebar-mobile').classList.add('open')">
+        <button class="btn-hamburger" id="btn-hamburger">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="4" x2="20" y1="6" y2="6" />
@@ -134,14 +122,13 @@
     </header>
 
     <div id="sidebar-mobile" class="sidebar-mobile">
-        <div class="sidebar-backdrop" onclick="document.getElementById('sidebar-mobile').classList.remove('open')">
+        <div class="sidebar-backdrop">
         </div>
         <nav class="sidebar-panel">
             <div class="sidebar-header">
                 <img src="{{ url_for('static', filename='img/motorhead.png') }}" alt="Logo" class="sidebar-logo">
                 <span class="sidebar-title">MENU</span>
-                <button class="sidebar-close"
-                    onclick="document.getElementById('sidebar-mobile').classList.remove('open')">
+                <button class="sidebar-close" id="sidebar-close-btn">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M18 6 6 18" />
@@ -150,8 +137,7 @@
                 </button>
             </div>
             <div class="sidebar-body">
-                <button class="sidebar-item" id="sidebar-btn-estoque"
-                    onclick="document.getElementById('sidebar-mobile').classList.remove('open');alternarModoEstoque()">
+                <button class="sidebar-item" id="sidebar-btn-estoque">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path
@@ -161,8 +147,7 @@
                     </svg>
                     Gerenciar Estoque
                 </button>
-                <button class="sidebar-item"
-                    onclick="document.getElementById('sidebar-mobile').classList.remove('open');abrirMenuRelatorios()">
+                <button class="sidebar-item" id="sidebar-gestao">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 3v18h18" />
@@ -170,15 +155,14 @@
                     </svg>
                     Gestão de Caixa
                 </button>
-                <button class="sidebar-item d-none" id="sidebar-btn-admin" onclick="window.location.href='/admin'">
+                <button class="sidebar-item d-none" id="sidebar-btn-admin">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                     </svg>
                     Painel Admin
                 </button>
-                <button class="sidebar-item d-none" id="sidebar-abrir-caixa"
-                    onclick="document.getElementById('sidebar-mobile').classList.remove('open');abrirModalAberturaCaixa()">
+                <button class="sidebar-item d-none" id="sidebar-abrir-caixa">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect width="20" height="14" x="2" y="5" rx="2" />
@@ -186,8 +170,7 @@
                     </svg>
                     Abrir Caixa
                 </button>
-                <button class="sidebar-item"
-                    onclick="document.getElementById('sidebar-mobile').classList.remove('open');abrirConfig()">
+                <button class="sidebar-item" id="sidebar-config">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="3" />
@@ -196,8 +179,7 @@
                     </svg>
                     Configurações
                 </button>
-                <button class="sidebar-item"
-                    onclick="document.getElementById('sidebar-mobile').classList.remove('open');atualizarDados(true)">
+                <button class="sidebar-item" id="sidebar-atualizar">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -209,8 +191,7 @@
                 </button>
             </div>
             <div class="sidebar-footer">
-                <button class="sidebar-item sidebar-item--danger"
-                    onclick="document.getElementById('sidebar-mobile').classList.remove('open');realizarLogout()">
+                <button class="sidebar-item sidebar-item--danger" id="sidebar-logout">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -244,7 +225,7 @@
                 <div class="total-display" id="total-display">R$ 0,00</div>
                 <input type="text" id="input-cliente" class="input-cliente" placeholder="Nome Visitante (Opcional)">
                 <div class="grid-pagamento">
-                    <button class="btn-action btn-dinheiro" onclick="iniciarPagamento('DINHEIRO')">
+                    <button class="btn-action btn-dinheiro" id="btn-pag-dinheiro">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                             <line x1="12" x2="12" y1="2" y2="22" />
@@ -252,7 +233,7 @@
                         </svg>
                         DINHEIRO
                     </button>
-                    <button class="btn-action btn-pix" onclick="iniciarPagamento('PIX')">
+                    <button class="btn-action btn-pix" id="btn-pag-pix">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                             <rect width="5" height="5" x="3" y="3" rx="1" />
@@ -270,7 +251,7 @@
                         </svg>
                         PIX
                     </button>
-                    <button class="btn-action btn-cartao" onclick="iniciarPagamento('CARTAO')">
+                    <button class="btn-action btn-cartao" id="btn-pag-cartao">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                             <rect width="20" height="14" x="2" y="5" rx="2" />
@@ -278,7 +259,7 @@
                         </svg>
                         CARTÃO
                     </button>
-                    <button class="btn-action btn-fiado" onclick="abrirModalMembros('FIADO')">
+                    <button class="btn-action btn-fiado" id="btn-pag-fiado">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
@@ -289,7 +270,7 @@
                         PENDURAR
                     </button>
                 </div>
-                <button class="btn-action btn-fechar-conta" onclick="abrirModalMembros('FECHAR_CONTA')">
+                <button class="btn-action btn-fechar-conta" id="btn-fechar-conta">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                         <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
@@ -305,8 +286,8 @@
             <h2 class="modal-title-accent">ABERTURA DE CAIXA</h2>
             <p class="modal-subtitle">Informe o Fundo de Caixa (Troco Inicial):</p>
             <input type="number" id="input-valor-abertura" class="input-cliente input-valor-grande" placeholder="0,00">
-            <button class="btn-action" onclick="confirmarAberturaValor()">ABRIR CAIXA</button>
-            <button class="btn-action" onclick="fecharModal('modal-abertura-caixa')">CANCELAR</button>
+            <button class="btn-action" id="btn-confirmar-abertura">ABRIR CAIXA</button>
+            <button class="btn-action" id="btn-cancelar-abertura">CANCELAR</button>
         </div>
     </div>
 
@@ -314,11 +295,10 @@
         <div class="modal-content text-center">
             <h2 class="modal-title-accent">MODO ESTOQUE</h2>
             <p class="modal-subtitle">Digite a senha para gerenciar o estoque:</p>
-            <input type="password" id="input-senha-estoque" class="input-cliente" placeholder="Senha"
-                onkeydown="if(event.key==='Enter') confirmarSenhaEstoque()">
+            <input type="password" id="input-senha-estoque" class="input-cliente" placeholder="Senha">
             <p id="erro-senha-estoque" class="d-none" style="color: #ff6b6b; font-size: 0.85rem; margin: 4px 0 8px;"></p>
-            <button class="btn-action btn-fechar-dia" onclick="confirmarSenhaEstoque()">CONFIRMAR</button>
-            <button class="btn-action" onclick="fecharModal('modal-senha-estoque')">CANCELAR</button>
+            <button class="btn-action btn-fechar-dia" id="btn-confirmar-senha-estoque">CONFIRMAR</button>
+            <button class="btn-action" id="btn-cancelar-senha-estoque">CANCELAR</button>
         </div>
     </div>
 
@@ -327,8 +307,8 @@
             <h3>Personalizar</h3>
             <p id="modal-prod-nome" class="modal-prod-nome-accent"></p>
             <input type="text" id="custom-obs" placeholder="Ex: Sem cebola..." class="input-cliente mt-1 mb-1">
-            <button class="btn-action w-100" onclick="confirmarObs()">CONFIRMAR PEDIDO</button>
-            <button class="btn-action" onclick="fecharModal('modal-obs')">CANCELAR</button>
+            <button class="btn-action w-100" id="btn-confirmar-obs">CONFIRMAR PEDIDO</button>
+            <button class="btn-action" id="btn-cancelar-obs">CANCELAR</button>
         </div>
     </div>
 
@@ -337,12 +317,10 @@
             <h3>Pagamento em Dinheiro</h3>
             <div class="valor-pendente" id="valor-total-dinheiro">Total: R$ 0,00</div>
             <label class="label-muted">Valor Recebido:</label>
-            <input type="number" id="valor-recebido" class="input-cliente input-valor-grande" placeholder="0,00"
-                oninput="calcularTroco()">
+            <input type="number" id="valor-recebido" class="input-cliente input-valor-grande" placeholder="0,00">
             <div class="display-troco" id="display-troco">Troco: R$ 0,00</div>
-            <button id="btn-confirmar-dinheiro" class="btn-action btn-disabled-initial"
-                onclick="finalizarPagamentoDinheiro()">CONFIRMAR PAGAMENTO</button>
-            <button class="btn-action" onclick="fecharModal('modal-dinheiro')">CANCELAR</button>
+            <button id="btn-confirmar-dinheiro" class="btn-action btn-disabled-initial">CONFIRMAR PAGAMENTO</button>
+            <button class="btn-action" id="btn-cancelar-dinheiro">CANCELAR</button>
         </div>
     </div>
 
@@ -350,9 +328,9 @@
         <div class="modal-content">
             <h3>Selecione o Tipo</h3>
             <p class="modal-subtitle-muted">Qual a função do cartão?</p>
-            <button class="btn-action btn-tipo-cartao" onclick="finalizarPagamentoCartao('DÉBITO')">DÉBITO</button>
-            <button class="btn-action btn-tipo-credito" onclick="finalizarPagamentoCartao('CRÉDITO')">CRÉDITO</button>
-            <button class="btn-action" onclick="fecharModal('modal-cartao')">CANCELAR</button>
+            <button class="btn-action btn-tipo-cartao" id="btn-cartao-debito">DÉBITO</button>
+            <button class="btn-action btn-tipo-credito" id="btn-cartao-credito">CRÉDITO</button>
+            <button class="btn-action" id="btn-cancelar-cartao">CANCELAR</button>
         </div>
     </div>
 
@@ -372,20 +350,20 @@
             </div>
             <p class="estoque-nota"><i>Nota: Ao aumentar o Bar, o valor será subtraído
                     do Depósito automaticamente.</i></p>
-            <button class="btn-action btn-estoque-salvar" onclick="salvarEdicaoEstoque()">SALVAR ALTERAÇÕES</button>
-            <button class="btn-action" onclick="fecharModal('modal-estoque')">CANCELAR</button>
+            <button class="btn-action btn-estoque-salvar" id="btn-salvar-estoque">SALVAR ALTERAÇÕES</button>
+            <button class="btn-action" id="btn-cancelar-estoque">CANCELAR</button>
         </div>
     </div>
 
     <div id="modal-selecionar-membro" class="modal-overlay">
         <div class="modal-content">
             <h3>Selecione o Membro</h3>
-            <select id="select-membro" class="lista-membros-scroll" onchange="verificarDividaSelecionada()">
+            <select id="select-membro" class="lista-membros-scroll">
                 <option value="" disabled selected>Carregando...</option>
             </select>
             <div id="preview-divida" class="preview-divida"></div>
-            <button class="btn-action w-100 mt-2" onclick="confirmarSelecaoMembro()">CONTINUAR</button>
-            <button class="btn-action" onclick="fecharModalSelecaoMembro()">CANCELAR</button>
+            <button class="btn-action w-100 mt-2" id="btn-confirmar-membro">CONTINUAR</button>
+            <button class="btn-action" id="btn-cancelar-membro">CANCELAR</button>
         </div>
     </div>
 
@@ -397,11 +375,11 @@
             <div class="extrato-total" id="total-fechamento">R$ 0,00</div>
             <div class="prompt-pagamento">Como vai pagar?</div>
             <div class="grid-pagamento">
-                <button class="btn-action btn-dinheiro" onclick="iniciarLiquidacao('DINHEIRO')">Dinheiro</button>
-                <button class="btn-action btn-pix" onclick="iniciarLiquidacao('PIX')">Pix</button>
-                <button class="btn-action btn-cartao" onclick="iniciarLiquidacao('CARTAO')">Cartão</button>
+                <button class="btn-action btn-dinheiro" id="btn-liq-dinheiro">Dinheiro</button>
+                <button class="btn-action btn-pix" id="btn-liq-pix">Pix</button>
+                <button class="btn-action btn-cartao" id="btn-liq-cartao">Cartão</button>
             </div>
-            <button class="btn-action mt-2" onclick="fecharModal('modal-fechar-conta')">CANCELAR</button>
+            <button class="btn-action mt-2" id="btn-cancelar-fechar-conta">CANCELAR</button>
         </div>
     </div>
 
@@ -411,16 +389,16 @@
             <div class="section-header">OPERADOR ATUAL</div>
             <div class="operador-box">
                 <p id="nome-operador-atual" class="operador-nome">...</p>
-                <button class="btn-action btn-trocar-operador" onclick="trocarMembro()">
+                <button class="btn-action btn-trocar-operador" id="btn-trocar-membro">
                     TROCAR MEMBRO (Sair)
                 </button>
             </div>
             <div class="section-header">CAIXA</div>
-            <button class="btn-action btn-abrir-caixa" onclick="abrirModalAberturaCaixa()">
+            <button class="btn-action btn-abrir-caixa" id="btn-abrir-caixa-rel">
                 ABRIR CAIXA (INICIO)
             </button>
             <div class="section-header">FECHAMENTOS</div>
-            <button class="btn-action btn-fechar-dia" onclick="gerarRelatorio('DIA')">
+            <button class="btn-action btn-fechar-dia" id="btn-fechar-dia">
                 FECHAR CAIXA TOTAL (DIA)
             </button>
             <div class="section-header">RELATÓRIO PERÍODO</div>
@@ -428,12 +406,11 @@
                 <input type="date" id="data-inicio" class="config-input">
                 <input type="date" id="data-fim" class="config-input">
             </div>
-            <button class="btn-action btn-gerar-periodo" onclick="gerarRelatorioPeriodo()">
+            <button class="btn-action btn-gerar-periodo" id="btn-gerar-periodo">
                 GERAR MENSAL/PERIODO
             </button>
             <div id="resultado-relatorio" class="resultado-relatorio d-none"></div>
-            <button class="btn-action mt-2" onclick="fecharModal('modal-relatorios')">FECHAR
-                JANELA</button>
+            <button class="btn-action mt-2" id="btn-fechar-relatorios">FECHAR JANELA</button>
         </div>
     </div>
 
@@ -446,9 +423,8 @@
             <p class="modal-subtitle" style="margin-top: 12px;">Observações (opcional):</p>
             <input type="text" id="input-obs-fechamento" class="input-cliente"
                 placeholder="Ex: Fechamento do dia, sem ocorrências.">
-            <button class="btn-action btn-fechar-dia mt-2" onclick="executarFechamentoCaixa()">CONFIRMAR
-                FECHAMENTO</button>
-            <button class="btn-action" onclick="fecharModal('modal-fechar-caixa')">CANCELAR</button>
+            <button class="btn-action btn-fechar-dia mt-2" id="btn-confirmar-fechamento-caixa">CONFIRMAR FECHAMENTO</button>
+            <button class="btn-action" id="btn-cancelar-fechamento-caixa">CANCELAR</button>
         </div>
     </div>
 
@@ -468,65 +444,14 @@
                     <option value="ticket-58mm">58mm</option>
                 </select>
             </div>
-            <button class="btn-action btn-dinheiro" onclick="salvarConfig()">SALVAR</button>
-            <button class="btn-action" onclick="fecharModal('modal-config')">CANCELAR</button>
+            <button class="btn-action btn-dinheiro" id="btn-salvar-config">SALVAR</button>
+            <button class="btn-action" id="btn-cancelar-config">CANCELAR</button>
         </div>
     </div>
 
     <div id="area-impressao"></div>
 
-    <script src="{{ url_for('static', filename='js/ponto_venda.js') }}"></script>
-    <script>
-        (function () {
-            var MOBILE_MQ = window.matchMedia('(max-width: 768px)');
-            var carrinho = document.getElementById('carrinho-section');
-            var header = carrinho ? carrinho.querySelector('.carrinho-header') : null;
-            var lista = document.getElementById('carrinho-lista');
-            var badge = document.getElementById('carrinho-badge-mobile');
-
-            if (!carrinho || !header || !lista || !badge) return;
-
-            function fecharSheet() { carrinho.classList.remove('mobile-aberto'); }
-            function abrirSheet() { carrinho.classList.add('mobile-aberto'); }
-            function toggleSheet() {
-                if (!MOBILE_MQ.matches) return;
-                if (carrinho.classList.contains('mobile-aberto')) fecharSheet();
-                else abrirSheet();
-            }
-
-            header.addEventListener('click', toggleSheet);
-
-            function atualizarBadge() {
-                var qtd = 0;
-                try {
-                    if (Array.isArray(window.carrinho)) {
-                        for (var i = 0; i < window.carrinho.length; i++) {
-                            qtd += Number(window.carrinho[i].qtd) || 0;
-                        }
-                    } else {
-                        qtd = lista.querySelectorAll('.item-carrinho').length;
-                    }
-                } catch (e) { qtd = 0; }
-                if (qtd > 0) { badge.textContent = qtd; badge.classList.add('show'); }
-                else { badge.classList.remove('show'); }
-            }
-
-            var obs = new MutationObserver(atualizarBadge);
-            obs.observe(lista, { childList: true, subtree: true });
-            atualizarBadge();
-
-            MOBILE_MQ.addEventListener && MOBILE_MQ.addEventListener('change', function (e) {
-                if (!e.matches) fecharSheet();
-            });
-
-            document.addEventListener('click', function (e) {
-                if (!MOBILE_MQ.matches) return;
-                if (!carrinho.classList.contains('mobile-aberto')) return;
-                if (carrinho.contains(e.target)) return;
-                fecharSheet();
-            });
-        })();
-    </script>
+    <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 
 </html>

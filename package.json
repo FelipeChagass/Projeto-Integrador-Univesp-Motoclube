@@ -1,0 +1,30 @@
+{
+  "name": "pi-univesp",
+  "version": "1.0.0",
+  "description": "Sistema de Ponto de Venda (PDV) e Painel Administrativo para bar de moto clube.  \r Stack: **Python Flask + PostgreSQL (Supabase) + Vanilla JS + Bootstrap 5**.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/.bin/jest --verbose"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FelipeChagass/Projeto-Integrador-Univesp-Motoclube.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/FelipeChagass/Projeto-Integrador-Univesp-Motoclube/issues"
+  },
+  "homepage": "https://github.com/FelipeChagass/Projeto-Integrador-Univesp-Motoclube#readme",
+  "jest": {
+    "testEnvironment": "jsdom",
+    "transform": {}
+  },
+  "devDependencies": {
+    "@jest/globals": "^30.3.0",
+    "jest": "^30.3.0",
+    "jest-environment-jsdom": "^30.3.0"
+  }
+}
