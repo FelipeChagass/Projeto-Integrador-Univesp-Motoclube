@@ -103,3 +103,8 @@ function realizarLogin() {
             showToast(`Erro de conexão: ${err.message || err}`);
         });
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('btn-toggle-senha')?.addEventListener('click', toggleSenha);
+    document.getElementById('btn-login')?.addEventListener('click', realizarLogin);
+});
