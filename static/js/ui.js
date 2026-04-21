@@ -1,3 +1,4 @@
+import { API, UIModal } from './api.js';
 import { S, salvarEstadoLocal, salvarDadosLocais } from './state.js';
 import { esc, sanitizeUrl, formatCurrency, LocalDB } from './utils.js';
 

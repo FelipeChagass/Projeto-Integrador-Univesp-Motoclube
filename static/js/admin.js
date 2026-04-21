@@ -1,3 +1,4 @@
+import { API, UIModal } from './api.js';
 const BASE = '';
 let produtos = [], membros = [], usuarios = [];
 let uploadingProdutoId = null;
@@ -66,10 +67,10 @@ function renderProdutos() {
         if (!p.ativo) tr.classList.add('row-inactive');
         const imgHtml = p.url_imagem
             ? `<img src="${esc(p.url_imagem)}" class="img-thumb" onerror="this.style.display='none'">`
-            : `<span class="img-placeholder" onclick="abrirUpload(${p.id})">—</span>`;
+            : `<span class="img-placeholder" data-action="upload-img" data-id="${p.id}">—</span>`;
         tr.innerHTML = `
             <td class="col-imagem">${imgHtml}
-                <button class="btn-upload-sm" onclick="abrirUpload(${p.id})">Foto</button></td>
+                <button class="btn-upload-sm" data-action="upload-img" data-id="${p.id}">Foto</button></td>
             <td class="col-id">${p.id}</td>
             <td><input value="${esc(p.nome)}" data-pid="${p.id}" data-campo="nome"></td>
             <td><input type="number" step="0.01" value="${p.preco_atual}" data-pid="${p.id}" data-campo="preco_atual"></td>
@@ -82,11 +83,11 @@ function renderProdutos() {
             <td><div class="td-minimos">Mín Bar: ${p.estoque_min_bar}<br>Mín Dep: ${p.estoque_min_deposito}</div></td>
             <td class="col-status">${p.ativo ? '<span class="badge badge-active">Ativo</span>' : '<span class="badge badge-inactive">Inativo</span>'}</td>
             <td><div class="btn-group">
-                <button class="btn btn-save btn-sm" onclick="salvarProduto(${p.id})">Salvar</button>
-                <button class="btn btn-sm" onclick="abrirAjusteEstoque(${p.id})">Estoque</button>
+                <button class="btn btn-save btn-sm" data-action="salvar-produto" data-id="${p.id}">Salvar</button>
+                <button class="btn btn-sm" data-action="ajuste-estoque" data-id="${p.id}">Estoque</button>
                 ${p.ativo
-                ? `<button class="btn btn-del btn-sm" onclick="deletarProduto(${p.id},'${esc(p.nome)}')">Desativar</button>`
-                : `<button class="btn btn-reativar btn-sm" onclick="reativarProduto(${p.id})">Reativar</button>`}
+                ? `<button class="btn btn-del btn-sm" data-action="desativar-produto" data-id="${p.id}" data-nome="${esc(p.nome)}">Desativar</button>`
+                : `<button class="btn btn-reativar btn-sm" data-action="reativar-produto" data-id="${p.id}">Reativar</button>`}
             </div></td>`;
         tbody.appendChild(tr);
     });
@@ -240,10 +241,10 @@ function renderMembros() {
             <td class="${saldoClass}">R$ ${m.saldo_devedor.toFixed(2)}</td>
             <td class="col-status">${m.ativo ? '<span class="badge badge-active">Ativo</span>' : '<span class="badge badge-inactive">Inativo</span>'}</td>
             <td><div class="btn-group">
-                <button class="btn btn-save btn-sm" onclick="salvarMembro('${m.id}')">Salvar</button>
-                <button class="btn btn-sm" onclick="verExtrato('${m.id}','${esc(m.nome)}')">Extrato</button>
-                <button class="btn btn-warn btn-sm" onclick="abrirAjusteSaldo('${m.id}','${esc(m.nome)}')">Ajuste</button>
-                ${m.ativo ? `<button class="btn btn-del btn-sm" onclick="desativarMembro('${m.id}','${esc(m.nome)}')">Desativar</button>` : `<button class="btn btn-reativar btn-sm" onclick="reativarMembro('${m.id}')">Reativar</button>`}
+                <button class="btn btn-save btn-sm" data-action="salvar-membro" data-id="${m.id}">Salvar</button>
+                <button class="btn btn-sm" data-action="ver-extrato" data-id="${m.id}" data-nome="${esc(m.nome)}">Extrato</button>
+                <button class="btn btn-warn btn-sm" data-action="ajuste-saldo" data-id="${m.id}" data-nome="${esc(m.nome)}">Ajuste</button>
+                ${m.ativo ? `<button class="btn btn-del btn-sm" data-action="desativar-membro" data-id="${m.id}" data-nome="${esc(m.nome)}">Desativar</button>` : `<button class="btn btn-reativar btn-sm" data-action="reativar-membro" data-id="${m.id}">Reativar</button>`}
             </div></td>`;
         tbody.appendChild(tr);
     });
@@ -383,10 +384,10 @@ function renderUsuarios() {
             </select></td>
             <td class="col-status">${u.ativo ? '<span class="badge badge-active">Ativo</span>' : '<span class="badge badge-inactive">Inativo</span>'}</td>
             <td><div class="btn-group">
-                <button class="btn btn-save btn-sm" onclick="salvarUsuario('${u.id}')">Salvar</button>
+                <button class="btn btn-save btn-sm" data-action="salvar-usuario" data-id="${u.id}">Salvar</button>
                 ${u.ativo
-                ? `<button class="btn btn-del btn-sm" onclick="toggleUsuario('${u.id}',false)">Desativar</button>`
-                : `<button class="btn btn-reativar btn-sm" onclick="toggleUsuario('${u.id}',true)">Reativar</button>`}
+                ? `<button class="btn btn-del btn-sm" data-action="toggle-usuario" data-id="${u.id}" data-ativo="false">Desativar</button>`
+                : `<button class="btn btn-reativar btn-sm" data-action="toggle-usuario" data-id="${u.id}" data-ativo="true">Reativar</button>`}
             </div></td>`;
         tbody.appendChild(tr);
     });
@@ -496,7 +497,84 @@ function mostrarSkeleton(tbodyId, cols) {
     tbody.innerHTML = html;
 }
 
+function setupEventListeners() {
+    document.getElementById('tab-btn-produtos')?.addEventListener('click', () => switchTab('produtos'));
+    document.getElementById('tab-btn-membros')?.addEventListener('click', () => switchTab('membros'));
+    document.getElementById('tab-btn-usuarios')?.addEventListener('click', () => switchTab('usuarios'));
+    document.getElementById('tab-btn-vendas')?.addEventListener('click', () => switchTab('vendas'));
+    document.getElementById('tab-btn-config')?.addEventListener('click', () => switchTab('config'));
+
+    document.getElementById('mostrarProdutosInativos')?.addEventListener('change', carregarProdutos);
+    document.getElementById('mostrarMembrosInativos')?.addEventListener('change', carregarMembros);
+    
+    document.getElementById('btn-add-produto')?.addEventListener('click', abrirFormNovoProduto);
+    document.getElementById('btn-close-form-produto')?.addEventListener('click', fecharFormNovoProduto);
+    document.getElementById('novo-upload-zone')?.addEventListener('click', () => document.getElementById('novo-file-input').click());
+    document.getElementById('novo-file-input')?.addEventListener('change', (e) => previewNovoProdutoImagem(e.target));
+    document.getElementById('btn-remove-preview-produto')?.addEventListener('click', removerNovoPreview);
+    document.getElementById('btn-save-novo-produto')?.addEventListener('click', criarNovoProduto);
+    document.getElementById('btn-cancel-novo-produto')?.addEventListener('click', fecharFormNovoProduto);
+
+    document.getElementById('btn-add-membro')?.addEventListener('click', abrirFormNovoMembro);
+    document.getElementById('btn-close-form-membro')?.addEventListener('click', () => document.getElementById('formNovoMembro').classList.add('d-none'));
+    document.getElementById('btn-save-novo-membro')?.addEventListener('click', criarNovoMembro);
+    document.getElementById('btn-cancel-novo-membro')?.addEventListener('click', () => document.getElementById('formNovoMembro').classList.add('d-none'));
+
+    document.getElementById('btn-add-usuario')?.addEventListener('click', abrirFormNovoUsuario);
+    document.getElementById('btn-close-form-usuario')?.addEventListener('click', () => document.getElementById('formNovoUsuario').classList.add('d-none'));
+    document.getElementById('btn-save-novo-usuario')?.addEventListener('click', criarNovoUsuario);
+    document.getElementById('btn-cancel-novo-usuario')?.addEventListener('click', () => document.getElementById('formNovoUsuario').classList.add('d-none'));
+
+    document.getElementById('btn-filtrar-vendas')?.addEventListener('click', carregarVendas);
+    document.getElementById('btn-save-config')?.addEventListener('click', salvarConfig);
+
+    document.getElementById('btn-close-modal-extrato')?.addEventListener('click', () => document.getElementById('modalExtrato').classList.add('d-none'));
+    document.getElementById('btn-close-modal-ajuste')?.addEventListener('click', () => document.getElementById('modalAjuste').classList.add('d-none'));
+    document.getElementById('btn-confirmar-ajuste-saldo')?.addEventListener('click', confirmarAjusteSaldo);
+    document.getElementById('btn-cancel-modal-ajuste')?.addEventListener('click', () => document.getElementById('modalAjuste').classList.add('d-none'));
+    
+    document.getElementById('btn-close-modal-estoque')?.addEventListener('click', () => document.getElementById('modalAjusteEstoque').classList.add('d-none'));
+    document.getElementById('btn-confirmar-ajuste-estoque')?.addEventListener('click', confirmarAjusteEstoque);
+    document.getElementById('btn-cancel-modal-estoque')?.addEventListener('click', () => document.getElementById('modalAjusteEstoque').classList.add('d-none'));
+
+    document.getElementById('fileInput')?.addEventListener('change', (e) => uploadImagem(e.target));
+
+    document.getElementById('tabelaProdutos')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-action]');
+        if(!btn) return;
+        const action = btn.dataset.action;
+        const id = parseInt(btn.dataset.id);
+        if(action === 'upload-img') abrirUpload(id);
+        if(action === 'salvar-produto') salvarProduto(id);
+        if(action === 'ajuste-estoque') abrirAjusteEstoque(id);
+        if(action === 'desativar-produto') deletarProduto(id, btn.dataset.nome);
+        if(action === 'reativar-produto') reativarProduto(id);
+    });
+
+    document.getElementById('tabelaMembros')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-action]');
+        if(!btn) return;
+        const action = btn.dataset.action;
+        const id = btn.dataset.id;
+        if(action === 'salvar-membro') salvarMembro(id);
+        if(action === 'ver-extrato') verExtrato(id, btn.dataset.nome);
+        if(action === 'ajuste-saldo') abrirAjusteSaldo(id, btn.dataset.nome);
+        if(action === 'desativar-membro') desativarMembro(id, btn.dataset.nome);
+        if(action === 'reativar-membro') reativarMembro(id);
+    });
+
+    document.getElementById('tabelaUsuarios')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-action]');
+        if(!btn) return;
+        const action = btn.dataset.action;
+        const id = btn.dataset.id;
+        if(action === 'salvar-usuario') salvarUsuario(id);
+        if(action === 'toggle-usuario') toggleUsuario(id, btn.dataset.ativo === 'true');
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    setupEventListeners();
     mostrarSkeleton('tabelaProdutos', 8);
     carregarProdutos();
 

@@ -1,3 +1,4 @@
+import { API, UIModal } from './api.js';
 function showToast(msg) {
     const t = document.getElementById('login-toast');
     t.innerText = msg;
@@ -40,18 +41,18 @@ if (lembrarMeAtivo) {
         });
     }).catch(() => {
         localStorage.removeItem('motoBarLembrarMe');
-        API.logout().catch(() => {});
+        API.logout().catch(() => { });
     });
 } else {
     API._initSupabase().then(client => {
         if (client) {
             client.auth.getSession().then(result => {
                 if (result && result.data && result.data.session) {
-                    API.logout().catch(() => {});
+                    API.logout().catch(() => { });
                 }
             });
         }
-    }).catch(() => {});
+    }).catch(() => { });
 }
 
 document.getElementById('login-senha').addEventListener('keydown', (e) => {

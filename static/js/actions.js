@@ -1,3 +1,4 @@
+import { API, UIModal } from './api.js';
 import { S, salvarDadosLocais } from './state.js';
 import { esc, formatCurrency, LocalDB } from './utils.js';
 import { showToast, fecharModal, atualizarUI, renderizarCatalogo, getQtdCarrinho, atualizarEstadoBotoes, atualizarDados } from './ui.js';

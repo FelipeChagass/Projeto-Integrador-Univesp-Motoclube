@@ -1,3 +1,4 @@
+import { API, UIModal } from './api.js';
 import { S, carregarDadosLocais, salvarDadosLocais } from './state.js';
 import { showToast, fecharModal, atualizarUI, renderizarCatalogo, atualizarEstadoBotoes, atualizarDados } from './ui.js';
 import {

@@ -1,28 +1,78 @@
-window.UIModal = {
+export const UIModal = {
     confirm: function (msg, callbackOk, callbackCancel) { this.show('CONFIRMAÇÃO', msg, true, callbackOk, callbackCancel); },
     alert: function (msg, callbackOk) { this.show('ALERTA', msg, false, callbackOk, null); },
     prompt: function (msg, callbackOk, callbackCancel) { this.show('INSERIR DADOS', msg, true, callbackOk, callbackCancel, true); },
     show: function (title, msg, isConfirm, onOk, onCancel, isPrompt) {
-        var d = document.createElement('div');
-        d.style.position = 'fixed'; d.style.inset = '0'; d.style.background = 'rgba(0,0,0,0.85)';
-        d.style.zIndex = '999999'; d.style.display = 'flex'; d.style.justifyContent = 'center'; d.style.alignItems = 'center';
-        var pHtml = isPrompt ? '<input type="password" id="ui-prompt-input" style="width:100%; padding:10px; margin-bottom:15px; border-radius:5px; border:1px solid #777; background:#222; color:#fff;" />' : '';
-        d.innerHTML = '<div style="background:#222; border: 2px solid #b30000; padding:20px; border-radius:8px; width:90%; max-width:400px; text-align:center; color:#fff; font-family:sans-serif;">' +
-            '<h3 style="margin:0 0 15px 0; color:#fff;">' + title + '</h3>' +
-            '<p style="margin:0 0 15px 0; font-size:1rem; color:#ccc;">' + msg + '</p>' + pHtml +
-            '<div style="display:flex; justify-content:center; gap:10px;">' +
-            '<button id="ui-btn-cancel" style="display:' + (isConfirm ? 'block' : 'none') + '; padding:10px 20px; border:none; border-radius:5px; background:#555; color:#fff; cursor:pointer; font-weight:bold;">CANCELAR</button>' +
-            '<button id="ui-btn-ok" style="padding:10px 20px; border:none; border-radius:5px; background:#b30000; color:#fff; cursor:pointer; font-weight:bold;">' + (isConfirm ? 'CONFIRMAR' : 'OK') + '</button>' +
-            '</div></div>';
-        document.body.appendChild(d);
-        if (isPrompt) { setTimeout(function () { document.getElementById('ui-prompt-input').focus(); }, 100); }
-        document.getElementById('ui-btn-ok').onclick = function () { var val = isPrompt ? document.getElementById('ui-prompt-input').value : null; document.body.removeChild(d); if (onOk) onOk(val); };
-        var btnCancel = document.getElementById('ui-btn-cancel');
-        if (btnCancel) { btnCancel.onclick = function () { var val = isPrompt ? document.getElementById('ui-prompt-input').value : null; document.body.removeChild(d); if (onCancel) onCancel(val); }; }
+        const overlay = document.createElement('div');
+        Object.assign(overlay.style, {
+            position: 'fixed', inset: '0', background: 'rgba(0,0,0,0.85)',
+            zIndex: '999999', display: 'flex', justifyContent: 'center', alignItems: 'center'
+        });
+
+        const modalDiv = document.createElement('div');
+        Object.assign(modalDiv.style, {
+            background: '#222', border: '2px solid #b30000', padding: '20px',
+            borderRadius: '8px', width: '90%', maxWidth: '400px', textAlign: 'center',
+            color: '#fff', fontFamily: 'sans-serif'
+        });
+
+        const titleEl = document.createElement('h3');
+        titleEl.style.margin = '0 0 15px 0';
+        titleEl.textContent = title;
+
+        const msgEl = document.createElement('p');
+        msgEl.style.cssText = 'margin:0 0 15px 0; font-size:1rem; color:#ccc;';
+        msgEl.textContent = msg;
+
+        modalDiv.append(titleEl, msgEl);
+
+        let inputEl = null;
+        if (isPrompt) {
+            inputEl = document.createElement('input');
+            inputEl.type = 'password';
+            inputEl.id = 'ui-prompt-input';
+            inputEl.style.cssText = 'width:100%; padding:10px; margin-bottom:15px; border-radius:5px; border:1px solid #777; background:#222; color:#fff;';
+            modalDiv.append(inputEl);
+        }
+
+        const buttonsDiv = document.createElement('div');
+        buttonsDiv.style.cssText = 'display:flex; justify-content:center; gap:10px;';
+
+        const okBtn = document.createElement('button');
+        okBtn.textContent = isConfirm ? 'CONFIRMAR' : 'OK';
+        okBtn.style.cssText = 'padding:10px 20px; border:none; border-radius:5px; background:#b30000; color:#fff; cursor:pointer; font-weight:bold;';
+        okBtn.onclick = () => {
+            const val = isPrompt ? inputEl.value : null;
+            document.body.removeChild(overlay);
+            if (onOk) onOk(val);
+        };
+
+        if (isConfirm) {
+            const cancelBtn = document.createElement('button');
+            cancelBtn.textContent = 'CANCELAR';
+            cancelBtn.style.cssText = 'padding:10px 20px; border:none; border-radius:5px; background:#555; color:#fff; cursor:pointer; font-weight:bold;';
+            cancelBtn.onclick = () => {
+                const val = isPrompt ? inputEl.value : null;
+                document.body.removeChild(overlay);
+                if (onCancel) onCancel(val);
+            };
+            buttonsDiv.append(cancelBtn);
+        }
+
+        buttonsDiv.append(okBtn);
+        modalDiv.append(buttonsDiv);
+        overlay.append(modalDiv);
+
+        document.body.appendChild(overlay);
+
+        if (isPrompt && inputEl) {
+            setTimeout(() => inputEl.focus(), 100);
+        }
     }
 };
 
-const API = (function () {
+
+export const API = (function () {
 
     const BASE_URL = window.location.origin + '/api';
 
@@ -58,7 +108,7 @@ const API = (function () {
     const CACHE_TTL = 30000;
 
     function _getCached(key) {
-        var entry = _cache[key];
+        let entry = _cache[key];
         if (entry && (Date.now() - entry.ts) < CACHE_TTL) return entry.data;
         return null;
     }
@@ -71,8 +121,8 @@ const API = (function () {
         if (key) { delete _cache[key]; } else { Object.keys(_cache).forEach(function (k) { delete _cache[k]; }); }
     }
 
-    var REQUEST_TIMEOUT = 15000;
-    var MAX_RETRIES = 2;
+    let REQUEST_TIMEOUT = 15000;
+    let MAX_RETRIES = 2;
 
     async function _request(method, endpoint, body, _retryCount) {
         if (typeof _retryCount === 'undefined') _retryCount = 0;
@@ -88,14 +138,14 @@ const API = (function () {
             }
         }
 
-        var cacheKey = method === 'GET' ? endpoint : null;
+        let cacheKey = method === 'GET' ? endpoint : null;
         if (cacheKey) {
-            var cached = _getCached(cacheKey);
+            let cached = _getCached(cacheKey);
             if (cached) return cached;
         }
 
-        var controller = new AbortController();
-        var timeoutId = setTimeout(function () { controller.abort(); }, REQUEST_TIMEOUT);
+        let controller = new AbortController();
+        let timeoutId = setTimeout(function () { controller.abort(); }, REQUEST_TIMEOUT);
 
         const options = {
             method: method,
@@ -115,7 +165,7 @@ const API = (function () {
 
                 if (_retryCount === 0 && client) {
                     try {
-                        var refreshResult = await client.auth.refreshSession();
+                        let refreshResult = await client.auth.refreshSession();
                         if (refreshResult.data && refreshResult.data.session) {
                             console.info('Token renovado automaticamente.');
                             return _request(method, endpoint, body, 1);
@@ -136,17 +186,17 @@ const API = (function () {
         } catch (error) {
             clearTimeout(timeoutId);
 
-            var isNetworkError = error.name === 'AbortError' || error.name === 'TypeError' || error.message === 'Failed to fetch';
-            var isTimeout = error.name === 'AbortError';
+            let isNetworkError = error.name === 'AbortError' || error.name === 'TypeError' || error.message === 'Failed to fetch';
+            let isTimeout = error.name === 'AbortError';
 
             if (isNetworkError && _retryCount < MAX_RETRIES) {
-                var delay = Math.pow(2, _retryCount) * 1000;
+                let delay = Math.pow(2, _retryCount) * 1000;
                 console.warn('Tentativa ' + (_retryCount + 1) + '/' + MAX_RETRIES + ' para ' + endpoint + ' em ' + delay + 'ms...');
                 await new Promise(function (r) { setTimeout(r, delay); });
                 return _request(method, endpoint, body, _retryCount + 1);
             }
 
-            var msgErro = isTimeout ? 'Tempo limite excedido (' + (REQUEST_TIMEOUT / 1000) + 's)' : (error.message || 'Erro de conexão');
+            let msgErro = isTimeout ? 'Tempo limite excedido (' + (REQUEST_TIMEOUT / 1000) + 's)' : (error.message || 'Erro de conexão');
             console.error('Erro na requisição:', endpoint, msgErro);
             throw new Error(msgErro);
         }
@@ -192,7 +242,7 @@ const API = (function () {
                 }
             }
 
-            var keys = Object.keys(localStorage);
+            let keys = Object.keys(localStorage);
             keys.forEach(function (k) {
                 if (k.startsWith('motoBar') || k.startsWith('sb-')) {
                     localStorage.removeItem(k);
@@ -246,7 +296,7 @@ const API = (function () {
         },
 
         buscarExtratoMembro: function (nomeMembro) {
-            var encoded = encodeURIComponent(nomeMembro);
+            let encoded = encodeURIComponent(nomeMembro);
             return _request('GET', '/membros/extrato?nome=' + encoded);
         },
 
@@ -261,7 +311,7 @@ const API = (function () {
         },
 
         gerarRelatorioCaixa: function (tipo, dadosFiltro) {
-            var body = Object.assign({}, dadosFiltro || {});
+            let body = Object.assign({}, dadosFiltro || {});
             body.tipo = tipo;
             return _request('POST', '/relatorios', body);
         },
