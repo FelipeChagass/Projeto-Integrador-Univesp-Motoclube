@@ -209,7 +209,8 @@ body {
         justify-content: center;
         align-items: center;
         text-align: center;
-        border-bottom: 2px dashed #000;
+        border: 2px dashed #000;
+        border-radius: 8px;
         background: transparent !important;
         z-index: 1;
         overflow: hidden;
