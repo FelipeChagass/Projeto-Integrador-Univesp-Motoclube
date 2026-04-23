@@ -506,7 +506,7 @@ function setupEventListeners() {
 
     document.getElementById('mostrarProdutosInativos')?.addEventListener('change', carregarProdutos);
     document.getElementById('mostrarMembrosInativos')?.addEventListener('change', carregarMembros);
-    
+
     document.getElementById('btn-add-produto')?.addEventListener('click', abrirFormNovoProduto);
     document.getElementById('btn-close-form-produto')?.addEventListener('click', fecharFormNovoProduto);
     document.getElementById('novo-upload-zone')?.addEventListener('click', () => document.getElementById('novo-file-input').click());
@@ -532,7 +532,7 @@ function setupEventListeners() {
     document.getElementById('btn-close-modal-ajuste')?.addEventListener('click', () => document.getElementById('modalAjuste').classList.add('d-none'));
     document.getElementById('btn-confirmar-ajuste-saldo')?.addEventListener('click', confirmarAjusteSaldo);
     document.getElementById('btn-cancel-modal-ajuste')?.addEventListener('click', () => document.getElementById('modalAjuste').classList.add('d-none'));
-    
+
     document.getElementById('btn-close-modal-estoque')?.addEventListener('click', () => document.getElementById('modalAjusteEstoque').classList.add('d-none'));
     document.getElementById('btn-confirmar-ajuste-estoque')?.addEventListener('click', confirmarAjusteEstoque);
     document.getElementById('btn-cancel-modal-estoque')?.addEventListener('click', () => document.getElementById('modalAjusteEstoque').classList.add('d-none'));
@@ -541,35 +541,35 @@ function setupEventListeners() {
 
     document.getElementById('tabelaProdutos')?.addEventListener('click', (e) => {
         const btn = e.target.closest('[data-action]');
-        if(!btn) return;
+        if (!btn) return;
         const action = btn.dataset.action;
         const id = parseInt(btn.dataset.id);
-        if(action === 'upload-img') abrirUpload(id);
-        if(action === 'salvar-produto') salvarProduto(id);
-        if(action === 'ajuste-estoque') abrirAjusteEstoque(id);
-        if(action === 'desativar-produto') deletarProduto(id, btn.dataset.nome);
-        if(action === 'reativar-produto') reativarProduto(id);
+        if (action === 'upload-img') abrirUpload(id);
+        if (action === 'salvar-produto') salvarProduto(id);
+        if (action === 'ajuste-estoque') abrirAjusteEstoque(id);
+        if (action === 'desativar-produto') deletarProduto(id, btn.dataset.nome);
+        if (action === 'reativar-produto') reativarProduto(id);
     });
 
     document.getElementById('tabelaMembros')?.addEventListener('click', (e) => {
         const btn = e.target.closest('[data-action]');
-        if(!btn) return;
+        if (!btn) return;
         const action = btn.dataset.action;
         const id = btn.dataset.id;
-        if(action === 'salvar-membro') salvarMembro(id);
-        if(action === 'ver-extrato') verExtrato(id, btn.dataset.nome);
-        if(action === 'ajuste-saldo') abrirAjusteSaldo(id, btn.dataset.nome);
-        if(action === 'desativar-membro') desativarMembro(id, btn.dataset.nome);
-        if(action === 'reativar-membro') reativarMembro(id);
+        if (action === 'salvar-membro') salvarMembro(id);
+        if (action === 'ver-extrato') verExtrato(id, btn.dataset.nome);
+        if (action === 'ajuste-saldo') abrirAjusteSaldo(id, btn.dataset.nome);
+        if (action === 'desativar-membro') desativarMembro(id, btn.dataset.nome);
+        if (action === 'reativar-membro') reativarMembro(id);
     });
 
     document.getElementById('tabelaUsuarios')?.addEventListener('click', (e) => {
         const btn = e.target.closest('[data-action]');
-        if(!btn) return;
+        if (!btn) return;
         const action = btn.dataset.action;
         const id = btn.dataset.id;
-        if(action === 'salvar-usuario') salvarUsuario(id);
-        if(action === 'toggle-usuario') toggleUsuario(id, btn.dataset.ativo === 'true');
+        if (action === 'salvar-usuario') salvarUsuario(id);
+        if (action === 'toggle-usuario') toggleUsuario(id, btn.dataset.ativo === 'true');
     });
 }
 

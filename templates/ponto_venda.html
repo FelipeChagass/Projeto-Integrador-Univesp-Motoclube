@@ -14,10 +14,10 @@
         window.onerror = function (msg, url, line) {
             var l = document.getElementById('loading');
             if (l) {
-                var safe = String(msg).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                var safe = String(msg).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 l.style.display = 'flex';
                 l.innerHTML = '<div style="background:white; color:red; padding: 20px; border-radius:8px; max-width:80%; margin:auto; text-align:left; font-family:sans-serif;"><h3 style="margin-top:0;">Erro Crítico Detectado!</h3><p><b>Motivo:</b> ' + safe + '</p><p style="font-size:0.8rem">Linha: ' + line + '</p><button id="btn-fechar-erro" style="margin-top:10px; padding:10px; background:#333; color:white; border:none; border-radius:4px; cursor:pointer;">Fechar Aviso</button></div>';
-                document.getElementById('btn-fechar-erro').addEventListener('click', function() { l.style.display = 'none'; });
+                document.getElementById('btn-fechar-erro').addEventListener('click', function () { l.style.display = 'none'; });
             }
         };
     </script>
@@ -295,7 +295,8 @@
             <h2 class="modal-title-accent">MODO ESTOQUE</h2>
             <p class="modal-subtitle">Digite a senha para gerenciar o estoque:</p>
             <input type="password" id="input-senha-estoque" class="input-cliente" placeholder="Senha">
-            <p id="erro-senha-estoque" class="d-none" style="color: #ff6b6b; font-size: 0.85rem; margin: 4px 0 8px;"></p>
+            <p id="erro-senha-estoque" class="d-none" style="color: #ff6b6b; font-size: 0.85rem; margin: 4px 0 8px;">
+            </p>
             <button class="btn-action btn-fechar-dia" id="btn-confirmar-senha-estoque">CONFIRMAR</button>
             <button class="btn-action" id="btn-cancelar-senha-estoque">CANCELAR</button>
         </div>
@@ -422,7 +423,8 @@
             <p class="modal-subtitle" style="margin-top: 12px;">Observações (opcional):</p>
             <input type="text" id="input-obs-fechamento" class="input-cliente"
                 placeholder="Ex: Fechamento do dia, sem ocorrências.">
-            <button class="btn-action btn-fechar-dia mt-2" id="btn-confirmar-fechamento-caixa">CONFIRMAR FECHAMENTO</button>
+            <button class="btn-action btn-fechar-dia mt-2" id="btn-confirmar-fechamento-caixa">CONFIRMAR
+                FECHAMENTO</button>
             <button class="btn-action" id="btn-cancelar-fechamento-caixa">CANCELAR</button>
         </div>
     </div>
@@ -443,7 +445,7 @@
                     <option value="ticket-58mm">58mm</option>
                 </select>
             </div>
-            <button class="btn-action btn-dinheiro" id="btn-salvar-config">SALVAR</button>
+            <button class="btn-action" id="btn-salvar-config">SALVAR</button>
             <button class="btn-action" id="btn-cancelar-config">CANCELAR</button>
         </div>
     </div>
