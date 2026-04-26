@@ -396,6 +396,17 @@
         padding: 0;
     }
 
+    /* Modal Drag Handle */
+    .modal-content::before {
+        content: '';
+        display: block;
+        width: 44px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.25);
+        border-radius: 2px;
+        margin: -8px auto 16px auto;
+    }
+
     .modal-content {
         width: 100% !important;
         max-width: 100% !important;
@@ -403,6 +414,24 @@
         border-radius: 16px 16px 0 0 !important;
         padding: 20px 18px calc(20px + env(safe-area-inset-bottom)) !important;
         overflow-y: auto;
+        animation: modalSlideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        margin: 0 !important;
+        position: relative;
+        touch-action: pan-y;
+    }
+
+    .modal-overlay.closing .modal-content {
+        animation: modalSlideDown 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes modalSlideUp {
+        from { transform: translateY(100%); opacity: 1; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes modalSlideDown {
+        from { transform: translateY(0); opacity: 1; }
+        to { transform: translateY(100%); opacity: 1; }
     }
 
     /* Center button text in the mobile "Gestão de Caixa" modal */

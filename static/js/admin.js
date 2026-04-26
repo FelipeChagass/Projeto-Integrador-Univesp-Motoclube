@@ -1,4 +1,5 @@
 import { API, UIModal } from './api.js';
+import { initSwipeToClose } from './ui.js';
 const BASE = '';
 let produtos = [], membros = [], usuarios = [];
 let uploadingProdutoId = null;
@@ -38,6 +39,22 @@ async function authFetch(url, opts = {}) {
     return r;
 }
 
+function fecharModalAdmin(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('closing');
+    setTimeout(() => {
+        el.classList.add('d-none');
+        el.classList.remove('closing');
+        
+        // Verifica se ainda tem modal aberto
+        const hasOpenModal = document.querySelectorAll('.modal-overlay:not(.d-none)').length > 0;
+        if (!hasOpenModal) {
+            document.body.classList.remove('modal-open');
+        }
+    }, 250);
+}
+
 function switchTab(name) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
@@ -69,20 +86,20 @@ function renderProdutos() {
             ? `<img src="${esc(p.url_imagem)}" class="img-thumb" onerror="this.style.display='none'">`
             : `<span class="img-placeholder" data-action="upload-img" data-id="${p.id}">—</span>`;
         tr.innerHTML = `
-            <td class="col-imagem">${imgHtml}
+            <td class="col-imagem" data-label="Img">${imgHtml}
                 <button class="btn-upload-sm" data-action="upload-img" data-id="${p.id}">Foto</button></td>
-            <td class="col-id">${p.id}</td>
-            <td><input value="${esc(p.nome)}" data-pid="${p.id}" data-campo="nome"></td>
-            <td><input type="number" step="0.01" value="${p.preco_atual}" data-pid="${p.id}" data-campo="preco_atual"></td>
-            <td><select data-pid="${p.id}" data-campo="categoria">
+            <td class="col-id" data-label="ID">${p.id}</td>
+            <td data-label="Nome"><input value="${esc(p.nome)}" data-pid="${p.id}" data-campo="nome"></td>
+            <td data-label="Preço"><input type="number" step="0.01" value="${p.preco_atual}" data-pid="${p.id}" data-campo="preco_atual"></td>
+            <td data-label="Categ."><select data-pid="${p.id}" data-campo="categoria">
                 <option value="bebida" ${p.categoria === 'bebida' ? 'selected' : ''}>Bebida</option>
                 <option value="comida" ${p.categoria === 'comida' ? 'selected' : ''}>Comida</option>
                 <option value="outro"  ${p.categoria === 'outro' ? 'selected' : ''}>Outro</option>
             </select></td>
-            <td><div class="td-estoque">Bar: <b>${p.estoque_bar}</b><br>Dep: <b>${p.estoque_deposito}</b></div></td>
-            <td><div class="td-minimos">Mín Bar: ${p.estoque_min_bar}<br>Mín Dep: ${p.estoque_min_deposito}</div></td>
-            <td class="col-status">${p.ativo ? '<span class="badge badge-active">Ativo</span>' : '<span class="badge badge-inactive">Inativo</span>'}</td>
-            <td><div class="btn-group">
+            <td data-label="Estoque"><div class="td-estoque">Bar: <b>${p.estoque_bar}</b><br>Dep: <b>${p.estoque_deposito}</b></div></td>
+            <td data-label="Mínimos"><div class="td-minimos">Mín Bar: ${p.estoque_min_bar}<br>Mín Dep: ${p.estoque_min_deposito}</div></td>
+            <td class="col-status" data-label="Status">${p.ativo ? '<span class="badge badge-active">Ativo</span>' : '<span class="badge badge-inactive">Inativo</span>'}</td>
+            <td data-label="Ações"><div class="btn-group">
                 <button class="btn btn-save btn-sm" data-action="salvar-produto" data-id="${p.id}">Salvar</button>
                 <button class="btn btn-sm" data-action="ajuste-estoque" data-id="${p.id}">Estoque</button>
                 ${p.ativo
@@ -93,8 +110,8 @@ function renderProdutos() {
     });
 }
 
-function abrirFormNovoProduto() { document.getElementById('formNovoProduto').classList.remove('d-none'); document.getElementById('novo-nome').focus(); }
-function fecharFormNovoProduto() { document.getElementById('formNovoProduto').classList.add('d-none'); }
+function abrirFormNovoProduto() { document.getElementById('formNovoProduto').classList.remove('d-none'); document.body.classList.add('modal-open'); document.getElementById('novo-nome').focus(); }
+function fecharFormNovoProduto() { document.getElementById('formNovoProduto').classList.add('d-none'); document.body.classList.remove('modal-open'); }
 
 function previewNovoProdutoImagem(input) {
     if (!input.files || !input.files[0]) return;
@@ -163,6 +180,7 @@ function abrirAjusteEstoque(id) {
     document.getElementById('ajuste-estoque-min-deposito').value = prod.estoque_min_deposito || 0;
     document.getElementById('ajuste-estoque-motivo').value = '';
     document.getElementById('modalAjusteEstoque').classList.remove('d-none');
+    document.body.classList.add('modal-open');
 }
 
 async function confirmarAjusteEstoque() {
@@ -180,7 +198,7 @@ async function confirmarAjusteEstoque() {
     const data = await r.json();
     toast(data.mensagem, data.status === 'ok');
     if (data.status === 'ok') {
-        document.getElementById('modalAjusteEstoque').classList.add('d-none');
+        fecharModalAdmin('modalAjusteEstoque');
         carregarProdutos();
     }
 }
@@ -237,10 +255,10 @@ function renderMembros() {
         if (!m.ativo) tr.classList.add('row-inactive');
         const saldoClass = m.saldo_devedor > 0 ? 'saldo-devedor' : 'saldo-ok';
         tr.innerHTML = `
-            <td><input value="${esc(m.nome)}" data-mid="${m.id}" data-campo="nome"></td>
-            <td class="${saldoClass}">R$ ${m.saldo_devedor.toFixed(2)}</td>
-            <td class="col-status">${m.ativo ? '<span class="badge badge-active">Ativo</span>' : '<span class="badge badge-inactive">Inativo</span>'}</td>
-            <td><div class="btn-group">
+            <td data-label="Nome"><input value="${esc(m.nome)}" data-mid="${m.id}" data-campo="nome"></td>
+            <td class="${saldoClass}" data-label="Saldo Devedor">R$ ${m.saldo_devedor.toFixed(2)}</td>
+            <td class="col-status" data-label="Status">${m.ativo ? '<span class="badge badge-active">Ativo</span>' : '<span class="badge badge-inactive">Inativo</span>'}</td>
+            <td data-label="Ações"><div class="btn-group">
                 <button class="btn btn-save btn-sm" data-action="salvar-membro" data-id="${m.id}">Salvar</button>
                 <button class="btn btn-sm" data-action="ver-extrato" data-id="${m.id}" data-nome="${esc(m.nome)}">Extrato</button>
                 <button class="btn btn-warn btn-sm" data-action="ajuste-saldo" data-id="${m.id}" data-nome="${esc(m.nome)}">Ajuste</button>
@@ -250,7 +268,12 @@ function renderMembros() {
     });
 }
 
-function abrirFormNovoMembro() { document.getElementById('formNovoMembro').classList.remove('d-none'); document.getElementById('novo-membro-nome').value = ''; document.getElementById('novo-membro-nome').focus(); }
+function abrirFormNovoMembro() { 
+    document.getElementById('formNovoMembro').classList.remove('d-none'); 
+    document.body.classList.add('modal-open');
+    document.getElementById('novo-membro-nome').value = ''; 
+    document.getElementById('novo-membro-nome').focus(); 
+}
 
 async function criarNovoMembro() {
     const nome = document.getElementById('novo-membro-nome').value.trim();
@@ -259,7 +282,7 @@ async function criarNovoMembro() {
     if (!r) return;
     const data = await r.json();
     toast(data.mensagem, data.status === 'ok');
-    if (data.status === 'ok') { document.getElementById('formNovoMembro').classList.add('d-none'); carregarMembros(); }
+    if (data.status === 'ok') { document.getElementById('formNovoMembro').classList.add('d-none'); document.body.classList.remove('modal-open'); carregarMembros(); }
 }
 
 async function salvarMembro(id) {
@@ -294,6 +317,7 @@ async function verExtrato(id, nome) {
     document.getElementById('extrato-titulo').textContent = `Extrato — ${nome}`;
     document.getElementById('extrato-body').innerHTML = '<p class="admin-loading-text">Carregando...</p>';
     document.getElementById('modalExtrato').classList.remove('d-none');
+    document.body.classList.add('modal-open');
     const r = await authFetch(`${BASE}/api/admin/membros/${id}/extrato`);
     if (!r) return;
     const data = await r.json();
@@ -318,6 +342,7 @@ function abrirAjusteSaldo(id, nome) {
     document.getElementById('ajuste-descricao').value = '';
     document.getElementById('ajuste-tipo').value = 'credito';
     document.getElementById('modalAjuste').classList.remove('d-none');
+    document.body.classList.add('modal-open');
 }
 
 async function confirmarAjusteSaldo() {
@@ -329,7 +354,7 @@ async function confirmarAjusteSaldo() {
     if (!r) return;
     const data = await r.json();
     toast(data.mensagem, data.status === 'ok');
-    if (data.status === 'ok') { document.getElementById('modalAjuste').classList.add('d-none'); carregarMembros(); }
+    if (data.status === 'ok') { fecharModalAdmin('modalAjuste'); carregarMembros(); }
 }
 
 async function carregarUsuarios() {
@@ -343,6 +368,7 @@ async function carregarUsuarios() {
 
 function abrirFormNovoUsuario() {
     document.getElementById('formNovoUsuario').classList.remove('d-none');
+    document.body.classList.add('modal-open');
     document.getElementById('novo-user-nome').value = '';
     document.getElementById('novo-user-email').value = '';
     document.getElementById('novo-user-senha').value = '';
@@ -376,14 +402,14 @@ function renderUsuarios() {
         const tr = document.createElement('tr');
         if (!u.ativo) tr.classList.add('row-inactive');
         tr.innerHTML = `
-            <td><input value="${esc(u.nome)}" data-uid="${u.id}" data-campo="nome"></td>
-            <td class="td-email">${esc(u.email)}</td>
-            <td><select data-uid="${u.id}" data-campo="perfil">
+            <td data-label="Nome"><input value="${esc(u.nome)}" data-uid="${u.id}" data-campo="nome"></td>
+            <td class="td-email" data-label="Email">${esc(u.email)}</td>
+            <td data-label="Perfil"><select data-uid="${u.id}" data-campo="perfil">
                 <option value="operador" ${u.perfil === 'operador' ? 'selected' : ''}>Operador</option>
                 <option value="admin" ${u.perfil === 'admin' ? 'selected' : ''}>Admin</option>
             </select></td>
-            <td class="col-status">${u.ativo ? '<span class="badge badge-active">Ativo</span>' : '<span class="badge badge-inactive">Inativo</span>'}</td>
-            <td><div class="btn-group">
+            <td class="col-status" data-label="Status">${u.ativo ? '<span class="badge badge-active">Ativo</span>' : '<span class="badge badge-inactive">Inativo</span>'}</td>
+            <td data-label="Ações"><div class="btn-group">
                 <button class="btn btn-save btn-sm" data-action="salvar-usuario" data-id="${u.id}">Salvar</button>
                 ${u.ativo
                 ? `<button class="btn btn-del btn-sm" data-action="toggle-usuario" data-id="${u.id}" data-ativo="false">Desativar</button>`
@@ -442,12 +468,12 @@ async function carregarVendas() {
         const itensStr = (v.itens || []).map(i => `${i.quantidade}x ${i.nome_produto}`).join(', ') || '—';
         const tipoBadge = v.tipo_venda === 'fiado' ? 'badge-warn' : v.tipo_venda === 'recebimento_divida' ? 'badge-info' : 'badge-active';
         tr.innerHTML = `
-            <td class="td-data">${dataStr}</td>
-            <td><span class="badge ${tipoBadge}">${v.tipo_venda}</span></td>
-            <td>${v.metodo_pagamento}</td>
-            <td>${esc(v.nome_cliente || '—')}</td>
-            <td class="td-valor">R$ ${v.valor_total.toFixed(2)}</td>
-            <td class="td-itens">${esc(itensStr)}</td>`;
+            <td class="td-data" data-label="Data">${dataStr}</td>
+            <td data-label="Tipo"><span class="badge ${tipoBadge}">${v.tipo_venda}</span></td>
+            <td data-label="Método">${v.metodo_pagamento}</td>
+            <td data-label="Cliente">${esc(v.nome_cliente || '—')}</td>
+            <td class="td-valor" data-label="Valor">R$ ${v.valor_total.toFixed(2)}</td>
+            <td class="td-itens" data-label="Itens">${esc(itensStr)}</td>`;
         tbody.appendChild(tr);
     });
 }
@@ -528,14 +554,12 @@ function setupEventListeners() {
     document.getElementById('btn-filtrar-vendas')?.addEventListener('click', carregarVendas);
     document.getElementById('btn-save-config')?.addEventListener('click', salvarConfig);
 
-    document.getElementById('btn-close-modal-extrato')?.addEventListener('click', () => document.getElementById('modalExtrato').classList.add('d-none'));
-    document.getElementById('btn-close-modal-ajuste')?.addEventListener('click', () => document.getElementById('modalAjuste').classList.add('d-none'));
-    document.getElementById('btn-confirmar-ajuste-saldo')?.addEventListener('click', confirmarAjusteSaldo);
-    document.getElementById('btn-cancel-modal-ajuste')?.addEventListener('click', () => document.getElementById('modalAjuste').classList.add('d-none'));
+    document.getElementById('btn-close-modal-extrato')?.addEventListener('click', () => fecharModalAdmin('modalExtrato'));
+    document.getElementById('btn-close-modal-ajuste')?.addEventListener('click', () => fecharModalAdmin('modalAjuste'));
+    document.getElementById('btn-cancel-modal-ajuste')?.addEventListener('click', () => fecharModalAdmin('modalAjuste'));
 
-    document.getElementById('btn-close-modal-estoque')?.addEventListener('click', () => document.getElementById('modalAjusteEstoque').classList.add('d-none'));
-    document.getElementById('btn-confirmar-ajuste-estoque')?.addEventListener('click', confirmarAjusteEstoque);
-    document.getElementById('btn-cancel-modal-estoque')?.addEventListener('click', () => document.getElementById('modalAjusteEstoque').classList.add('d-none'));
+    document.getElementById('btn-close-modal-estoque')?.addEventListener('click', () => fecharModalAdmin('modalAjusteEstoque'));
+    document.getElementById('btn-cancel-modal-estoque')?.addEventListener('click', () => fecharModalAdmin('modalAjusteEstoque'));
 
     document.getElementById('fileInput')?.addEventListener('change', (e) => uploadImagem(e.target));
 
@@ -574,6 +598,7 @@ function setupEventListeners() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    initSwipeToClose();
     setupEventListeners();
     mostrarSkeleton('tabelaProdutos', 8);
     carregarProdutos();
@@ -582,13 +607,17 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', (e) => {
         if (e.key !== 'Escape') return;
         const aberto = document.querySelector('.modal-overlay:not(.d-none)');
-        if (aberto) aberto.classList.add('d-none');
+        if (aberto) {
+            aberto.classList.add('closing');
+            setTimeout(() => { aberto.classList.add('d-none'); aberto.classList.remove('closing'); }, 250);
+        }
     });
 
     // ── Clique no overlay (fora do conteúdo) fecha o modal ──
     document.addEventListener('click', (e) => {
         if (e.target.classList.contains('modal-overlay') && !e.target.classList.contains('d-none')) {
-            e.target.classList.add('d-none');
+            e.target.classList.add('closing');
+            setTimeout(() => { e.target.classList.add('d-none'); e.target.classList.remove('closing'); }, 250);
         }
     });
 });

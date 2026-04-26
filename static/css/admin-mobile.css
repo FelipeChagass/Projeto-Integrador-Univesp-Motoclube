@@ -293,15 +293,19 @@
     }
 
     .modal-overlay {
-        padding: 0;
-        align-items: flex-end;
+        padding: 10px;
     }
 
     .modal-content {
         width: 100% !important;
         max-width: 100% !important;
         max-height: 92vh !important;
-        border-radius: 16px 16px 0 0 !important;
+        border-radius: 12px !important;
+        animation: modalFadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .modal-overlay.closing .modal-content {
+        animation: modalFadeOut 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
 
     .modal-lg {
@@ -419,6 +423,36 @@
     .btn-voltar {
         padding: 5px 8px;
         font-size: 0.68rem;
+    }
+
+    /* =========================================================
+       RESPONSIVE TABLES (SCROLL HORIZONTAL)
+       ========================================================= */
+    .table-wrapper {
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: #111;
+        margin-bottom: 1rem;
+    }
+
+    table {
+        width: max-content;
+        min-width: 100%;
+    }
+
+    th, td {
+        padding: 10px 14px;
+        white-space: nowrap;
+    }
+
+    /* Modal Drag Handle & Bottom Reset */
+    .modal-content {
+        margin: 0 auto !important;
+        position: relative;
     }
 }
 

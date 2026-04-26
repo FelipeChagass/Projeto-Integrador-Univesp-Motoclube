@@ -11,9 +11,29 @@ export function showToast(msg, type) {
     }, 3000);
 }
 
+export function abrirModal(id) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.classList.remove('d-none');
+        el.style.display = 'flex';
+        document.body.classList.add('modal-open');
+    }
+}
+
 export function fecharModal(id) {
     const el = document.getElementById(id);
-    if (el) el.style.display = 'none';
+    if (el) {
+        el.classList.add('closing');
+        setTimeout(() => {
+            el.style.display = 'none';
+            el.classList.remove('closing');
+            
+            const hasOpenModal = document.querySelectorAll('.modal-overlay:not(.d-none):not([style*="display: none"])').length > 0;
+            if (!hasOpenModal) {
+                document.body.classList.remove('modal-open');
+            }
+        }, 250);
+    }
 }
 
 export function atualizarEstadoBotoes() {
@@ -158,6 +178,100 @@ export function atualizarUI() {
 }
 
 export function atualizarDados(showLoader) {
+    document.getElementById('resultado-relatorio').innerHTML = '';
+    if (!document.getElementById('modal-fechar-caixa').classList.contains('d-none')) fecharModal('modal-fechar-caixa');
+}
+
+export function initSwipeToClose() {
+    let startY = 0, currentY = 0, activeEl = null, startScrollY = 0;
+
+    document.addEventListener('touchstart', (e) => {
+        const el = e.target.closest('.modal-content') || e.target.closest('#carrinho-section');
+        if (!el) return;
+        
+        // If user is scrolling the content, ignore drag (unless at the very top)
+        if (el.scrollTop > 0) return;
+
+        activeEl = el;
+        startY = e.touches[0].clientY;
+        startScrollY = el.scrollTop;
+        el.style.transition = 'none'; // Disable CSS transition for 1:1 dragging
+    }, { passive: true });
+
+    document.addEventListener('touchmove', (e) => {
+        if (!activeEl) return;
+        
+        const y = e.touches[0].clientY;
+        const dy = y - startY;
+        const isCart = activeEl.id === 'carrinho-section';
+        const isCartClosed = isCart && !activeEl.classList.contains('mobile-aberto');
+
+        // If swiping up
+        if (dy < 0) {
+            if (isCartClosed) {
+                e.preventDefault(); // Prevent pull-to-refresh
+                // For closed cart, translateY is 100% minus 64px (header). We add dy.
+                // We use max(0px, ...) so it doesn't drag past the fully open state
+                activeEl.style.transform = `translateY(max(0px, calc(100% - 64px + ${dy}px)))`;
+                currentY = dy;
+                return;
+            }
+            return; // Ignore swiping up for anything else
+        }
+
+        // If swiping down
+        if (dy > 0 && activeEl.scrollTop <= 0) {
+            // Prevent swiping down if the cart is already closed (would cause jump bug)
+            if (isCartClosed) return;
+            
+            e.preventDefault(); // Prevent pull-to-refresh
+            activeEl.style.transform = `translateY(${dy}px)`;
+            currentY = dy;
+        }
+    }, { passive: false });
+
+    document.addEventListener('touchend', () => {
+        if (!activeEl) return;
+        
+        activeEl.style.transition = ''; // Restore CSS transition
+
+        if (currentY > 100) {
+            // Dismiss triggered (swipe down)
+            if (activeEl.id === 'carrinho-section') {
+                activeEl.classList.remove('mobile-aberto');
+                activeEl.style.transform = '';
+            } else {
+                const overlay = activeEl.closest('.modal-overlay');
+                if (overlay) {
+                    overlay.classList.add('closing');
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                        overlay.classList.add('d-none');
+                        overlay.classList.remove('closing');
+                        activeEl.style.transform = ''; // Reset for next time
+                        
+                        const hasOpenModal = document.querySelectorAll('.modal-overlay:not(.d-none):not([style*="display: none"])').length > 0;
+                        if (!hasOpenModal) {
+                            document.body.classList.remove('modal-open');
+                        }
+                    }, 250);
+                }
+            }
+        } else if (currentY < -50 && activeEl.id === 'carrinho-section' && !activeEl.classList.contains('mobile-aberto')) {
+            // Open triggered (swipe up past threshold)
+            activeEl.classList.add('mobile-aberto');
+            activeEl.style.transform = '';
+        } else {
+            // Snap back
+            activeEl.style.transform = '';
+        }
+        
+        activeEl = null;
+        currentY = 0;
+    });
+}
+
+export function atualizarDadosCompleto(showLoader) {
     document.getElementById('resultado-relatorio').innerHTML = '';
     document.getElementById('resultado-relatorio').classList.add('d-none');
     if (showLoader) document.getElementById('loading').style.display = 'flex';

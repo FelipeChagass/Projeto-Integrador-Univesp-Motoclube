@@ -1,6 +1,6 @@
 import { API, UIModal } from './api.js';
 import { S, carregarDadosLocais, salvarDadosLocais } from './state.js';
-import { showToast, fecharModal, atualizarUI, renderizarCatalogo, atualizarEstadoBotoes, atualizarDados } from './ui.js';
+import { showToast, fecharModal, atualizarUI, renderizarCatalogo, atualizarEstadoBotoes, atualizarDados, initSwipeToClose } from './ui.js';
 import {
     adicionarAoCarrinho, incrementarQtd, decrementarQtd, confirmarObs, cliqueProduto,
     alternarModoEstoque, confirmarSenhaEstoque, salvarEdicaoEstoque,
@@ -36,12 +36,25 @@ document.addEventListener('keydown', (e) => {
     const abertos = document.querySelectorAll('.modal-overlay');
     for (let i = 0; i < abertos.length; i++) {
         const d = abertos[i].style.display;
-        if (d && d !== 'none') { abertos[i].style.display = 'none'; break; }
+        if (d && d !== 'none') {
+            abertos[i].classList.add('closing');
+            setTimeout(() => {
+                abertos[i].style.display = 'none';
+                abertos[i].classList.remove('closing');
+            }, 250);
+            break;
+        }
     }
 });
 
 document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('modal-overlay')) e.target.style.display = 'none';
+    if (e.target.classList.contains('modal-overlay')) {
+        e.target.classList.add('closing');
+        setTimeout(() => {
+            e.target.style.display = 'none';
+            e.target.classList.remove('closing');
+        }, 250);
+    }
 });
 
 /* ─── Header ─── */
@@ -167,9 +180,9 @@ document.getElementById('grid-produtos').addEventListener('click', (e) => {
 
 (function initMobileCart() {
     const lista = document.getElementById('carrinho-lista');
-    const badge = document.getElementById('badge-carrinho');
+    const badge = document.getElementById('carrinho-badge-mobile');
     const section = document.getElementById('carrinho-section');
-    const toggleBtn = document.getElementById('toggle-carrinho');
+    const toggleBtn = document.querySelector('.carrinho-header');
     if (!lista || !badge || !section || !toggleBtn) return;
 
     function atualizarBadge() {
@@ -184,7 +197,13 @@ document.getElementById('grid-produtos').addEventListener('click', (e) => {
             }
         } catch (e) { qtd = 0; }
         badge.textContent = qtd;
-        badge.style.display = qtd > 0 ? 'inline-block' : 'none';
+        if (qtd > 0) {
+            badge.classList.add('show');
+            badge.style.display = '';
+        } else {
+            badge.classList.remove('show');
+            badge.style.display = '';
+        }
     }
 
     const observer = new MutationObserver(atualizarBadge);
@@ -192,7 +211,7 @@ document.getElementById('grid-produtos').addEventListener('click', (e) => {
     atualizarBadge();
 
     toggleBtn.addEventListener('click', () => {
-        section.classList.toggle('aberto');
+        section.classList.toggle('mobile-aberto');
     });
 })();
 
@@ -248,3 +267,4 @@ function iniciarSistema() {
 }
 
 iniciarSistema();
+initSwipeToClose();
