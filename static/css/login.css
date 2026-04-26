@@ -127,7 +127,7 @@
 .login-loading {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: #0d0d0d;
     display: none;
     justify-content: center;
     align-items: center;
