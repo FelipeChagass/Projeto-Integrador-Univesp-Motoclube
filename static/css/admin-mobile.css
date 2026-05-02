@@ -235,9 +235,14 @@
         -webkit-tap-highlight-color: transparent;
     }
 
+    .sidebar-item:hover {
+        background: rgba(255, 255, 255, 0.07);
+        border-color: rgba(255, 255, 255, 0.12);
+    }
+
     .sidebar-item:active {
-        background: rgba(179, 0, 0, 0.15);
-        border-color: rgba(179, 0, 0, 0.3);
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.18);
     }
 
     .sidebar-item svg {
@@ -421,12 +426,10 @@
         gap: 4px;
     }
 
-    /* Subtle divider between fields */
-    td + td {
+    td+td {
         border-top: 1px solid rgba(255, 255, 255, 0.04);
     }
 
-    /* Label: small grey tag above the value */
     td::before {
         content: attr(data-label);
         font-size: 0.62rem;
@@ -437,7 +440,6 @@
         line-height: 1;
     }
 
-    /* Inputs & selects: full width, left-aligned, clean */
     td input,
     td select {
         font-size: 16px;
@@ -510,22 +512,23 @@
         flex-direction: row;
         align-items: center;
         justify-content: flex-start;
-        gap: 8px;
+        gap: 6px;
         padding: 6px 14px;
         min-height: auto;
+        color: #888;
+        font-size: 0.8rem;
+        font-weight: 500;
         background: rgba(255, 255, 255, 0.015);
     }
 
     td.col-id::before,
     td[data-label="ID"]::before {
-        font-size: 0.6rem;
-        color: #aaa;
-    }
-
-    td.col-id,
-    td[data-label="ID"] {
-        color: #fff;
-        font-size: 0.75rem;
+        content: "ID -";
+        font-size: 0.8rem;
+        color: #888;
+        font-weight: 700;
+        text-transform: none;
+        letter-spacing: 0;
     }
 
     /* Estoque e minimos */
@@ -536,7 +539,7 @@
 
     .td-estoque,
     .td-minimos {
-        color: #fff;
+        color: #fff !important;
         font-size: 0.88rem;
     }
 
@@ -551,11 +554,7 @@
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
-    }
-
-    td.col-status::before,
-    td[data-label="Status"]::before {
-        /* keep the label visible */
+        gap: 0;
     }
 
     /* ── Actions cell: full-width button row ── */
@@ -644,13 +643,27 @@
     }
 
     @keyframes adminModalSlideUp {
-        from { transform: translateY(100%); opacity: 1; }
-        to { transform: translateY(0); opacity: 1; }
+        from {
+            transform: translateY(100%);
+            opacity: 1;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
     }
 
     @keyframes adminModalSlideDown {
-        from { transform: translateY(0); opacity: 1; }
-        to { transform: translateY(100%); opacity: 1; }
+        from {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        to {
+            transform: translateY(100%);
+            opacity: 1;
+        }
     }
 
     .modal-lg {
@@ -825,6 +838,7 @@
    TOUCH DEVICES
    ========================================================== */
 @media (hover: none) and (pointer: coarse) {
+
     .btn:hover,
     .tab-btn:hover {
         transform: none;

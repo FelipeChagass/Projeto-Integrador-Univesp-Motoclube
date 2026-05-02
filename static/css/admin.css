@@ -152,15 +152,6 @@ header h1 {
     flex-wrap: wrap;
 }
 
-.toolbar-info {
-    font-size: 0.82rem;
-    color: #666;
-    padding: 8px 14px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
 .toggle-label {
     display: flex;
     align-items: center;
@@ -408,6 +399,7 @@ td {
     padding: 1rem 1.25rem;
     text-align: center;
     font-size: 0.95rem;
+    color: #fff;
 }
 
 th {
@@ -439,7 +431,7 @@ td input,
 td select {
     width: 100%;
     padding: 0.4rem 0.6rem;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: #fff;
     border-radius: 6px;
@@ -460,7 +452,7 @@ td input[type="number"] {
 }
 
 .col-id {
-    color: #666;
+    color: #888;
     font-size: 0.75rem;
 }
 
@@ -676,6 +668,13 @@ header.header-admin {
     display: flex;
     gap: 6px;
     flex-wrap: wrap;
+}
+
+.btn-group .btn,
+.btn-group .btn-sm {
+    flex: 1;
+    text-align: center;
+    justify-content: center;
 }
 
 input[type="file"] {

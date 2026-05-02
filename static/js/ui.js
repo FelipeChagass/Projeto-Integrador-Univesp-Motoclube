@@ -180,16 +180,17 @@ export function atualizarDados(showLoader) {
 }
 
 export function initSwipeToClose() {
-    let startY = 0, currentY = 0, activeEl = null, startScrollY = 0;
+    let startY = 0, currentY = 0, startX = 0, currentX = 0, activeEl = null, startScrollY = 0;
 
     document.addEventListener('touchstart', (e) => {
-        const el = e.target.closest('.modal-content') || e.target.closest('#carrinho-section');
+        const el = e.target.closest('.modal-content') || e.target.closest('#carrinho-section') || e.target.closest('.sidebar-panel');
         if (!el) return;
         
-        // If user is scrolling the content, ignore drag (unless at the very top)
-        if (el.scrollTop > 0) return;
+        // If user is scrolling the content vertically, ignore drag (unless at the very top)
+        if (!el.classList.contains('sidebar-panel') && el.scrollTop > 0) return;
 
         activeEl = el;
+        startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
         startScrollY = el.scrollTop;
         el.style.transition = 'none'; // Disable CSS transition for 1:1 dragging
@@ -198,6 +199,19 @@ export function initSwipeToClose() {
     document.addEventListener('touchmove', (e) => {
         if (!activeEl) return;
         
+        const isSidebar = activeEl.classList.contains('sidebar-panel');
+        if (isSidebar) {
+            const x = e.touches[0].clientX;
+            const dx = x - startX;
+            // Only allow dragging to the right to close
+            if (dx > 0) {
+                e.preventDefault();
+                activeEl.style.transform = `translateX(${dx}px)`;
+                currentX = dx;
+            }
+            return;
+        }
+
         const y = e.touches[0].clientY;
         const dy = y - startY;
         const isCart = activeEl.id === 'carrinho-section';
@@ -231,6 +245,21 @@ export function initSwipeToClose() {
         if (!activeEl) return;
         
         activeEl.style.transition = ''; // Restore CSS transition
+
+        const isSidebar = activeEl.classList.contains('sidebar-panel');
+        if (isSidebar) {
+            if (currentX > 80) {
+                // Swipe right past threshold -> close
+                const mobileMenu = activeEl.closest('.sidebar-mobile');
+                if (mobileMenu) {
+                    mobileMenu.classList.remove('open');
+                }
+            }
+            activeEl.style.transform = '';
+            activeEl = null;
+            currentX = 0;
+            return;
+        }
 
         if (currentY > 100) {
             // Dismiss triggered (swipe down)
