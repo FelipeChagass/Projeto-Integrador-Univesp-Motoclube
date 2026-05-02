@@ -247,7 +247,7 @@
 
     .sidebar-item svg {
         flex-shrink: 0;
-        color: #b30000;
+        color: #aaa;
     }
 
     .sidebar-item--danger {
@@ -512,7 +512,7 @@
         flex-direction: row;
         align-items: center;
         justify-content: flex-start;
-        gap: 6px;
+        gap: 4px;
         padding: 6px 14px;
         min-height: auto;
         color: #888;
@@ -548,13 +548,21 @@
         color: #fff;
     }
 
-    /* ── Status cell: row layout with badge on the right ── */
+    /* ── Status cell: row layout — label left, badge right ── */
     td.col-status,
     td[data-label="Status"] {
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
         gap: 0;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    td.col-status::before,
+    td[data-label="Status"]::before {
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     /* ── Actions cell: full-width button row ── */
