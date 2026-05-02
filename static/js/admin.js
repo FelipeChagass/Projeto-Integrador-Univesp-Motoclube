@@ -1,5 +1,5 @@
 import { API, UIModal } from './api.js';
-import { initSwipeToClose } from './ui.js';
+import { initBottomSheetGestures } from './ui.js';
 const BASE = '';
 let produtos = [], membros = [], usuarios = [];
 let uploadingProdutoId = null;
@@ -621,7 +621,7 @@ function setupEventListeners() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    initSwipeToClose();
+    initBottomSheetGestures();
     setupEventListeners();
     mostrarSkeleton('tabelaProdutos', 8);
     carregarProdutos();
