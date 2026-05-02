@@ -1,7 +1,7 @@
 import { API, UIModal } from './api.js';
 import { S, salvarDadosLocais } from './state.js';
 import { esc, formatCurrency, LocalDB } from './utils.js';
-import { showToast, fecharModal, abrirModal, atualizarUI, renderizarCatalogo, getQtdCarrinho, atualizarEstadoBotoes, atualizarDados } from './ui.js';
+import { showToast, fecharModal, abrirModal, atualizarUI, renderizarCatalogo, getQtdCarrinho, atualizarEstadoBotoes } from './ui.js';
 import { montarImpressao } from './reports.js';
 
 /* ─── Cart ─── */
@@ -293,7 +293,7 @@ export function executarPagamentoFinal(metodoFinal) {
                 loadingEl.style.display = 'none';
                 fecharModal('modal-fechar-conta');
                 showToast(res);
-                atualizarDados(false);
+                setTimeout(() => window.location.reload(), 1500);
             })
             .catch(err => {
                 S.enviandoVenda = false;

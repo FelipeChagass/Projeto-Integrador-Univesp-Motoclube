@@ -213,10 +213,7 @@ export function atualizarUI() {
     salvarEstadoLocal();
 }
 
-export function atualizarDados(showLoader) {
-    document.getElementById('resultado-relatorio').innerHTML = '';
-    if (!document.getElementById('modal-fechar-caixa').classList.contains('d-none')) fecharModal('modal-fechar-caixa');
-}
+
 
 export function initBottomSheetGestures() {
     /* ─── Shared State ─── */
@@ -453,32 +450,4 @@ export function initBottomSheetGestures() {
     });
 }
 
-export function atualizarDadosCompleto(showLoader) {
-    document.getElementById('resultado-relatorio').innerHTML = '';
-    document.getElementById('resultado-relatorio').classList.add('d-none');
-    if (showLoader) document.getElementById('loading').style.display = 'flex';
-    LocalDB.remove('motoBarProdutos');
-    LocalDB.remove('motoBarMembros');
-    API.invalidateCache();
-    API.getDadosIniciais()
-        .then(d => {
-            S.produtos = (d && d.produtos) ? d.produtos : [];
-            S.membros = (d && d.membros) ? d.membros : [];
-            if (S.produtos.length === 0 && S.membros.length === 0) {
-                showToast('ALERTA: Banco vazio ou não conectado.');
-            }
-            salvarDadosLocais();
-            renderizarCatalogo();
-            atualizarEstadoBotoes();
-            if (S.logoUrl) {
-                const imgPreload = document.getElementById('logo-preload');
-                if (imgPreload) imgPreload.src = S.logoUrl;
-            }
-            if (showLoader) document.getElementById('loading').style.display = 'none';
-            showToast('Dados atualizados com sucesso!');
-        })
-        .catch(e => {
-            if (showLoader) document.getElementById('loading').style.display = 'none';
-            showToast(`Erro ao atualizar: ${e.message || e}`);
-        });
-}
+

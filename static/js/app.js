@@ -1,6 +1,6 @@
 import { API, UIModal } from './api.js';
 import { S, carregarDadosLocais, salvarDadosLocais } from './state.js';
-import { showToast, fecharModal, atualizarUI, renderizarCatalogo, atualizarEstadoBotoes, atualizarDados, initBottomSheetGestures } from './ui.js';
+import { showToast, fecharModal, atualizarUI, renderizarCatalogo, atualizarEstadoBotoes, initBottomSheetGestures } from './ui.js';
 import {
     adicionarAoCarrinho, incrementarQtd, decrementarQtd, confirmarObs, cliqueProduto,
     alternarModoEstoque, confirmarSenhaEstoque, salvarEdicaoEstoque,
@@ -71,7 +71,7 @@ document.getElementById('sidebar-gestao').addEventListener('click', () => { clos
 document.getElementById('sidebar-btn-admin').addEventListener('click', () => { window.location.href = '/admin'; });
 document.getElementById('sidebar-abrir-caixa').addEventListener('click', () => { closeSidebar(); abrirModalAberturaCaixa(); });
 document.getElementById('sidebar-config').addEventListener('click', () => { closeSidebar(); abrirConfig(); });
-document.getElementById('sidebar-atualizar').addEventListener('click', () => { closeSidebar(); atualizarDados(true); });
+
 document.getElementById('sidebar-logout').addEventListener('click', () => { closeSidebar(); realizarLogout(); });
 
 /* ─── Payment Buttons ─── */
