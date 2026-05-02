@@ -508,27 +508,7 @@
 
     td.col-id,
     td[data-label="ID"] {
-        flex-direction: row;
-        align-items: center;
-        justify-content: flex-start;
-        gap: 4px;
-        padding: 6px 14px;
-        min-height: auto;
-        color: #888;
-        font-size: 0.8rem;
-        font-weight: 500;
-        background: rgba(255, 255, 255, 0.015);
-    }
-
-    td.col-id::before,
-    td[data-label="ID"]::before {
-        content: "ID -";
-        font-size: 0.8rem;
-        color: #888;
-        font-weight: 700;
-        text-transform: none;
-        letter-spacing: 0;
-        min-width: auto;
+        display: none;
     }
 
     /* Estoque e minimos */
