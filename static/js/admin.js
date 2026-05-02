@@ -576,9 +576,11 @@ function setupEventListeners() {
     document.getElementById('btn-close-modal-extrato')?.addEventListener('click', () => fecharModalAdmin('modalExtrato'));
     document.getElementById('btn-close-modal-ajuste')?.addEventListener('click', () => fecharModalAdmin('modalAjuste'));
     document.getElementById('btn-cancel-modal-ajuste')?.addEventListener('click', () => fecharModalAdmin('modalAjuste'));
+    document.getElementById('btn-confirmar-ajuste-saldo')?.addEventListener('click', confirmarAjusteSaldo);
 
     document.getElementById('btn-close-modal-estoque')?.addEventListener('click', () => fecharModalAdmin('modalAjusteEstoque'));
     document.getElementById('btn-cancel-modal-estoque')?.addEventListener('click', () => fecharModalAdmin('modalAjusteEstoque'));
+    document.getElementById('btn-confirmar-ajuste-estoque')?.addEventListener('click', confirmarAjusteEstoque);
 
     document.getElementById('fileInput')?.addEventListener('change', (e) => uploadImagem(e.target));
 
