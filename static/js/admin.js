@@ -107,7 +107,7 @@ function renderProdutos() {
                 <option value="outro"  ${p.categoria === 'outro' ? 'selected' : ''}>Outro</option>
             </select></td>
             <td data-label="Estoque"><div class="td-estoque">Bar: <b>${p.estoque_bar}</b><br>Dep: <b>${p.estoque_deposito}</b></div></td>
-            <td data-label="Mínimos"><div class="td-minimos">Mín Bar: ${p.estoque_min_bar}<br>Mín Dep: ${p.estoque_min_deposito}</div></td>
+            <td data-label="Mínimos"><div class="td-minimos">Mín Bar: <b>${p.estoque_min_bar}</b><br>Mín Dep: <b>${p.estoque_min_deposito}</b></div></td>
             <td class="col-status" data-label="Status">${p.ativo ? '<span class="badge badge-active">Ativo</span>' : '<span class="badge badge-inactive">Inativo</span>'}</td>
             <td data-label="Ações"><div class="btn-group">
                 <button class="btn btn-save btn-sm" data-action="salvar-produto" data-id="${p.id}">Salvar</button>

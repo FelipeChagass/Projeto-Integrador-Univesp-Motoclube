@@ -50,7 +50,7 @@ header h1 {
     gap: 6px;
     padding: 7px 14px;
     background: transparent;
-    color: #ccc;
+    color: #fff;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
     font-size: 0.78rem;
@@ -95,7 +95,7 @@ header h1 {
     gap: 6px;
     padding: 7px 14px;
     background: transparent;
-    color: #ccc;
+    color: #fff;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
     font-size: 0.78rem;
@@ -157,7 +157,7 @@ header h1 {
     align-items: center;
     gap: 6px;
     font-size: 0.82rem;
-    color: #8a8a9a;
+    color: #fff;
     cursor: pointer;
 }
 
@@ -176,18 +176,21 @@ header h1 {
 
 .filter-group label {
     font-size: 0.78rem;
-    color: #666;
+    color: #fff;
     font-weight: 600;
 }
 
 .filter-input {
-    padding: 6px 10px;
+    height: 40px;
+    box-sizing: border-box;
+    padding: 0 1rem;
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: #fff;
-    border-radius: 6px;
-    font-size: 0.82rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
     font-family: inherit;
+    line-height: 1.2;
 }
 
 .filter-input:focus {
@@ -220,7 +223,7 @@ header h1 {
 
 .stat-label {
     font-size: 0.72rem;
-    color: #666;
+    color: #fff;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-top: 2px;
@@ -295,7 +298,7 @@ header h1 {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #8a8a9a;
+    color: #fff;
 }
 
 .form-group input,
@@ -334,7 +337,7 @@ header h1 {
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s;
-    color: #555;
+    color: #888;
     background: rgba(0, 0, 0, 0.15);
 }
 
@@ -351,7 +354,7 @@ header h1 {
 
 .upload-zone small {
     font-size: 0.7rem;
-    color: #444;
+    color: #888;
 }
 
 .img-preview-container {
@@ -452,8 +455,8 @@ td input[type="number"] {
 }
 
 .col-id {
-    color: #888;
-    font-size: 0.75rem;
+    color: #fff;
+    font-size: 0.85rem;
 }
 
 .col-status {
@@ -463,6 +466,12 @@ td input[type="number"] {
 .col-imagem {
     text-align: center;
     vertical-align: middle;
+}
+
+.td-estoque,
+.td-minimos {
+    color: #fff;
+    font-size: 0.88rem;
 }
 
 .img-thumb {
@@ -484,7 +493,7 @@ td input[type="number"] {
     background: rgba(0, 0, 0, 0.3);
     border: 1px dashed rgba(255, 255, 255, 0.1);
     border-radius: 6px;
-    color: #444;
+    color: #888;
     cursor: pointer;
     font-size: 0.8rem;
 }
@@ -498,7 +507,7 @@ td input[type="number"] {
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.65rem;
-    color: #666;
+    color: #fff;
     font-family: inherit;
 }
 
@@ -515,7 +524,7 @@ td input[type="number"] {
 
 .inner-table th {
     background: rgba(0, 0, 0, 0.2);
-    color: #888;
+    color: #fff;
     font-size: 0.7rem;
 }
 
@@ -593,14 +602,16 @@ td input[type="number"] {
 }
 
 .btn {
-    padding: 0.5rem 1rem;
+    height: 40px;
+    box-sizing: border-box;
+    padding: 0 1.2rem;
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: transparent;
     border-radius: 8px;
     cursor: pointer;
     font-size: 0.82rem;
     font-weight: 600;
-    color: #ccc;
+    color: #fff;
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -865,13 +876,18 @@ input[type="file"] {
 }
 
 .td-minimos {
-    font-size: 0.8rem;
-    color: #aaa;
+    font-size: 0.82rem;
+    color: #fff;
+}
+
+.td-minimos b {
+    color: #fff;
+    font-weight: 700 !important;
 }
 
 .td-email {
-    color: #888;
-    font-size: 0.82rem;
+    color: #fff;
+    font-size: 0.85rem;
 }
 
 .td-data {
@@ -892,12 +908,12 @@ input[type="file"] {
 
 .admin-loading-text {
     text-align: center;
-    color: #888;
+    color: #fff;
 }
 
 .admin-empty-text {
     text-align: center;
-    color: #888;
+    color: #fff;
     padding: 2rem;
 }
 
@@ -923,7 +939,9 @@ select {
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     color: #e0e0e0;
-    padding: 0.65rem 2rem 0.65rem 0.9rem;
+    height: 40px;
+    box-sizing: border-box;
+    padding: 0 2rem 0 0.9rem;
     font-family: inherit;
     font-size: 0.9rem;
     cursor: pointer;
