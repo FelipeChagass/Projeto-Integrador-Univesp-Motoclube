@@ -10,7 +10,6 @@ function setupDOM() {
         <div id="loading" style="display:flex"><div class="spinner"></div></div>
         <div id="toast">...</div>
         <div id="barra-operador">CAIXA FECHADO</div>
-        <button id="container-btn-login"></button>
         <button id="container-abrir-caixa" class="d-none"></button>
         <button id="btn-admin" class="d-none"></button>
         <button id="sidebar-btn-admin" class="d-none"></button>
@@ -75,12 +74,11 @@ describe('ui.js — atualizarEstadoBotoes()', () => {
         atualizarEstadoBotoes = mod.atualizarEstadoBotoes;
     });
 
-    test('mostra LOGIN quando sem operador', () => {
+    test('mostra BLOQUEADO quando sem operador', () => {
         S.operadorAtual = '';
         atualizarEstadoBotoes();
         const barra = document.getElementById('barra-operador');
         expect(barra.innerText).toContain('BLOQUEADO');
-        expect(document.getElementById('container-btn-login').style.display).toBe('inline-flex');
     });
 
     test('mostra nome do operador quando logado', () => {

@@ -38,14 +38,12 @@ export function fecharModal(id) {
 
 export function atualizarEstadoBotoes() {
     const barra = document.getElementById('barra-operador');
-    const containerLogin = document.getElementById('container-btn-login');
     const containerAbrir = document.getElementById('container-abrir-caixa');
     const btnAdmin = document.getElementById('btn-admin');
     const sidebarAdmin = document.getElementById('sidebar-btn-admin');
     const sidebarAbrir = document.getElementById('sidebar-abrir-caixa');
 
     if (S.operadorAtual) {
-        if (containerLogin) containerLogin.style.display = 'none';
         barra.innerText = `OPERADOR: ${S.operadorAtual.toUpperCase()}`;
         if (S.caixaAberto) {
             barra.innerText += ' (CAIXA ABERTO)';
@@ -68,7 +66,6 @@ export function atualizarEstadoBotoes() {
             if (sidebarAdmin) sidebarAdmin.classList.add('d-none');
         }
     } else {
-        if (containerLogin) containerLogin.style.display = 'inline-flex';
         if (containerAbrir) containerAbrir.classList.add('d-none');
         if (sidebarAbrir) sidebarAbrir.classList.add('d-none');
         if (btnAdmin) btnAdmin.classList.add('d-none');

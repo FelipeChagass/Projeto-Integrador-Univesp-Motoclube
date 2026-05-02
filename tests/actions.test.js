@@ -27,7 +27,6 @@ function setupDOM() {
         <div id="loading" style="display:none"></div>
         <div id="toast">...</div>
         <div id="barra-operador"></div>
-        <button id="container-btn-login"></button>
         <button id="container-abrir-caixa" class="d-none"></button>
         <button id="btn-admin" class="d-none"></button>
         <button id="sidebar-btn-admin" class="d-none"></button>

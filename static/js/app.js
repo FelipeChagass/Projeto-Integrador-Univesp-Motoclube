@@ -65,7 +65,6 @@ document.getElementById('btn-admin').addEventListener('click', () => { window.lo
 document.getElementById('container-abrir-caixa').addEventListener('click', abrirModalAberturaCaixa);
 document.getElementById('btn-config').addEventListener('click', abrirConfig);
 document.getElementById('btn-logout').addEventListener('click', realizarLogout);
-document.getElementById('container-btn-login').addEventListener('click', () => { window.location.href = '/login'; });
 
 /* ─── Mobile Sidebar ─── */
 

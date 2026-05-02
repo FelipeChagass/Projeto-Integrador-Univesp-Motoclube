@@ -46,7 +46,7 @@ function fecharModalAdmin(id) {
     setTimeout(() => {
         el.classList.add('d-none');
         el.classList.remove('closing');
-        
+
         // Verifica se ainda tem modal aberto
         const hasOpenModal = document.querySelectorAll('.modal-overlay:not(.d-none)').length > 0;
         if (!hasOpenModal) {
@@ -65,6 +65,16 @@ function switchTab(name) {
     if (name === 'usuarios' && usuarios.length === 0) carregarUsuarios();
     if (name === 'vendas') carregarVendas();
     if (name === 'config') carregarConfig();
+}
+
+function openAdminSidebar() {
+    const sidebar = document.getElementById('admin-sidebar-mobile');
+    if (sidebar) sidebar.classList.add('open');
+}
+
+function closeAdminSidebar() {
+    const sidebar = document.getElementById('admin-sidebar-mobile');
+    if (sidebar) sidebar.classList.remove('open');
 }
 
 async function carregarProdutos() {
@@ -268,11 +278,11 @@ function renderMembros() {
     });
 }
 
-function abrirFormNovoMembro() { 
-    document.getElementById('formNovoMembro').classList.remove('d-none'); 
+function abrirFormNovoMembro() {
+    document.getElementById('formNovoMembro').classList.remove('d-none');
     document.body.classList.add('modal-open');
-    document.getElementById('novo-membro-nome').value = ''; 
-    document.getElementById('novo-membro-nome').focus(); 
+    document.getElementById('novo-membro-nome').value = '';
+    document.getElementById('novo-membro-nome').focus();
 }
 
 async function criarNovoMembro() {
@@ -594,6 +604,19 @@ function setupEventListeners() {
         const id = btn.dataset.id;
         if (action === 'salvar-usuario') salvarUsuario(id);
         if (action === 'toggle-usuario') toggleUsuario(id, btn.dataset.ativo === 'true');
+    });
+
+    // ── Admin Sidebar Mobile ──
+    document.getElementById('admin-btn-hamburger')?.addEventListener('click', openAdminSidebar);
+    document.getElementById('admin-sidebar-close')?.addEventListener('click', closeAdminSidebar);
+    document.querySelector('#admin-sidebar-mobile .sidebar-backdrop')?.addEventListener('click', closeAdminSidebar);
+
+    document.querySelectorAll('#admin-sidebar-mobile [data-admin-tab]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.dataset.adminTab;
+            switchTab(tab);
+            closeAdminSidebar();
+        });
     });
 }
 

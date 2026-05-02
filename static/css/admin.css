@@ -1,16 +1,18 @@
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: #0f0f17;
+    background: #0d0d0d;
     color: #e0e0e0;
     min-height: 100vh;
 }
 
 header {
-    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+    background: linear-gradient(180deg, #2a2a2a 0%, #222 100%);
     padding: 0.7rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
     border-bottom: 1px solid rgba(179, 0, 0, 0.2);
     position: sticky;
     top: 0;
@@ -46,63 +48,86 @@ header h1 {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: #8a8a9a;
-    text-decoration: none;
-    font-size: 0.82rem;
-    font-weight: 500;
-    padding: 6px 14px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 7px 14px;
+    background: transparent;
+    color: #ccc;
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
-    transition: all 0.2s;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    text-decoration: none;
+    font-family: inherit;
+}
+
+.btn-voltar svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2;
+    flex-shrink: 0;
 }
 
 .btn-voltar:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.25);
     color: #fff;
-    border-color: rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.04);
+}
+
+.btn-voltar:active {
+    transform: scale(0.96);
 }
 
 .tabs-nav {
     display: flex;
-    gap: 2px;
-    background: #12122a;
-    padding: 0 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-    position: sticky;
-    top: 0;
-    z-index: 190;
-    overflow-x: auto;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .tab-btn {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 10px 18px;
-    background: none;
-    border: none;
-    border-bottom: 2px solid transparent;
-    color: #666;
-    font-size: 0.82rem;
+    padding: 7px 14px;
+    background: transparent;
+    color: #ccc;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    font-size: 0.78rem;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
     white-space: nowrap;
     font-family: inherit;
 }
 
+.tab-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2;
+    flex-shrink: 0;
+}
+
 .tab-btn:hover {
-    color: #aaa;
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #fff;
+}
+
+.tab-btn:active {
+    transform: scale(0.96);
 }
 
 .tab-btn.active {
-    color: #b30000;
-    border-bottom-color: #b30000;
-}
-
-.tab-btn svg {
-    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.25);
 }
 
 .tab-content {
@@ -114,7 +139,7 @@ header h1 {
 }
 
 .container {
-    max-width: 1300px;
+    max-width: 1600px;
     margin: 1.5rem auto;
     padding: 0 1.5rem;
 }
@@ -190,7 +215,7 @@ header h1 {
     display: flex;
     flex-direction: column;
     padding: 12px 20px;
-    background: linear-gradient(145deg, #1a1a2e, #16213e);
+    background: linear-gradient(145deg, #222, #1a1a1a);
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 10px;
     min-width: 120px;
@@ -211,7 +236,7 @@ header h1 {
 }
 
 .form-card {
-    background: linear-gradient(145deg, #1a1a2e, #16213e);
+    background: linear-gradient(145deg, #222, #1a1a1a);
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 14px;
     padding: 0;
@@ -365,7 +390,7 @@ header h1 {
 }
 
 .table-wrapper {
-    border-radius: 12px;
+    border-radius: 14px;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.06);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -375,49 +400,50 @@ header h1 {
 table {
     width: 100%;
     border-collapse: collapse;
-    background: #12122a;
+    background: linear-gradient(145deg, #1c1c1c, #111);
 }
 
 th,
 td {
-    padding: 0.6rem 0.75rem;
+    padding: 1rem 1.25rem;
     text-align: center;
-    font-size: 0.82rem;
+    font-size: 0.95rem;
 }
 
 th {
-    background: #0f1129;
-    color: #b30000;
+    background: rgba(0, 0, 0, 0.3);
+    color: #ff3333;
     font-weight: 600;
     text-transform: uppercase;
-    font-size: 0.7rem;
+    font-size: 0.85rem;
     letter-spacing: 0.5px;
-    border-bottom: 1px solid rgba(179, 0, 0, 0.15);
+    border-bottom: 1px solid rgba(179, 0, 0, 0.3);
     white-space: nowrap;
     vertical-align: middle;
 }
 
 tr {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.2s;
 }
 
 tr:hover {
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.04);
 }
 
 tr.row-inactive {
-    opacity: 0.4;
+    opacity: 0.5;
 }
 
 td input,
 td select {
     width: 100%;
-    padding: 0.3rem 0.5rem;
+    padding: 0.4rem 0.6rem;
     background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: #fff;
     border-radius: 6px;
-    font-size: 0.82rem;
+    font-size: 0.9rem;
     font-family: inherit;
     transition: border-color 0.2s;
 }
@@ -434,7 +460,7 @@ td input[type="number"] {
 }
 
 .col-id {
-    color: #444;
+    color: #666;
     font-size: 0.75rem;
 }
 
@@ -452,7 +478,7 @@ td input[type="number"] {
     height: 40px;
     object-fit: cover;
     border-radius: 6px;
-    background: #1a1a2e;
+    background: #1a1a1a;
     border: 1px solid rgba(255, 255, 255, 0.08);
     vertical-align: middle;
 }
@@ -591,6 +617,11 @@ td input[type="number"] {
     white-space: nowrap;
 }
 
+header.header-admin {
+    background: linear-gradient(180deg, #2a2a2a 0%, #222 100%);
+    border-bottom: 1px solid rgba(255, 152, 0, 0.25);
+}
+
 .btn:hover {
     background: rgba(255, 255, 255, 0.06);
     border-color: rgba(255, 255, 255, 0.25);
@@ -663,7 +694,7 @@ input[type="file"] {
 }
 
 .modal-content {
-    background: linear-gradient(145deg, #1a1a2e, #16213e);
+    background: linear-gradient(145deg, #222, #1a1a1a);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     width: 90%;
@@ -747,8 +778,14 @@ input[type="file"] {
         font-size: 0.75rem;
     }
 
-    .tab-btn svg {
+    .tab-btn .btn-text {
         display: none;
+    }
+
+    .tab-btn svg {
+        width: 18px;
+        height: 18px;
+        display: block;
     }
 
     table {
@@ -812,6 +849,7 @@ input[type="file"] {
     background: linear-gradient(90deg, #1e1e1e 25%, #2a2a2a 50%, #1e1e1e 75%);
     background-size: 400px 100%;
     animation: skeleton-shimmer 1.4s ease infinite;
+    margin: 0 auto;
 }
 
 .admin-ajuste-nome,
@@ -829,7 +867,7 @@ input[type="file"] {
 
 .td-minimos {
     font-size: 0.8rem;
-    color: #666;
+    color: #aaa;
 }
 
 .td-email {
@@ -900,6 +938,6 @@ select:focus {
 }
 
 select option {
-    background: #1a1a2e;
+    background: #1a1a1a;
     color: #e0e0e0;
 }
