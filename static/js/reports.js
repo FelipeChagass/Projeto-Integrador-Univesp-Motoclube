@@ -107,7 +107,7 @@ export function executarRelatorio(tipo, filtro) {
             htmlCupom += '</div>';
 
             const resultadoEl = document.getElementById('resultado-relatorio');
-            resultadoEl.innerHTML = `${htmlCupom}<br><button id="btn-imprimir-rel" class="btn-action btn-dinheiro w-100">IMPRIMIR RELATORIO</button>`;
+            resultadoEl.innerHTML = `${htmlCupom}<br><button id="btn-imprimir-rel" class="btn-action w-100">IMPRIMIR RELATORIO</button>`;
             document.getElementById('btn-imprimir-rel').addEventListener('click', imprimirRelatorioAtual);
 
             if (tipo === 'TURNO' || tipo === 'DIA') {
