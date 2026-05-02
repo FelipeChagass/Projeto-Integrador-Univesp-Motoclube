@@ -273,171 +273,226 @@
 
     <div id="modal-abertura-caixa" class="modal-overlay">
         <div class="modal-content text-center">
-            <h2 class="modal-title-accent">ABERTURA DE CAIXA</h2>
-            <p class="modal-subtitle">Informe o Fundo de Caixa (Troco Inicial):</p>
-            <input type="number" id="input-valor-abertura" class="input-cliente input-valor-grande" placeholder="0,00">
-            <button class="btn-action" id="btn-confirmar-abertura">ABRIR CAIXA</button>
-            <button class="btn-action" id="btn-cancelar-abertura">CANCELAR</button>
+            <div class="modal-drag-header">
+                <div class="drag-handle"></div>
+                <h2 class="modal-title-accent">ABERTURA DE CAIXA</h2>
+            </div>
+            <div class="modal-scroll-body">
+                <p class="modal-subtitle">Informe o Fundo de Caixa (Troco Inicial):</p>
+                <input type="number" id="input-valor-abertura" class="input-cliente input-valor-grande" placeholder="0,00">
+                <button class="btn-action" id="btn-confirmar-abertura">ABRIR CAIXA</button>
+                <button class="btn-action" id="btn-cancelar-abertura">CANCELAR</button>
+            </div>
         </div>
     </div>
 
     <div id="modal-senha-estoque" class="modal-overlay">
         <div class="modal-content text-center">
-            <h2 class="modal-title-accent">MODO ESTOQUE</h2>
-            <p class="modal-subtitle">Digite a senha para gerenciar o estoque:</p>
-            <input type="password" id="input-senha-estoque" class="input-cliente" placeholder="Senha">
-            <p id="erro-senha-estoque" class="d-none" style="color: #ff6b6b; font-size: 0.85rem; margin: 4px 0 8px;">
-            </p>
-            <button class="btn-action btn-fechar-dia" id="btn-confirmar-senha-estoque">CONFIRMAR</button>
-            <button class="btn-action" id="btn-cancelar-senha-estoque">CANCELAR</button>
+            <div class="modal-drag-header">
+                <div class="drag-handle"></div>
+                <h2 class="modal-title-accent">MODO ESTOQUE</h2>
+            </div>
+            <div class="modal-scroll-body">
+                <p class="modal-subtitle">Digite a senha para gerenciar o estoque:</p>
+                <input type="password" id="input-senha-estoque" class="input-cliente" placeholder="Senha">
+                <p id="erro-senha-estoque" class="d-none" style="color: #ff6b6b; font-size: 0.85rem; margin: 4px 0 8px;">
+                </p>
+                <button class="btn-action btn-fechar-dia" id="btn-confirmar-senha-estoque">CONFIRMAR</button>
+                <button class="btn-action" id="btn-cancelar-senha-estoque">CANCELAR</button>
+            </div>
         </div>
     </div>
 
     <div id="modal-obs" class="modal-overlay">
         <div class="modal-content">
-            <h3>Personalizar</h3>
-            <p id="modal-prod-nome" class="modal-prod-nome-accent"></p>
-            <input type="text" id="custom-obs" placeholder="Ex: Sem cebola..." class="input-cliente mt-1 mb-1">
-            <button class="btn-action w-100" id="btn-confirmar-obs">CONFIRMAR PEDIDO</button>
-            <button class="btn-action" id="btn-cancelar-obs">CANCELAR</button>
+            <div class="modal-drag-header">
+                <div class="drag-handle"></div>
+                <h3>Personalizar</h3>
+            </div>
+            <div class="modal-scroll-body">
+                <p id="modal-prod-nome" class="modal-prod-nome-accent"></p>
+                <input type="text" id="custom-obs" placeholder="Ex: Sem cebola..." class="input-cliente mt-1 mb-1">
+                <button class="btn-action w-100" id="btn-confirmar-obs">CONFIRMAR PEDIDO</button>
+                <button class="btn-action" id="btn-cancelar-obs">CANCELAR</button>
+            </div>
         </div>
     </div>
 
     <div id="modal-dinheiro" class="modal-overlay">
         <div class="modal-content">
-            <h3>Pagamento em Dinheiro</h3>
-            <div class="valor-pendente" id="valor-total-dinheiro">Total: R$ 0,00</div>
-            <label class="label-muted">Valor Recebido:</label>
-            <input type="number" id="valor-recebido" class="input-cliente input-valor-grande" placeholder="0,00">
-            <div class="display-troco" id="display-troco">Troco: R$ 0,00</div>
-            <button id="btn-confirmar-dinheiro" class="btn-action btn-disabled-initial">CONFIRMAR PAGAMENTO</button>
-            <button class="btn-action" id="btn-cancelar-dinheiro">CANCELAR</button>
+            <div class="modal-drag-header">
+                <div class="drag-handle"></div>
+                <h3>Pagamento em Dinheiro</h3>
+            </div>
+            <div class="modal-scroll-body">
+                <div class="valor-pendente" id="valor-total-dinheiro">Total: R$ 0,00</div>
+                <label class="label-muted">Valor Recebido:</label>
+                <input type="number" id="valor-recebido" class="input-cliente input-valor-grande" placeholder="0,00">
+                <div class="display-troco" id="display-troco">Troco: R$ 0,00</div>
+                <button id="btn-confirmar-dinheiro" class="btn-action btn-disabled-initial">CONFIRMAR PAGAMENTO</button>
+                <button class="btn-action" id="btn-cancelar-dinheiro">CANCELAR</button>
+            </div>
         </div>
     </div>
 
     <div id="modal-cartao" class="modal-overlay">
         <div class="modal-content">
-            <h3>Selecione o Tipo</h3>
-            <p class="modal-subtitle-muted">Qual a função do cartão?</p>
-            <button class="btn-action btn-tipo-cartao" id="btn-cartao-debito">DÉBITO</button>
-            <button class="btn-action btn-tipo-credito" id="btn-cartao-credito">CRÉDITO</button>
-            <button class="btn-action" id="btn-cancelar-cartao">CANCELAR</button>
+            <div class="modal-drag-header">
+                <div class="drag-handle"></div>
+                <h3>Selecione o Tipo</h3>
+            </div>
+            <div class="modal-scroll-body">
+                <p class="modal-subtitle-muted">Qual a função do cartão?</p>
+                <button class="btn-action btn-tipo-cartao" id="btn-cartao-debito">DÉBITO</button>
+                <button class="btn-action btn-tipo-credito" id="btn-cartao-credito">CRÉDITO</button>
+                <button class="btn-action" id="btn-cancelar-cartao">CANCELAR</button>
+            </div>
         </div>
     </div>
 
     <div id="modal-estoque" class="modal-overlay">
         <div class="modal-content">
-            <h3 class="modal-title-estoque">Gestão de Estoque</h3>
-            <p id="nome-prod-estoque" class="fw-bold mb-3"></p>
-            <div class="estoque-grid">
-                <div class="config-option"><label class="label-accent">Estoque BAR:</label><input type="number"
-                        id="edit-est-bar" class="config-input" min="0"></div>
-                <div class="config-option"><label class="label-accent">Estoque DEPÓSITO:</label><input type="number"
-                        id="edit-est-dep" class="config-input" min="0"></div>
-                <div class="config-option"><label class="label-danger">Mínimo BAR:</label><input type="number"
-                        id="edit-min-bar" class="config-input" min="0"></div>
-                <div class="config-option"><label class="label-danger">Mínimo DEPÓSITO:</label><input type="number"
-                        id="edit-min-dep" class="config-input" min="0"></div>
+            <div class="modal-drag-header">
+                <div class="drag-handle"></div>
+                <h3 class="modal-title-estoque">Gestão de Estoque</h3>
             </div>
-            <p class="estoque-nota"><i>Nota: Ao aumentar o Bar, o valor será subtraído
-                    do Depósito automaticamente.</i></p>
-            <button class="btn-action btn-estoque-salvar" id="btn-salvar-estoque">SALVAR ALTERAÇÕES</button>
-            <button class="btn-action" id="btn-cancelar-estoque">CANCELAR</button>
+            <div class="modal-scroll-body">
+                <p id="nome-prod-estoque" class="fw-bold mb-3"></p>
+                <div class="estoque-grid">
+                    <div class="config-option"><label class="label-accent">Estoque BAR:</label><input type="number"
+                            id="edit-est-bar" class="config-input" min="0"></div>
+                    <div class="config-option"><label class="label-accent">Estoque DEPÓSITO:</label><input type="number"
+                            id="edit-est-dep" class="config-input" min="0"></div>
+                    <div class="config-option"><label class="label-danger">Mínimo BAR:</label><input type="number"
+                            id="edit-min-bar" class="config-input" min="0"></div>
+                    <div class="config-option"><label class="label-danger">Mínimo DEPÓSITO:</label><input type="number"
+                            id="edit-min-dep" class="config-input" min="0"></div>
+                </div>
+                <p class="estoque-nota"><i>Nota: Ao aumentar o Bar, o valor será subtraído
+                        do Depósito automaticamente.</i></p>
+                <button class="btn-action btn-estoque-salvar" id="btn-salvar-estoque">SALVAR ALTERAÇÕES</button>
+                <button class="btn-action" id="btn-cancelar-estoque">CANCELAR</button>
+            </div>
         </div>
     </div>
 
     <div id="modal-selecionar-membro" class="modal-overlay">
         <div class="modal-content">
-            <h3>Selecione o Membro</h3>
-            <select id="select-membro" class="lista-membros-scroll">
-                <option value="" disabled selected>Carregando...</option>
-            </select>
-            <div id="preview-divida" class="preview-divida"></div>
-            <button class="btn-action w-100 mt-2" id="btn-confirmar-membro">CONTINUAR</button>
-            <button class="btn-action" id="btn-cancelar-membro">CANCELAR</button>
+            <div class="modal-drag-header">
+                <div class="drag-handle"></div>
+                <h3>Selecione o Membro</h3>
+            </div>
+            <div class="modal-scroll-body">
+                <select id="select-membro" class="lista-membros-scroll">
+                    <option value="" disabled selected>Carregando...</option>
+                </select>
+                <div id="preview-divida" class="preview-divida"></div>
+                <button class="btn-action w-100 mt-2" id="btn-confirmar-membro">CONTINUAR</button>
+                <button class="btn-action" id="btn-cancelar-membro">CANCELAR</button>
+            </div>
         </div>
     </div>
 
     <div id="modal-fechar-conta" class="modal-overlay">
         <div class="modal-content">
-            <h3>Fechar Conta</h3>
-            <p id="nome-fechar-conta" class="nome-fechar-conta"></p>
-            <div id="lista-fechamento" class="extrato-lista">Carregando...</div>
-            <div class="extrato-total" id="total-fechamento">R$ 0,00</div>
-            <div class="prompt-pagamento">Como vai pagar?</div>
-            <div class="grid-pagamento">
-                <button class="btn-action btn-dinheiro" id="btn-liq-dinheiro">Dinheiro</button>
-                <button class="btn-action btn-pix" id="btn-liq-pix">Pix</button>
-                <button class="btn-action btn-cartao" id="btn-liq-cartao">Cartão</button>
+            <div class="modal-drag-header">
+                <div class="drag-handle"></div>
+                <h3>Fechar Conta</h3>
             </div>
-            <button class="btn-action mt-2" id="btn-cancelar-fechar-conta">CANCELAR</button>
+            <div class="modal-scroll-body">
+                <p id="nome-fechar-conta" class="nome-fechar-conta"></p>
+                <div id="lista-fechamento" class="extrato-lista">Carregando...</div>
+                <div class="extrato-total" id="total-fechamento">R$ 0,00</div>
+                <div class="prompt-pagamento">Como vai pagar?</div>
+                <div class="grid-pagamento">
+                    <button class="btn-action btn-dinheiro" id="btn-liq-dinheiro">Dinheiro</button>
+                    <button class="btn-action btn-pix" id="btn-liq-pix">Pix</button>
+                    <button class="btn-action btn-cartao" id="btn-liq-cartao">Cartão</button>
+                </div>
+                <button class="btn-action mt-2" id="btn-cancelar-fechar-conta">CANCELAR</button>
+            </div>
         </div>
     </div>
 
     <div id="modal-relatorios" class="modal-overlay">
         <div class="modal-content">
-            <h3>Gestão de Caixa</h3>
-            <div class="section-header">OPERADOR ATUAL</div>
-            <div class="operador-box">
-                <p id="nome-operador-atual" class="operador-nome">...</p>
-                <button class="btn-action btn-trocar-operador" id="btn-trocar-membro">
-                    TROCAR MEMBRO (Sair)
+            <div class="modal-drag-header">
+                <div class="drag-handle"></div>
+                <h3>Gestão de Caixa</h3>
+            </div>
+            <div class="modal-scroll-body">
+                <div class="section-header">OPERADOR ATUAL</div>
+                <div class="operador-box">
+                    <p id="nome-operador-atual" class="operador-nome">...</p>
+                    <button class="btn-action btn-trocar-operador" id="btn-trocar-membro">
+                        TROCAR MEMBRO (Sair)
+                    </button>
+                </div>
+                <div class="section-header">CAIXA</div>
+                <button class="btn-action btn-abrir-caixa" id="btn-abrir-caixa-rel">
+                    ABRIR CAIXA (INICIO)
                 </button>
+                <div class="section-header">FECHAMENTOS</div>
+                <button class="btn-action btn-fechar-dia" id="btn-fechar-dia">
+                    FECHAR CAIXA TOTAL (DIA)
+                </button>
+                <div class="section-header">RELATÓRIO PERÍODO</div>
+                <div class="date-range-row mb-2">
+                    <input type="date" id="data-inicio" class="config-input">
+                    <input type="date" id="data-fim" class="config-input">
+                </div>
+                <button class="btn-action btn-gerar-periodo" id="btn-gerar-periodo">
+                    GERAR MENSAL/PERIODO
+                </button>
+                <div id="resultado-relatorio" class="resultado-relatorio d-none"></div>
+                <button class="btn-action mt-2" id="btn-fechar-relatorios">FECHAR JANELA</button>
             </div>
-            <div class="section-header">CAIXA</div>
-            <button class="btn-action btn-abrir-caixa" id="btn-abrir-caixa-rel">
-                ABRIR CAIXA (INICIO)
-            </button>
-            <div class="section-header">FECHAMENTOS</div>
-            <button class="btn-action btn-fechar-dia" id="btn-fechar-dia">
-                FECHAR CAIXA TOTAL (DIA)
-            </button>
-            <div class="section-header">RELATÓRIO PERÍODO</div>
-            <div class="date-range-row mb-2">
-                <input type="date" id="data-inicio" class="config-input">
-                <input type="date" id="data-fim" class="config-input">
-            </div>
-            <button class="btn-action btn-gerar-periodo" id="btn-gerar-periodo">
-                GERAR MENSAL/PERIODO
-            </button>
-            <div id="resultado-relatorio" class="resultado-relatorio d-none"></div>
-            <button class="btn-action mt-2" id="btn-fechar-relatorios">FECHAR JANELA</button>
         </div>
     </div>
 
     <div id="modal-fechar-caixa" class="modal-overlay">
         <div class="modal-content text-center">
-            <h2 class="modal-title-accent">FECHAMENTO DE CAIXA</h2>
-            <p class="modal-subtitle">Informe o total físico em caixa no momento do fechamento:</p>
-            <input type="number" id="input-valor-fechamento" class="input-cliente input-valor-grande" placeholder="0,00"
-                min="0" step="0.01">
-            <p class="modal-subtitle" style="margin-top: 12px;">Observações (opcional):</p>
-            <input type="text" id="input-obs-fechamento" class="input-cliente"
-                placeholder="Ex: Fechamento do dia, sem ocorrências.">
-            <button class="btn-action btn-fechar-dia mt-2" id="btn-confirmar-fechamento-caixa">CONFIRMAR
-                FECHAMENTO</button>
-            <button class="btn-action" id="btn-cancelar-fechamento-caixa">CANCELAR</button>
+            <div class="modal-drag-header">
+                <div class="drag-handle"></div>
+                <h2 class="modal-title-accent">FECHAMENTO DE CAIXA</h2>
+            </div>
+            <div class="modal-scroll-body">
+                <p class="modal-subtitle">Informe o total físico em caixa no momento do fechamento:</p>
+                <input type="number" id="input-valor-fechamento" class="input-cliente input-valor-grande" placeholder="0,00"
+                    min="0" step="0.01">
+                <p class="modal-subtitle" style="margin-top: 12px;">Observações (opcional):</p>
+                <input type="text" id="input-obs-fechamento" class="input-cliente"
+                    placeholder="Ex: Fechamento do dia, sem ocorrências.">
+                <button class="btn-action btn-fechar-dia mt-2" id="btn-confirmar-fechamento-caixa">CONFIRMAR
+                    FECHAMENTO</button>
+                <button class="btn-action" id="btn-cancelar-fechamento-caixa">CANCELAR</button>
+            </div>
         </div>
     </div>
 
     <div id="modal-config" class="modal-overlay">
         <div class="modal-content">
-            <h3>Configuração</h3>
-            <div class="config-option">
-                <label>
-                    <input type="checkbox" id="cfg-imprimir" class="config-check" checked>
-                    Imprimir Auto
-                </label>
+            <div class="modal-drag-header">
+                <div class="drag-handle"></div>
+                <h3>Configuração</h3>
             </div>
-            <div class="config-option">
-                <label for="cfg-largura">Papel:</label>
-                <select id="cfg-largura" class="config-select">
-                    <option value="ticket-80mm">80mm</option>
-                    <option value="ticket-58mm">58mm</option>
-                </select>
+            <div class="modal-scroll-body">
+                <div class="config-option">
+                    <label>
+                        <input type="checkbox" id="cfg-imprimir" class="config-check" checked>
+                        Imprimir Auto
+                    </label>
+                </div>
+                <div class="config-option">
+                    <label for="cfg-largura">Papel:</label>
+                    <select id="cfg-largura" class="config-select">
+                        <option value="ticket-80mm">80mm</option>
+                        <option value="ticket-58mm">58mm</option>
+                    </select>
+                </div>
+                <button class="btn-action" id="btn-salvar-config">SALVAR</button>
+                <button class="btn-action" id="btn-cancelar-config">CANCELAR</button>
             </div>
-            <button class="btn-action" id="btn-salvar-config">SALVAR</button>
-            <button class="btn-action" id="btn-cancelar-config">CANCELAR</button>
         </div>
     </div>
 

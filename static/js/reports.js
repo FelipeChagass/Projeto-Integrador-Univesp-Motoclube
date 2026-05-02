@@ -1,13 +1,13 @@
 import { API, UIModal } from './api.js';
 import { S, salvarDadosLocais } from './state.js';
 import { esc, formatCurrency } from './utils.js';
-import { showToast, fecharModal, atualizarUI, renderizarCatalogo, atualizarEstadoBotoes } from './ui.js';
+import { showToast, fecharModal, abrirModal, atualizarUI, renderizarCatalogo, atualizarEstadoBotoes } from './ui.js';
 
 /* ─── Reports ─── */
 
 export function abrirMenuRelatorios() {
     if (!S.operadorAtual) return showToast('Faça login primeiro.');
-    document.getElementById('modal-relatorios').style.display = 'flex';
+    abrirModal('modal-relatorios');
     document.getElementById('resultado-relatorio').classList.add('d-none');
     document.getElementById('nome-operador-atual').innerText = S.operadorAtual;
     const hoje = new Date();
@@ -131,7 +131,7 @@ export function confirmarFechamentoCaixa() {
     if (!S.caixaId) return showToast('Nenhum caixa aberto identificado.');
     document.getElementById('input-valor-fechamento').value = '';
     document.getElementById('input-obs-fechamento').value = '';
-    document.getElementById('modal-fechar-caixa').style.display = 'flex';
+    abrirModal('modal-fechar-caixa');
     document.getElementById('input-valor-fechamento').focus();
 }
 

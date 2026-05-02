@@ -1,6 +1,6 @@
 import { API, UIModal } from './api.js';
 import { S, carregarDadosLocais, salvarDadosLocais } from './state.js';
-import { showToast, fecharModal, atualizarUI, renderizarCatalogo, atualizarEstadoBotoes, atualizarDados, initSwipeToClose } from './ui.js';
+import { showToast, fecharModal, atualizarUI, renderizarCatalogo, atualizarEstadoBotoes, atualizarDados, initBottomSheetGestures } from './ui.js';
 import {
     adicionarAoCarrinho, incrementarQtd, decrementarQtd, confirmarObs, cliqueProduto,
     alternarModoEstoque, confirmarSenhaEstoque, salvarEdicaoEstoque,
@@ -37,11 +37,7 @@ document.addEventListener('keydown', (e) => {
     for (let i = 0; i < abertos.length; i++) {
         const d = abertos[i].style.display;
         if (d && d !== 'none') {
-            abertos[i].classList.add('closing');
-            setTimeout(() => {
-                abertos[i].style.display = 'none';
-                abertos[i].classList.remove('closing');
-            }, 250);
+            fecharModal(abertos[i].id);
             break;
         }
     }
@@ -49,11 +45,7 @@ document.addEventListener('keydown', (e) => {
 
 document.addEventListener('click', (e) => {
     if (e.target.classList.contains('modal-overlay')) {
-        e.target.classList.add('closing');
-        setTimeout(() => {
-            e.target.style.display = 'none';
-            e.target.classList.remove('closing');
-        }, 250);
+        fecharModal(e.target.id);
     }
 });
 
@@ -266,4 +258,4 @@ function iniciarSistema() {
 }
 
 iniciarSistema();
-initSwipeToClose();
+initBottomSheetGestures();

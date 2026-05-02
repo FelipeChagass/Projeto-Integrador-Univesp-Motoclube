@@ -1,7 +1,7 @@
 import { API, UIModal } from './api.js';
 import { S, salvarDadosLocais } from './state.js';
 import { esc, formatCurrency, LocalDB } from './utils.js';
-import { showToast, fecharModal, atualizarUI, renderizarCatalogo, getQtdCarrinho, atualizarEstadoBotoes, atualizarDados } from './ui.js';
+import { showToast, fecharModal, abrirModal, atualizarUI, renderizarCatalogo, getQtdCarrinho, atualizarEstadoBotoes, atualizarDados } from './ui.js';
 import { montarImpressao } from './reports.js';
 
 /* ─── Cart ─── */
@@ -42,7 +42,7 @@ export function decrementarQtd(idx) {
 export function abrirModalObs(nome) {
     document.getElementById('modal-prod-nome').innerText = nome;
     document.getElementById('custom-obs').value = '';
-    document.getElementById('modal-obs').style.display = 'flex';
+    abrirModal('modal-obs');
     document.getElementById('custom-obs').focus();
 }
 
@@ -71,7 +71,7 @@ export function cliqueProduto(p, isBarZerado) {
         document.getElementById('edit-est-dep').value = p.estoque_deposito;
         document.getElementById('edit-min-bar').value = p.estoque_min_bar || 0;
         document.getElementById('edit-min-dep').value = p.estoque_min_deposito || 0;
-        document.getElementById('modal-estoque').style.display = 'flex';
+        abrirModal('modal-estoque');
     } else {
         if (!S.operadorAtual) return showToast('Faça login primeiro.');
         if (isBarZerado) return showToast('Produto esgotado no Bar!');
@@ -102,7 +102,7 @@ export function alternarModoEstoque() {
     }
     document.getElementById('input-senha-estoque').value = '';
     document.getElementById('erro-senha-estoque').textContent = '';
-    document.getElementById('modal-senha-estoque').style.display = 'flex';
+    abrirModal('modal-senha-estoque');
     document.getElementById('input-senha-estoque').focus();
 }
 
@@ -192,10 +192,10 @@ export function prepararPagamentoGlobal(tipo, total, metodo, dadosExtra) {
         document.getElementById('display-troco').innerText = 'Troco: R$ 0,00';
         document.getElementById('btn-confirmar-dinheiro').style.opacity = '0.5';
         document.getElementById('btn-confirmar-dinheiro').style.pointerEvents = 'none';
-        document.getElementById('modal-dinheiro').style.display = 'flex';
+        abrirModal('modal-dinheiro');
         document.getElementById('valor-recebido').focus();
     } else if (metodo === 'CARTAO') {
-        document.getElementById('modal-cartao').style.display = 'flex';
+        abrirModal('modal-cartao');
     } else {
         executarPagamentoFinal(metodo);
     }
@@ -334,7 +334,7 @@ export function abrirModalMembros(tipoContexto) {
     S.contextoMembro = tipoContexto;
     const preview = document.getElementById('preview-divida');
     if (preview) { preview.innerText = ''; preview.style.color = '#aaa'; }
-    document.getElementById('modal-selecionar-membro').style.display = 'flex';
+    abrirModal('modal-selecionar-membro');
     buscarMembrosFrescos('select-membro');
 }
 
@@ -393,7 +393,7 @@ export function fecharModalSelecaoMembro() {
 }
 
 export function carregarDadosFechamento(nome) {
-    document.getElementById('modal-fechar-conta').style.display = 'flex';
+    abrirModal('modal-fechar-conta');
     document.getElementById('nome-fechar-conta').innerText = nome;
     document.getElementById('lista-fechamento').innerHTML = 'Buscando...';
     API.buscarExtratoMembro(nome)
@@ -446,7 +446,7 @@ export function trocarMembro() {
 export function abrirModalAberturaCaixa() {
     if (S.caixaAberto) return showToast('O caixa já está aberto!');
     fecharModal('modal-relatorios');
-    document.getElementById('modal-abertura-caixa').style.display = 'flex';
+    abrirModal('modal-abertura-caixa');
     document.getElementById('input-valor-abertura').focus();
 }
 
@@ -467,7 +467,7 @@ export function confirmarAberturaValor() {
 /* ─── Config ─── */
 
 export function abrirConfig() {
-    document.getElementById('modal-config').style.display = 'flex';
+    abrirModal('modal-config');
     document.getElementById('cfg-imprimir').checked = S.config.imprimir;
     document.getElementById('cfg-largura').value = S.config.largura;
 }
