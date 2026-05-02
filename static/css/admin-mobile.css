@@ -231,6 +231,7 @@
         font-family: inherit;
         text-align: left;
         width: 100%;
+        text-decoration: none !important;
         -webkit-tap-highlight-color: transparent;
     }
 
