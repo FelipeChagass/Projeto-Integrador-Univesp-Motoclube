@@ -506,7 +506,6 @@
         color: #fff;
     }
 
-    /* ── ID cell: compact single-line ── */
     td.col-id,
     td[data-label="ID"] {
         flex-direction: row;
@@ -529,10 +528,11 @@
         font-weight: 700;
         text-transform: none;
         letter-spacing: 0;
+        min-width: auto;
     }
 
     /* Estoque e minimos */
-    td[data-label="Estoque"], 
+    td[data-label="Estoque"],
     td[data-label="Mínimos"] {
         color: #fff;
     }
@@ -548,7 +548,6 @@
         color: #fff;
     }
 
-    /* ── Status cell: row layout — label left, badge right ── */
     td.col-status,
     td[data-label="Status"] {
         flex-direction: row;
@@ -563,9 +562,10 @@
     td[data-label="Status"]::before {
         white-space: nowrap;
         flex-shrink: 0;
+        min-width: auto;
     }
 
-    /* ── Actions cell: full-width button row ── */
+
     td[data-label="Ações"]::before {
         display: none;
     }
