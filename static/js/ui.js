@@ -135,8 +135,8 @@ export function renderizarCatalogo() {
                 <div class="card-name">${esc(produto.nome)}</div>
                 <div class="card-price">${formatCurrency(precoFmt)}</div>
                 <div class="card-stock">
-                    <span>Bar: ${estoqueBarDisponivel}</span>
-                    <span>Dep: ${estoqueDep}</span>
+                    <span>Bar: <b>${estoqueBarDisponivel}</b></span>
+                    <span>Dep: <b>${estoqueDep}</b></span>
                 </div>
             </div>`;
         fragment.appendChild(cardElement);
@@ -186,14 +186,15 @@ export function initSwipeToClose() {
         const el = e.target.closest('.modal-content') || e.target.closest('#carrinho-section') || e.target.closest('.sidebar-panel');
         if (!el) return;
         
-        // If user is scrolling the content vertically, ignore drag (unless at the very top)
-        if (!el.classList.contains('sidebar-panel') && el.scrollTop > 0) return;
-
+        // We don't return early here if scrolled down, so that if the user scrolls back to top 
+        // in a single continuous touch, the swipe-to-close can still trigger when scrollTop reaches 0.
+        
         activeEl = el;
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
         startScrollY = el.scrollTop;
         el.style.transition = 'none'; // Disable CSS transition for 1:1 dragging
+        el.style.animation = 'none'; // Release the CSS animation lock
     }, { passive: true });
 
     document.addEventListener('touchmove', (e) => {
@@ -243,17 +244,14 @@ export function initSwipeToClose() {
 
     document.addEventListener('touchend', () => {
         if (!activeEl) return;
-        
-        activeEl.style.transition = ''; // Restore CSS transition
 
         const isSidebar = activeEl.classList.contains('sidebar-panel');
         if (isSidebar) {
+            activeEl.style.transition = '';
+            activeEl.style.animation = '';
             if (currentX > 80) {
-                // Swipe right past threshold -> close
                 const mobileMenu = activeEl.closest('.sidebar-mobile');
-                if (mobileMenu) {
-                    mobileMenu.classList.remove('open');
-                }
+                if (mobileMenu) mobileMenu.classList.remove('open');
             }
             activeEl.style.transform = '';
             activeEl = null;
@@ -262,33 +260,42 @@ export function initSwipeToClose() {
         }
 
         if (currentY > 100) {
-            // Dismiss triggered (swipe down)
+            // Dismiss triggered — do NOT restore animation here (would cause jump-up bug)
             if (activeEl.id === 'carrinho-section') {
+                activeEl.style.transition = '';
+                activeEl.style.animation = '';
                 activeEl.classList.remove('mobile-aberto');
                 activeEl.style.transform = '';
             } else {
                 const overlay = activeEl.closest('.modal-overlay');
                 if (overlay) {
-                    overlay.classList.add('closing');
+                    // Slide out from current drag position downward
+                    activeEl.style.transition = 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
+                    activeEl.style.transform = 'translateY(110%)';
+                    const elToReset = activeEl;
                     setTimeout(() => {
                         overlay.style.display = 'none';
-                        overlay.classList.add('d-none');
-                        overlay.classList.remove('closing');
-                        activeEl.style.transform = ''; // Reset for next time
-                        
+                        // Do NOT add d-none class — some modals are reopened with only style.display = 'flex'
+                        // and d-none's !important would block them from showing
+                        // Now safe to reset everything after it's hidden
+                        elToReset.style.transform = '';
+                        elToReset.style.transition = '';
+                        elToReset.style.animation = '';
                         const hasOpenModal = document.querySelectorAll('.modal-overlay:not(.d-none):not([style*="display: none"])').length > 0;
-                        if (!hasOpenModal) {
-                            document.body.classList.remove('modal-open');
-                        }
-                    }, 250);
+                        if (!hasOpenModal) document.body.classList.remove('modal-open');
+                    }, 260);
                 }
             }
         } else if (currentY < -50 && activeEl.id === 'carrinho-section' && !activeEl.classList.contains('mobile-aberto')) {
-            // Open triggered (swipe up past threshold)
+            // Open cart (swipe up past threshold)
+            activeEl.style.transition = '';
+            activeEl.style.animation = '';
             activeEl.classList.add('mobile-aberto');
             activeEl.style.transform = '';
         } else {
-            // Snap back
+            // Snap back — restore everything
+            activeEl.style.transition = '';
+            activeEl.style.animation = '';
             activeEl.style.transform = '';
         }
         

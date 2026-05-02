@@ -29,7 +29,7 @@
     font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0.5px;
-    color: #ccc;
+    color: #fff;
     background: linear-gradient(145deg, #1c1c1c, #111);
     padding: 6px 14px;
     border-radius: 8px;
@@ -68,7 +68,7 @@
     gap: 6px;
     padding: 7px 14px;
     background: transparent;
-    color: #ccc;
+    color: #fff;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
     font-size: 0.78rem;
@@ -199,7 +199,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    color: #ccc;
+    color: #fff;
     font-weight: bold;
     font-size: 0.9rem;
     text-align: center;
@@ -245,7 +245,7 @@
 
 .card-stock {
     font-size: 0.75rem;
-    color: #888;
+    color: #fff;
     margin-top: 4px;
     display: flex;
     justify-content: space-between;
@@ -364,7 +364,7 @@
 }
 
 .item-obs {
-    color: #aaa;
+    color: #fff;
     font-size: 0.75rem;
     font-style: italic;
 }
@@ -543,7 +543,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    color: #ccc;
+    color: #fff;
     font-size: 1rem;
     cursor: pointer;
 }
@@ -567,13 +567,15 @@
 .config-select,
 .config-input {
     width: 100%;
-    padding: 10px;
+    padding: 0 10px;
+    height: 48px;
     background: #222;
     color: white;
     border: 1px solid #555;
     box-sizing: border-box;
     font-size: 1.1rem;
     border-radius: 4px;
+    line-height: 46px;
 }
 
 .lista-membros-scroll {
@@ -701,7 +703,7 @@
 .loading-text {
     margin-top: 12px;
     font-size: 0.95rem;
-    color: #888;
+    color: #fff;
     letter-spacing: 0.5px;
 }
 
@@ -715,12 +717,12 @@
 }
 
 .modal-subtitle {
-    color: #ccc;
+    color: #fff;
     margin-bottom: 20px;
 }
 
 .modal-subtitle-muted {
-    color: #aaa;
+    color: #fff;
     text-align: center;
     margin-bottom: 20px;
 }
@@ -737,7 +739,7 @@
 }
 
 .label-muted {
-    color: #aaa;
+    color: #fff;
 }
 
 .btn-disabled-initial {
@@ -779,7 +781,7 @@
 
 .estoque-nota {
     font-size: 0.8rem;
-    color: #aaa;
+    color: #fff;
     margin-top: 5px;
 }
 
@@ -918,4 +920,19 @@ select option {
 
 .btn-header svg {
     color: #b30000;
+}
+
+/* Center button text in "Gestão de Caixa" modal */
+#modal-relatorios .btn-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 8px;
+}
+
+/* White calendar icon for date inputs */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
 }
