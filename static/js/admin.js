@@ -45,6 +45,7 @@ function fecharModalAdmin(id) {
     el.classList.add('closing');
     setTimeout(() => {
         el.classList.add('d-none');
+        el.style.display = '';
         el.classList.remove('closing');
 
         // Verifica se ainda tem modal aberto
@@ -377,7 +378,9 @@ async function carregarUsuarios() {
 }
 
 function abrirFormNovoUsuario() {
-    document.getElementById('formNovoUsuario').classList.remove('d-none');
+    const el = document.getElementById('formNovoUsuario');
+    el.classList.remove('d-none');
+    el.style.display = 'flex';
     document.body.classList.add('modal-open');
     document.getElementById('novo-user-nome').value = '';
     document.getElementById('novo-user-email').value = '';
@@ -399,10 +402,7 @@ async function criarNovoUsuario() {
     if (!r) return;
     const data = await r.json();
     toast(data.mensagem, data.status === 'ok');
-    if (data.status === 'ok') {
-        document.getElementById('formNovoUsuario').classList.add('d-none');
-        carregarUsuarios();
-    }
+    if (data.status === 'ok') { fecharModalAdmin('formNovoUsuario'); carregarUsuarios(); }
 }
 
 function renderUsuarios() {
@@ -557,9 +557,9 @@ function setupEventListeners() {
     document.getElementById('btn-cancel-novo-membro')?.addEventListener('click', () => document.getElementById('formNovoMembro').classList.add('d-none'));
 
     document.getElementById('btn-add-usuario')?.addEventListener('click', abrirFormNovoUsuario);
-    document.getElementById('btn-close-form-usuario')?.addEventListener('click', () => document.getElementById('formNovoUsuario').classList.add('d-none'));
+    document.getElementById('btn-close-form-usuario')?.addEventListener('click', () => fecharModalAdmin('formNovoUsuario'));
     document.getElementById('btn-save-novo-usuario')?.addEventListener('click', criarNovoUsuario);
-    document.getElementById('btn-cancel-novo-usuario')?.addEventListener('click', () => document.getElementById('formNovoUsuario').classList.add('d-none'));
+    document.getElementById('btn-cancel-novo-usuario')?.addEventListener('click', () => fecharModalAdmin('formNovoUsuario'));
 
     document.getElementById('btn-filtrar-vendas')?.addEventListener('click', carregarVendas);
     document.getElementById('btn-save-config')?.addEventListener('click', salvarConfig);
