@@ -70,12 +70,18 @@ function switchTab(name) {
 
 function openAdminSidebar() {
     const sidebar = document.getElementById('admin-sidebar-mobile');
-    if (sidebar) sidebar.classList.add('open');
+    if (sidebar) {
+        sidebar.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
 }
 
 function closeAdminSidebar() {
     const sidebar = document.getElementById('admin-sidebar-mobile');
-    if (sidebar) sidebar.classList.remove('open');
+    if (sidebar) {
+        sidebar.classList.remove('open');
+        document.body.style.overflow = '';
+    }
 }
 
 async function carregarProdutos() {
@@ -378,15 +384,18 @@ async function carregarUsuarios() {
 }
 
 function abrirFormNovoUsuario() {
-    const el = document.getElementById('formNovoUsuario');
-    el.classList.remove('d-none');
-    el.style.display = 'flex';
+    document.getElementById('formNovoUsuario').classList.remove('d-none');
     document.body.classList.add('modal-open');
     document.getElementById('novo-user-nome').value = '';
     document.getElementById('novo-user-email').value = '';
     document.getElementById('novo-user-senha').value = '';
     document.getElementById('novo-user-perfil').value = 'operador';
     document.getElementById('novo-user-nome').focus();
+}
+
+function fecharFormNovoUsuario() {
+    document.getElementById('formNovoUsuario').classList.add('d-none');
+    document.body.classList.remove('modal-open');
 }
 
 async function criarNovoUsuario() {
@@ -402,7 +411,7 @@ async function criarNovoUsuario() {
     if (!r) return;
     const data = await r.json();
     toast(data.mensagem, data.status === 'ok');
-    if (data.status === 'ok') { fecharModalAdmin('formNovoUsuario'); carregarUsuarios(); }
+    if (data.status === 'ok') { fecharFormNovoUsuario(); carregarUsuarios(); }
 }
 
 function renderUsuarios() {
@@ -557,9 +566,9 @@ function setupEventListeners() {
     document.getElementById('btn-cancel-novo-membro')?.addEventListener('click', () => document.getElementById('formNovoMembro').classList.add('d-none'));
 
     document.getElementById('btn-add-usuario')?.addEventListener('click', abrirFormNovoUsuario);
-    document.getElementById('btn-close-form-usuario')?.addEventListener('click', () => fecharModalAdmin('formNovoUsuario'));
+    document.getElementById('btn-close-form-usuario')?.addEventListener('click', fecharFormNovoUsuario);
     document.getElementById('btn-save-novo-usuario')?.addEventListener('click', criarNovoUsuario);
-    document.getElementById('btn-cancel-novo-usuario')?.addEventListener('click', () => fecharModalAdmin('formNovoUsuario'));
+    document.getElementById('btn-cancel-novo-usuario')?.addEventListener('click', fecharFormNovoUsuario);
 
     document.getElementById('btn-filtrar-vendas')?.addEventListener('click', carregarVendas);
     document.getElementById('btn-save-config')?.addEventListener('click', salvarConfig);

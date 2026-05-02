@@ -151,7 +151,7 @@
                 </button>
             </div>
             <div class="sidebar-footer">
-                <a href="/" class="sidebar-item sidebar-item--danger">
+                <a href="/" class="sidebar-item">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="m12 19-7-7 7-7" />
@@ -327,37 +327,34 @@
                 </button>
             </div>
 
-            <!-- Modal Novo Usuário -->
-            <div id="formNovoUsuario" class="modal-overlay d-none">
-                <div class="modal-content modal-lg">
-                    <div class="modal-header">
-                        <h3>Cadastrar Novo Usuário</h3>
-                        <button class="btn-icon-close" id="btn-close-form-usuario">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M18 6 6 18" />
-                                <path d="m6 6 12 12" />
-                            </svg>
-                        </button>
+            <div id="formNovoUsuario" class="form-card d-none">
+                <div class="form-card-header">
+                    <h3>Cadastrar Novo Usuário</h3>
+                    <button class="btn-icon-close" id="btn-close-form-usuario">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6 6 18" />
+                            <path d="m6 6 12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Nome de Exibição</label><input type="text" id="novo-user-nome"
+                            placeholder="Nome"></div>
+                    <div class="form-group"><label>E-mail (Login)</label><input type="email" id="novo-user-email"
+                            placeholder="usuario@email.com"></div>
+                    <div class="form-group"><label>Senha Inicial</label><input type="password" id="novo-user-senha"
+                            placeholder="Mínimo 6 caracteres"></div>
+                    <div class="form-group"><label>Perfil de Acesso</label>
+                        <select id="novo-user-perfil">
+                            <option value="operador" selected>Operador</option>
+                            <option value="admin">Administrador</option>
+                        </select>
                     </div>
-                    <div class="form-grid">
-                        <div class="form-group"><label>Nome de Exibição</label><input type="text" id="novo-user-nome"
-                                placeholder="Nome"></div>
-                        <div class="form-group"><label>E-mail (Login)</label><input type="email" id="novo-user-email"
-                                placeholder="usuario@email.com"></div>
-                        <div class="form-group"><label>Senha Inicial</label><input type="password" id="novo-user-senha"
-                                placeholder="Mínimo 6 caracteres"></div>
-                        <div class="form-group"><label>Perfil de Acesso</label>
-                            <select id="novo-user-perfil">
-                                <option value="operador" selected>Operador</option>
-                                <option value="admin">Administrador</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button class="btn btn-save" id="btn-save-novo-usuario">Salvar Usuário</button>
-                        <button class="btn btn-cancel" id="btn-cancel-novo-usuario">Cancelar</button>
-                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-save" id="btn-save-novo-usuario">Salvar Usuário</button>
+                    <button class="btn btn-cancel" id="btn-cancel-novo-usuario">Cancelar</button>
                 </div>
             </div>
             <div class="table-wrapper">
