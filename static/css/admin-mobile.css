@@ -230,7 +230,6 @@
         transition: background 0.15s;
         font-family: inherit;
         text-align: left;
-        text-decoration: none;
         width: 100%;
         -webkit-tap-highlight-color: transparent;
     }
@@ -247,7 +246,7 @@
 
     .sidebar-item svg {
         flex-shrink: 0;
-        color: #aaa;
+        color: #b30000;
     }
 
     .sidebar-item--danger {
