@@ -180,31 +180,43 @@ export function atualizarDados(showLoader) {
 }
 
 export function initSwipeToClose() {
-    let startY = 0, currentY = 0, startX = 0, currentX = 0, activeEl = null, startScrollY = 0;
+    // pendingEl: element we MIGHT drag (set on touchstart)
+    // activeEl: element we ARE dragging (set only after threshold is crossed in touchmove)
+    let startY = 0, currentY = 0, startX = 0, currentX = 0;
+    let pendingEl = null, activeEl = null;
 
     document.addEventListener('touchstart', (e) => {
         const el = e.target.closest('.modal-content') || e.target.closest('#carrinho-section') || e.target.closest('.sidebar-panel');
         if (!el) return;
-        
-        // We don't return early here if scrolled down, so that if the user scrolls back to top 
-        // in a single continuous touch, the swipe-to-close can still trigger when scrollTop reaches 0.
-        
-        activeEl = el;
+        // Record starting point and candidate element — do NOT modify the element yet
+        pendingEl = el;
+        activeEl = null;
+        currentY = 0;
+        currentX = 0;
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
-        startScrollY = el.scrollTop;
-        el.style.transition = 'none'; // Disable CSS transition for 1:1 dragging
-        el.style.animation = 'none'; // Release the CSS animation lock
     }, { passive: true });
 
     document.addEventListener('touchmove', (e) => {
-        if (!activeEl) return;
-        
+        if (!pendingEl) return;
+
+        const x = e.touches[0].clientX;
+        const y = e.touches[0].clientY;
+        const dx = x - startX;
+        const dy = y - startY;
+
+        // Only activate dragging once finger has moved past a minimum threshold
+        const DRAG_THRESHOLD = 10;
+        if (!activeEl) {
+            if (Math.abs(dy) < DRAG_THRESHOLD && Math.abs(dx) < DRAG_THRESHOLD) return;
+            // Threshold crossed — now officially start dragging
+            activeEl = pendingEl;
+            activeEl.style.transition = 'none';
+            activeEl.style.animation = 'none'; // Release CSS animation lock only when actually dragging
+        }
+
         const isSidebar = activeEl.classList.contains('sidebar-panel');
         if (isSidebar) {
-            const x = e.touches[0].clientX;
-            const dx = x - startX;
-            // Only allow dragging to the right to close
             if (dx > 0) {
                 e.preventDefault();
                 activeEl.style.transform = `translateX(${dx}px)`;
@@ -213,37 +225,34 @@ export function initSwipeToClose() {
             return;
         }
 
-        const y = e.touches[0].clientY;
-        const dy = y - startY;
         const isCart = activeEl.id === 'carrinho-section';
         const isCartClosed = isCart && !activeEl.classList.contains('mobile-aberto');
 
-        // If swiping up
+        // Swipe up — only for closed cart
         if (dy < 0) {
             if (isCartClosed) {
-                e.preventDefault(); // Prevent pull-to-refresh
-                // For closed cart, translateY is 100% minus 64px (header). We add dy.
-                // We use max(0px, ...) so it doesn't drag past the fully open state
+                e.preventDefault();
                 activeEl.style.transform = `translateY(max(0px, calc(100% - 64px + ${dy}px)))`;
                 currentY = dy;
-                return;
             }
-            return; // Ignore swiping up for anything else
+            return;
         }
 
-        // If swiping down
+        // Swipe down — only when scrolled to the top of the element
         if (dy > 0 && activeEl.scrollTop <= 0) {
-            // Prevent swiping down if the cart is already closed (would cause jump bug)
             if (isCartClosed) return;
-            
-            e.preventDefault(); // Prevent pull-to-refresh
+            e.preventDefault();
             activeEl.style.transform = `translateY(${dy}px)`;
             currentY = dy;
         }
     }, { passive: false });
 
     document.addEventListener('touchend', () => {
-        if (!activeEl) return;
+        // If drag never activated (it was a tap), do nothing
+        if (!activeEl) {
+            pendingEl = null;
+            return;
+        }
 
         const isSidebar = activeEl.classList.contains('sidebar-panel');
         if (isSidebar) {
@@ -255,12 +264,13 @@ export function initSwipeToClose() {
             }
             activeEl.style.transform = '';
             activeEl = null;
+            pendingEl = null;
             currentX = 0;
             return;
         }
 
         if (currentY > 100) {
-            // Dismiss triggered — do NOT restore animation here (would cause jump-up bug)
+            // Dismiss triggered
             if (activeEl.id === 'carrinho-section') {
                 activeEl.style.transition = '';
                 activeEl.style.animation = '';
@@ -269,15 +279,12 @@ export function initSwipeToClose() {
             } else {
                 const overlay = activeEl.closest('.modal-overlay');
                 if (overlay) {
-                    // Slide out from current drag position downward
+                    // Continue sliding off-screen from current drag position
                     activeEl.style.transition = 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
                     activeEl.style.transform = 'translateY(110%)';
                     const elToReset = activeEl;
                     setTimeout(() => {
                         overlay.style.display = 'none';
-                        // Do NOT add d-none class — some modals are reopened with only style.display = 'flex'
-                        // and d-none's !important would block them from showing
-                        // Now safe to reset everything after it's hidden
                         elToReset.style.transform = '';
                         elToReset.style.transition = '';
                         elToReset.style.animation = '';
@@ -287,19 +294,20 @@ export function initSwipeToClose() {
                 }
             }
         } else if (currentY < -50 && activeEl.id === 'carrinho-section' && !activeEl.classList.contains('mobile-aberto')) {
-            // Open cart (swipe up past threshold)
+            // Open cart
             activeEl.style.transition = '';
             activeEl.style.animation = '';
             activeEl.classList.add('mobile-aberto');
             activeEl.style.transform = '';
         } else {
-            // Snap back — restore everything
+            // Snap back
             activeEl.style.transition = '';
             activeEl.style.animation = '';
             activeEl.style.transform = '';
         }
-        
+
         activeEl = null;
+        pendingEl = null;
         currentY = 0;
     });
 }
