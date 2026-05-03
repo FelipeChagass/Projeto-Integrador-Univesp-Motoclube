@@ -190,7 +190,7 @@
         margin: 0;
         text-transform: uppercase;
         letter-spacing: 2px;
-        background: linear-gradient(to bottom, #ff4c4c 0%, #aa0000 100%);
+        background: linear-gradient(to bottom, #da0101 0%, #da0101 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         flex: 1;

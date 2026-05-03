@@ -80,6 +80,7 @@
 .btn-header svg {
     width: 16px;
     height: 16px;
+    color: #b30000;
     stroke-width: 2;
     flex-shrink: 0;
 }
@@ -945,9 +946,6 @@ select option {
     border-radius: 8px;
 }
 
-.btn-header svg {
-    color: #b30000;
-}
 
 /* Center button text in "Gestão de Caixa" modal */
 #modal-relatorios .btn-action {
