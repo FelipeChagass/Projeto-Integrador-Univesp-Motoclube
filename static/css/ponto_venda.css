@@ -465,6 +465,36 @@
     flex-shrink: 0;
 }
 
+.btn-action-pedido {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    background: linear-gradient(145deg, #1c1c1c, #111);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    color: #eee;
+    font-weight: 600;
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 2px;
+    min-height: 46px;
+}
+
+.btn-action-pedido:hover {
+    background: #222 !important;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn-action-pedido svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
 .btn-dinheiro svg {
     color: #4caf50;
 }
