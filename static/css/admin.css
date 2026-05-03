@@ -201,6 +201,9 @@ header h1 {
     padding: 1rem 1.5rem;
     background: rgba(0, 0, 0, 0.2);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .form-card-header h3 {
@@ -210,6 +213,8 @@ header h1 {
     font-size: 1rem;
     font-weight: 600;
     color: #e0e0e0;
+    margin: 0;
+    line-height: 1;
 }
 
 .form-card-header h3 svg {
@@ -684,6 +689,9 @@ input[type="file"] {
 .modal-header {
     padding: 1.25rem 1.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .modal-header h3 {
@@ -691,7 +699,7 @@ input[type="file"] {
     font-weight: 600;
     color: #b30000;
     margin: 0;
-    line-height: 1.1;
+    line-height: 1;
 }
 
 .modal-content .form-grid {
