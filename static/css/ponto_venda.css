@@ -55,11 +55,7 @@
 }
 
 .top-buttons {
-    display: flex;
     gap: 6px;
-    align-items: center;
-    flex-wrap: wrap;
-    justify-content: flex-end;
 }
 
 .btn-header {
@@ -454,8 +450,8 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
     cursor: pointer;
     width: 100%;
-    margin-bottom: 6px;
-    min-height: 44px;
+    margin-bottom: 8px;
+    min-height: 46px;
 }
 
 .btn-action:hover {
@@ -531,7 +527,7 @@
 #modal-login .modal-content {
     border: 2px solid var(--success);
     width: 90%;
-    max-width: 400px;
+    max-width: 600px;
     text-align: center;
 }
 
@@ -593,11 +589,12 @@
 .section-header {
     color: var(--accent);
     font-weight: bold;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     text-transform: uppercase;
-    border-bottom: 1px solid #555;
-    padding-bottom: 4px;
-    margin: 12px 0 6px 0;
+    letter-spacing: 0.8px;
+    padding-bottom: 2px;
+    margin: 22px 0 8px 0;
+    opacity: 0.8;
 }
 
 .extrato-lista {

@@ -3,7 +3,7 @@
 :root {
     --bg-color: #0d0d0d;
     --card-bg: #1a1a1a;
-    --accent: #b30000;
+    --accent: #c70808;
     --success: #4caf50;
     --danger: #f44336;
     --edit-mode-color: #B30000;
@@ -148,16 +148,15 @@ body.modal-open {
 }
 
 .modal-content {
-    background: #333;
-    padding: 20px;
-    border-radius: 10px;
+    background: linear-gradient(145deg, #222, #1a1a1a);
+    border-radius: 14px;
     width: 90%;
-    max-width: 450px;
-    border: 1px solid var(--accent);
+    max-width: 560px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
     color: white;
-    max-height: 90vh;
+    max-height: 88vh;
     overflow-y: auto;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
     animation: modalFadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
@@ -191,31 +190,44 @@ body.modal-open {
 
 /* ─── Bottom Sheet Component ─── */
 .modal-drag-header {
-    flex-shrink: 0;
-    padding: 12px 20px 8px;
-    cursor: grab;
-    user-select: none;
-    -webkit-user-select: none;
-    text-align: center;
-    touch-action: none;
-}
-
-.modal-drag-header:active {
-    cursor: grabbing;
+    display: none;
+    /* Desktop: hidden — only shown as bottom sheet on mobile */
 }
 
 .drag-handle {
-    width: 40px;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.35);
-    border-radius: 2px;
-    margin: 0 auto 12px;
-    transition: width 0.2s, background 0.2s;
+    display: none;
 }
 
-.modal-drag-header:active .drag-handle {
-    width: 50px;
-    background: rgba(255, 255, 255, 0.55);
+@media (max-width: 768px) {
+    .modal-drag-header {
+        display: block;
+        flex-shrink: 0;
+        padding: 12px 20px 8px;
+        cursor: grab;
+        user-select: none;
+        -webkit-user-select: none;
+        text-align: center;
+        touch-action: none;
+    }
+
+    .modal-drag-header:active {
+        cursor: grabbing;
+    }
+
+    .drag-handle {
+        display: block;
+        width: 40px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.35);
+        border-radius: 2px;
+        margin: 0 auto 12px;
+        transition: width 0.2s, background 0.2s;
+    }
+
+    .modal-drag-header:active .drag-handle {
+        width: 50px;
+        background: rgba(255, 255, 255, 0.55);
+    }
 }
 
 .modal-scroll-body {
@@ -223,7 +235,31 @@ body.modal-open {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    padding: 0 20px 20px;
+    padding: 1.5rem 1.5rem 1.6rem;
+}
+
+/* Desktop modal titles */
+.modal-scroll-body h2,
+.modal-scroll-body h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: linear-gradient(to bottom, #ff4c4c 0%, #aa0000 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+@media (max-width: 768px) {
+
+    .modal-scroll-body h2,
+    .modal-scroll-body h3 {
+        -webkit-text-fill-color: unset;
+        background: none;
+        color: #e0e0e0;
+    }
 }
 
 @media print {

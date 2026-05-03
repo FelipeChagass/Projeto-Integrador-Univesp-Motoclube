@@ -7,7 +7,7 @@ body {
 
 header {
     background: linear-gradient(180deg, #2a2a2a 0%, #222 100%);
-    padding: 0.7rem 2rem;
+    padding: 8px 15px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -21,27 +21,27 @@ header {
 
 .header-left {
     display: flex !important;
-    align-items: center !important;
     gap: 12px;
 }
 
 .header-left .logo-admin {
-    width: 60px;
-    height: 60px;
+    width: 70px;
+    height: 70px;
     object-fit: cover;
-    border-radius: 50%;
-    border: 2px solid #b30000;
     display: block;
     flex-shrink: 0;
 }
 
 header h1 {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: #ff3333;
-    letter-spacing: -0.5px;
+    font-size: 1.5rem;
+    font-weight: 800;
     margin: 0;
-    line-height: 1.2;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    /* Fundo com gradiente metálico avermelhado */
+    background: linear-gradient(to bottom, #ff4c4c 0%, #aa0000 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .tabs-nav {
@@ -110,11 +110,8 @@ header h1 {
 }
 
 .toolbar {
-    display: flex;
-    align-items: center;
     gap: 16px;
     margin-bottom: 1.5rem;
-    flex-wrap: wrap;
 }
 
 .toggle-label {
@@ -133,10 +130,7 @@ header h1 {
 }
 
 .filter-group {
-    display: flex;
-    align-items: center;
     gap: 8px;
-    flex-wrap: wrap;
 }
 
 .filter-group label {
@@ -164,10 +158,8 @@ header h1 {
 }
 
 .stats-row {
-    display: flex;
     gap: 12px;
     margin-bottom: 1rem;
-    flex-wrap: wrap;
 }
 
 .stat-card {
@@ -205,9 +197,6 @@ header h1 {
 }
 
 .form-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     padding: 1rem 1.5rem;
     background: rgba(0, 0, 0, 0.2);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -287,10 +276,8 @@ header h1 {
 }
 
 .form-actions {
-    display: flex;
     gap: 12px;
     padding: 1rem 1.5rem 1.5rem;
-    justify-content: flex-end;
 }
 
 .upload-zone {
@@ -686,9 +673,6 @@ input[type="file"] {
 }
 
 .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     padding: 1.25rem 1.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -707,8 +691,6 @@ input[type="file"] {
 
 .modal-content .form-actions {
     padding: 0 1.5rem 1.5rem 1.5rem;
-    display: flex;
-    justify-content: flex-end;
     gap: 12px;
 }
 

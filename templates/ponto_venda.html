@@ -43,7 +43,7 @@
             <div id="barra-operador">CAIXA FECHADO - Toque em Abrir</div>
         </div>
 
-        <div class="top-buttons">
+        <div class="top-buttons d-flex align-items-center flex-wrap justify-content-end">
             <button class="btn-header" id="btn-estoque" title="Gerenciar Estoque">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-linecap="round" stroke-linejoin="round">
@@ -269,7 +269,8 @@
             </div>
             <div class="modal-scroll-body">
                 <p class="modal-subtitle">Informe o Fundo de Caixa (Troco Inicial):</p>
-                <input type="number" id="input-valor-abertura" class="input-cliente input-valor-grande" placeholder="0,00">
+                <input type="number" id="input-valor-abertura" class="input-cliente input-valor-grande"
+                    placeholder="0,00">
                 <button class="btn-action" id="btn-confirmar-abertura">ABRIR CAIXA</button>
                 <button class="btn-action" id="btn-cancelar-abertura">CANCELAR</button>
             </div>
@@ -285,7 +286,8 @@
             <div class="modal-scroll-body">
                 <p class="modal-subtitle">Digite a senha para gerenciar o estoque:</p>
                 <input type="password" id="input-senha-estoque" class="input-cliente" placeholder="Senha">
-                <p id="erro-senha-estoque" class="d-none" style="color: #ff6b6b; font-size: 0.85rem; margin: 4px 0 8px;">
+                <p id="erro-senha-estoque" class="d-none"
+                    style="color: #ff6b6b; font-size: 0.85rem; margin: 4px 0 8px;">
                 </p>
                 <button class="btn-action btn-fechar-dia" id="btn-confirmar-senha-estoque">CONFIRMAR</button>
                 <button class="btn-action" id="btn-cancelar-senha-estoque">CANCELAR</button>
@@ -448,8 +450,8 @@
             </div>
             <div class="modal-scroll-body">
                 <p class="modal-subtitle">Informe o total físico em caixa no momento do fechamento:</p>
-                <input type="number" id="input-valor-fechamento" class="input-cliente input-valor-grande" placeholder="0,00"
-                    min="0" step="0.01">
+                <input type="number" id="input-valor-fechamento" class="input-cliente input-valor-grande"
+                    placeholder="0,00" min="0" step="0.01">
                 <p class="modal-subtitle" style="margin-top: 12px;">Observações (opcional):</p>
                 <input type="text" id="input-obs-fechamento" class="input-cliente"
                     placeholder="Ex: Fechamento do dia, sem ocorrências.">

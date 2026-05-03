@@ -147,23 +147,27 @@
         align-items: center;
         gap: 12px;
         padding: 16px 18px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        background: linear-gradient(180deg, #2a2a2a 0%, #222 100%);
+        border-bottom: 1px solid rgba(179, 0, 0, 0.2);
     }
 
     .sidebar-logo {
-        width: 40px;
-        height: 40px;
+        width: 45px;
+        height: 45px;
         border-radius: 50%;
         border: 2px solid #b30000;
         object-fit: cover;
     }
 
     .sidebar-title {
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         font-weight: 800;
-        color: #b30000;
+        margin: 0;
         text-transform: uppercase;
         letter-spacing: 2px;
+        background: linear-gradient(to bottom, #ff4c4c 0%, #aa0000 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         flex: 1;
     }
 
