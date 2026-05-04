@@ -424,7 +424,7 @@ td input[type="number"] {
 
 .col-id {
     color: #fff;
-    font-size: 0.85rem;
+    font-size: 0.88rem !important;
 }
 
 .col-status {
@@ -439,7 +439,7 @@ td input[type="number"] {
 .td-estoque,
 .td-minimos {
     color: #fff;
-    font-size: 0.88rem;
+    font-size: 0.88rem !important;
 }
 
 .img-thumb {
@@ -838,10 +838,6 @@ input[type="file"] {
     margin: 0;
 }
 
-.td-estoque {
-    font-size: 0.9rem;
-}
-
 .td-minimos {
     font-size: 0.82rem;
     color: #fff;
@@ -857,20 +853,8 @@ input[type="file"] {
     font-size: 0.85rem;
 }
 
-.td-data {
-    font-size: 0.8rem;
-    white-space: nowrap;
-}
-
 .td-valor {
     font-weight: 600;
-}
-
-.td-itens {
-    font-size: 0.8rem;
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .admin-loading-text {
