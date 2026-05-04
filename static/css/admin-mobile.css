@@ -298,7 +298,6 @@
         display: grid;
         grid-template-columns: auto 1fr;
         gap: 6px 10px;
-        align-items: center;
         width: 100%;
     }
 
@@ -763,6 +762,25 @@
     #tab-vendas .toolbar {
         order: 2;
         margin-bottom: 0;
+    }
+
+    #tab-vendas .filter-group {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        gap: 6px;
+    }
+
+    #tab-vendas .filter-group label {
+        align-self: flex-start;
+        text-align: left;
+    }
+
+    #tab-vendas .filter-group .btn {
+        align-self: flex-start;
+        width: auto;
+        margin-left: 0;
     }
 
     #tab-vendas .table-wrapper {
