@@ -311,6 +311,12 @@
         min-height: 44px;
     }
 
+    .toggle-label {
+        width: 100%;
+        justify-content: flex-start;
+        align-self: flex-start;
+    }
+
     .filter-input {
         width: 100%;
         padding: 10px;

@@ -360,6 +360,7 @@ export function initBottomSheetGestures() {
             if (dragState.currentOffsetX > 80) {
                 const mobileMenu = dragState.el.closest('.sidebar-mobile');
                 if (mobileMenu) mobileMenu.classList.remove('open');
+                document.body.style.overflow = '';
             }
             dragState.el.style.transform = '';
             dragState = null;
