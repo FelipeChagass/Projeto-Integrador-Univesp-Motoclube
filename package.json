@@ -4,7 +4,7 @@
   "description": "Sistema de Ponto de Venda (PDV) e Painel Administrativo para bar de moto clube.  \r Stack: **Python Flask + PostgreSQL (Supabase) + Vanilla JS + Bootstrap 5**.",
   "main": "index.js",
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/.bin/jest --verbose"
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --verbose"
   },
   "repository": {
     "type": "git",

@@ -4,8 +4,8 @@
 import { jest, describe, test, expect, beforeEach } from '@jest/globals';
 import { S, salvarDadosLocais } from '../static/js/state.js';
 
-/* ── Mockup: API global + UIModal (normalmente carregados pelo <script> tag) ── */
-globalThis.API = {
+/* ── Mockup: API module + globals (alinha com imports ESM) ── */
+const mockedApi = {
     verificarSenhaEstoque: jest.fn(),
     salvarDadosProduto: jest.fn(() => Promise.resolve()),
     processarVenda: jest.fn(() => Promise.resolve('OK')),
@@ -15,11 +15,33 @@ globalThis.API = {
     abrirCaixa: jest.fn(() => Promise.resolve({ caixa_id: 'cx-test-123' })),
     invalidateCache: jest.fn(),
     getDadosIniciais: jest.fn(() => Promise.resolve({ produtos: [], membros: [] })),
+    getProdutos: jest.fn(() => Promise.resolve({ produtos: [] })),
 };
-globalThis.UIModal = {
+const mockedUiModal = {
     confirm: jest.fn((msg, cb) => cb()),
     alert: jest.fn(),
 };
+
+jest.unstable_mockModule('../static/js/api.js', () => ({
+    API: mockedApi,
+    UIModal: mockedUiModal,
+}));
+
+globalThis.API = mockedApi;
+globalThis.UIModal = mockedUiModal;
+
+function mockMatchMedia() {
+    window.matchMedia = jest.fn().mockImplementation(() => ({
+        matches: false,
+        media: '(max-width: 768px)',
+        onchange: null,
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+    }));
+}
 
 /* ── Minimal DOM ── */
 function setupDOM() {
@@ -72,6 +94,8 @@ function setupDOM() {
 let actions, ui;
 async function loadModules() {
     setupDOM();
+    jest.clearAllMocks();
+    mockMatchMedia();
     localStorage.clear();
     S.produtos = [
         { id: 1, nome: 'Cerveja', preco_atual: 10, estoque_bar: 20, estoque_deposito: 50, estoque_min_bar: 5, estoque_min_deposito: 10, url_imagem: '', categoria: 'BEBIDA' },
@@ -243,11 +267,14 @@ describe('actions.js — Membros', () => {
     });
 
     test('fecharModalSelecaoMembro fecha e limpa preview', () => {
+        jest.useFakeTimers();
         document.getElementById('modal-selecionar-membro').style.display = 'flex';
         document.getElementById('preview-divida').innerText = 'R$ 50,00';
         actions.fecharModalSelecaoMembro();
+        jest.runAllTimers();
         expect(document.getElementById('modal-selecionar-membro').style.display).toBe('none');
         expect(document.getElementById('preview-divida').innerText).toBe('');
+        jest.useRealTimers();
     });
 });
 

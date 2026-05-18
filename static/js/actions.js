@@ -1,7 +1,7 @@
 import { API, UIModal } from './api.js';
 import { S, salvarDadosLocais } from './state.js';
 import { esc, formatCurrency, LocalDB } from './utils.js';
-import { showToast, fecharModal, abrirModal, atualizarUI, renderizarCatalogo, getQtdCarrinho, atualizarEstadoBotoes } from './ui.js';
+import { showToast, fecharModal, abrirModal, atualizarUI, renderizarCatalogo, getQtdCarrinho, atualizarEstadoBotoes, sincronizarTextoModoEstoque } from './ui.js';
 import { montarImpressao } from './reports.js';
 
 /* ─── Cart ─── */
@@ -96,6 +96,7 @@ export function alternarModoEstoque() {
         if (carrinhoSec) carrinhoSec.classList.remove('minimizado');
         document.body.style.border = 'none';
         if (header) header.style.borderBottom = '1px solid rgba(255, 152, 0, 0.25)';
+        sincronizarTextoModoEstoque();
         showToast('MODO ESTOQUE DESATIVADO');
         renderizarCatalogo();
         return;
@@ -134,6 +135,7 @@ export function confirmarSenhaEstoque() {
             if (carrinhoSec) carrinhoSec.classList.add('minimizado');
             document.body.style.border = '3px solid #b30000';
             if (header) header.style.borderBottom = '3px solid #b30000';
+            sincronizarTextoModoEstoque();
             showToast('MODO ESTOQUE ATIVADO');
             renderizarCatalogo();
         })
@@ -430,7 +432,9 @@ export function processarTrocaOperador(nomeInput) {
 export function trocarMembro() {
     UIModal.confirm('Deseja sair do operador atual e voltar ao login?', () => {
         fecharModal('modal-relatorios');
-        API.logout().then(() => {
+        API.logout({
+            preserveKeys: ['motoBarCaixaAberto', 'motoBarCaixaId', 'motoBarValorAbertura']
+        }).then(() => {
             S.operadorAtual = '';
             S.usuarioAtual = null;
             S.inicioTurno = null;

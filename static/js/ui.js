@@ -2,6 +2,12 @@ import { API, UIModal } from './api.js';
 import { S, salvarEstadoLocal, salvarDadosLocais } from './state.js';
 import { esc, sanitizeUrl, formatCurrency, LocalDB } from './utils.js';
 
+function viewportIsMobile() {
+    return typeof window !== 'undefined'
+        && typeof window.matchMedia === 'function'
+        && window.matchMedia('(max-width: 768px)').matches;
+}
+
 export function showToast(msg, type) {
     const toastEl = document.getElementById('toast');
     toastEl.innerText = msg;
@@ -20,7 +26,7 @@ export function abrirModal(id) {
         document.body.classList.add('modal-open');
 
         // On mobile, animate the sheet in via CSS transition
-        const isMobile = window.matchMedia('(max-width: 768px)').matches;
+        const isMobile = viewportIsMobile();
         if (isMobile) {
             const content = el.querySelector('.modal-content');
             if (content) {
@@ -36,7 +42,7 @@ export function abrirModal(id) {
 export function fecharModal(id) {
     const el = document.getElementById(id);
     if (el) {
-        const isMobile = window.matchMedia('(max-width: 768px)').matches;
+        const isMobile = viewportIsMobile();
         const content = el.querySelector('.modal-content');
 
         if (isMobile && content) {
@@ -77,10 +83,8 @@ export function fecharModal(id) {
 
 export function atualizarEstadoBotoes() {
     const barra = document.getElementById('barra-operador');
-    const containerAbrir = document.getElementById('container-abrir-caixa');
     const btnAdmin = document.getElementById('btn-admin');
     const sidebarAdmin = document.getElementById('sidebar-btn-admin');
-    const sidebarAbrir = document.getElementById('sidebar-abrir-caixa');
 
     if (S.operadorAtual) {
         barra.innerText = `OPERADOR: ${S.operadorAtual.toUpperCase()}`;
@@ -88,14 +92,10 @@ export function atualizarEstadoBotoes() {
             barra.innerText += ' (CAIXA ABERTO)';
             barra.classList.add('status-aberto');
             barra.classList.remove('status-fechado');
-            if (containerAbrir) containerAbrir.classList.add('d-none');
-            if (sidebarAbrir) sidebarAbrir.classList.add('d-none');
         } else {
             barra.innerText += ' (CAIXA FECHADO)';
             barra.classList.add('status-fechado');
             barra.classList.remove('status-aberto');
-            if (containerAbrir) containerAbrir.classList.remove('d-none');
-            if (sidebarAbrir) sidebarAbrir.classList.remove('d-none');
         }
         if (S.usuarioAtual && S.usuarioAtual.perfil === 'admin') {
             if (btnAdmin) btnAdmin.classList.remove('d-none');
@@ -105,13 +105,30 @@ export function atualizarEstadoBotoes() {
             if (sidebarAdmin) sidebarAdmin.classList.add('d-none');
         }
     } else {
-        if (containerAbrir) containerAbrir.classList.add('d-none');
-        if (sidebarAbrir) sidebarAbrir.classList.add('d-none');
         if (btnAdmin) btnAdmin.classList.add('d-none');
         if (sidebarAdmin) sidebarAdmin.classList.add('d-none');
         barra.innerText = 'SISTEMA BLOQUEADO - Clique para Entrar';
         barra.style.color = '#ccc';
         barra.style.backgroundColor = 'rgba(0,0,0,0.35)';
+    }
+}
+
+export function sincronizarTextoModoEstoque() {
+    const btnEstoque = document.getElementById('btn-estoque');
+    const btnEstoqueText = document.getElementById('btn-estoque-text');
+    const sidebarEstoqueText = document.getElementById('sidebar-btn-estoque-text');
+    const modoAtivo = S.modoGerenciaEstoque;
+
+    if (btnEstoqueText) {
+        btnEstoqueText.innerText = modoAtivo ? 'Sair do modo estoque' : 'Estoque';
+    }
+
+    if (btnEstoque) {
+        btnEstoque.title = modoAtivo ? 'Sair do modo estoque' : 'Gerenciar Estoque';
+    }
+
+    if (sidebarEstoqueText) {
+        sidebarEstoqueText.innerText = modoAtivo ? 'Sair do modo estoque' : 'Gerenciar Estoque';
     }
 }
 
@@ -209,6 +226,7 @@ export function atualizarUI() {
         listaCarrinho.appendChild(fragment);
     }
     document.getElementById('total-display').innerText = formatCurrency(totalCarrinho);
+    sincronizarTextoModoEstoque();
     renderizarCatalogo();
     salvarEstadoLocal();
 }
@@ -221,15 +239,15 @@ export function initBottomSheetGestures() {
 
     /* Spring curve constants */
     const SPRING_CURVE = 'cubic-bezier(0.32, 0.72, 0, 1)';
-    const DISMISS_THRESHOLD_RATIO = 0.35; // 35% of element height
-    const VELOCITY_DISMISS = 0.5;         // px/ms
-    const DRAG_THRESHOLD = 10;            // px before we commit to a drag direction
+    const DISMISS_THRESHOLD_RATIO = 0.35; 
+    const VELOCITY_DISMISS = 0.5;         
+    const DRAG_THRESHOLD = 10;            
 
     /* ─── Touch Start ─── */
     document.addEventListener('touchstart', (e) => {
         const touch = e.touches[0];
 
-        // Priority 1: Modal drag-header (bottom-sheet drag)
+        
         const header = e.target.closest('.modal-drag-header');
         if (header) {
             const content = header.closest('.modal-content');
@@ -305,11 +323,9 @@ export function initBottomSheetGestures() {
                 dragState.activated = true;
                 dragState.el.style.transition = 'none';
             }
-            // Only allow dragging downward (dy > 0)
             const offset = Math.max(0, dy);
             dragState.el.style.transform = `translateY(${offset}px)`;
             dragState.currentOffset = offset;
-            // Track points for velocity calculation
             dragState.points.push({ y: touch.clientY, t: Date.now() });
             if (dragState.points.length > 6) dragState.points.shift();
             if (dy > 0) e.preventDefault();
@@ -380,7 +396,7 @@ export function initBottomSheetGestures() {
             const last = points[points.length - 1];
             const dt = last.t - first.t;
             if (dt <= 0) return 0;
-            return (last.y - first.y) / dt; // px/ms, positive = downward
+            return (last.y - first.y) / dt; 
         }
 
         /* ── Modal ── */
@@ -391,7 +407,6 @@ export function initBottomSheetGestures() {
             const dismissThreshold = elHeight * DISMISS_THRESHOLD_RATIO;
 
             if (currentOffset > dismissThreshold || velocity > VELOCITY_DISMISS) {
-                // Dismiss — continue from current position to offscreen
                 const remainingDistance = elHeight - currentOffset;
                 const speed = Math.max(velocity, 0.8); // minimum speed
                 const duration = Math.min(Math.max(remainingDistance / speed, 150), 350);

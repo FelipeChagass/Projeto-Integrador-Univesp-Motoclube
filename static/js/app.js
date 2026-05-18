@@ -54,7 +54,6 @@ document.addEventListener('click', (e) => {
 document.getElementById('btn-estoque').addEventListener('click', alternarModoEstoque);
 document.getElementById('btn-gestao').addEventListener('click', abrirMenuRelatorios);
 document.getElementById('btn-admin').addEventListener('click', () => { window.location.href = '/admin'; });
-document.getElementById('container-abrir-caixa').addEventListener('click', abrirModalAberturaCaixa);
 document.getElementById('btn-config').addEventListener('click', abrirConfig);
 document.getElementById('btn-logout').addEventListener('click', realizarLogout);
 
@@ -69,7 +68,6 @@ document.getElementById('sidebar-close-btn').addEventListener('click', closeSide
 document.getElementById('sidebar-btn-estoque').addEventListener('click', () => { closeSidebar(); alternarModoEstoque(); });
 document.getElementById('sidebar-gestao').addEventListener('click', () => { closeSidebar(); abrirMenuRelatorios(); });
 document.getElementById('sidebar-btn-admin').addEventListener('click', () => { window.location.href = '/admin'; });
-document.getElementById('sidebar-abrir-caixa').addEventListener('click', () => { closeSidebar(); abrirModalAberturaCaixa(); });
 document.getElementById('sidebar-config').addEventListener('click', () => { closeSidebar(); abrirConfig(); });
 
 document.getElementById('sidebar-logout').addEventListener('click', () => { closeSidebar(); realizarLogout(); });
@@ -220,11 +218,11 @@ function iniciarSistema() {
     API._initSupabase()
         .then(client => {
             if (!client) { window.location.href = '/login'; return null; }
-            return Promise.all([API.getMe(), API.getDadosIniciais()]);
+            return Promise.all([API.getMe(), API.getDadosIniciais(), API.getCaixaAberto(S.caixaId)]);
         })
         .then(results => {
             if (!results) return;
-            const [resMe, dados] = results;
+            const [resMe, dados, caixaRes] = results;
             if (!resMe || resMe.status !== 'ok' || !resMe.usuario) {
                 window.location.href = '/login';
                 return;
@@ -234,6 +232,17 @@ function iniciarSistema() {
             S.produtos = (dados && Array.isArray(dados.produtos)) ? dados.produtos : [];
             S.membros = (dados && Array.isArray(dados.membros)) ? dados.membros : [];
             if (dados && dados.logoUrl) S.logoUrl = dados.logoUrl;
+
+            if (caixaRes && caixaRes.status === 'ok' && caixaRes.caixa) {
+                S.caixaAberto = true;
+                S.caixaId = caixaRes.caixa.id || null;
+                S.valorAbertura = Number(caixaRes.caixa.valor_abertura) || 0;
+            } else {
+                S.caixaAberto = false;
+                S.caixaId = null;
+                S.valorAbertura = 0;
+            }
+
             salvarDadosLocais();
             renderizarCatalogo();
             atualizarEstadoBotoes();

@@ -284,7 +284,10 @@ export const API = (function () {
             return { status: 'ok', usuario: data.user };
         },
 
-        logout: async function () {
+        logout: async function (options) {
+            const preserveKeys = new Set(
+                options && Array.isArray(options.preserveKeys) ? options.preserveKeys : []
+            );
             const client = await initSupabase();
             if (client) {
                 try {
@@ -296,7 +299,7 @@ export const API = (function () {
 
             let keys = Object.keys(localStorage);
             keys.forEach(function (k) {
-                if (k.startsWith('motoBar') || k.startsWith('sb-')) {
+                if ((k.startsWith('motoBar') && !preserveKeys.has(k)) || k.startsWith('sb-')) {
                     localStorage.removeItem(k);
                 }
             });
@@ -382,8 +385,9 @@ export const API = (function () {
             });
         },
 
-        getCaixaAberto: function () {
-            return _request('GET', '/caixa/aberto');
+        getCaixaAberto: function (caixaId) {
+            const query = caixaId ? '?caixa_id=' + encodeURIComponent(caixaId) : '';
+            return _request('GET', '/caixa/aberto' + query);
         },
 
         verificarSenhaEstoque: function (senha) {

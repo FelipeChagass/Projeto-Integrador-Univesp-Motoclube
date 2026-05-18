@@ -52,7 +52,7 @@
                     <path d="m3.3 7 8.7 5 8.7-5" />
                     <path d="M12 22V12" />
                 </svg>
-                <span class="btn-text">Estoque</span>
+                <span class="btn-text" id="btn-estoque-text">Estoque</span>
             </button>
 
             <button class="btn-header" id="btn-gestao" title="Gestão de Caixa">
@@ -61,7 +61,7 @@
                     <path d="M3 3v18h18" />
                     <path d="m19 9-5 5-4-4-3 3" />
                 </svg>
-                <span class="btn-text">Gestão</span>
+                <span class="btn-text">Gestão de Caixa</span>
             </button>
             <button class="btn-header d-none" id="btn-admin" title="Painel Admin">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -69,14 +69,6 @@
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 </svg>
                 <span class="btn-text">Admin</span>
-            </button>
-            <button class="btn-header d-none" id="container-abrir-caixa" title="Abrir Caixa">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="20" height="14" x="2" y="5" rx="2" />
-                    <line x1="2" x2="22" y1="10" y2="10" />
-                </svg>
-                <span class="btn-text">Abrir Caixa</span>
             </button>
 
             <button class="btn-header" id="btn-config" title="Configurações">
@@ -135,7 +127,7 @@
                         <path d="m3.3 7 8.7 5 8.7-5" />
                         <path d="M12 22V12" />
                     </svg>
-                    Gerenciar Estoque
+                    <span id="sidebar-btn-estoque-text">Gerenciar Estoque</span>
                 </button>
                 <button class="sidebar-item" id="sidebar-gestao">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -151,14 +143,6 @@
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                     </svg>
                     Painel Admin
-                </button>
-                <button class="sidebar-item d-none" id="sidebar-abrir-caixa">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect width="20" height="14" x="2" y="5" rx="2" />
-                        <line x1="2" x2="22" y1="10" y2="10" />
-                    </svg>
-                    Abrir Caixa
                 </button>
                 <button class="sidebar-item" id="sidebar-config">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"

@@ -4,6 +4,19 @@
 import { jest, describe, test, expect, beforeEach, afterEach } from '@jest/globals';
 import { S } from '../static/js/state.js';
 
+function mockMatchMedia() {
+    window.matchMedia = jest.fn().mockImplementation(() => ({
+        matches: false,
+        media: '(max-width: 768px)',
+        onchange: null,
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+    }));
+}
+
 /* ── Helpers: minimal DOM for ui.js ── */
 function setupDOM() {
     document.body.innerHTML = `
@@ -26,6 +39,7 @@ describe('ui.js — showToast()', () => {
     let showToast;
     beforeEach(async () => {
         setupDOM();
+        mockMatchMedia();
         const mod = await import('../static/js/ui.js');
         showToast = mod.showToast;
     });
@@ -48,13 +62,20 @@ describe('ui.js — fecharModal()', () => {
     let fecharModal;
     beforeEach(async () => {
         setupDOM();
+        mockMatchMedia();
         document.body.insertAdjacentHTML('beforeend', '<div id="modal-teste" class="modal-overlay" style="display:flex"></div>');
         const mod = await import('../static/js/ui.js');
         fecharModal = mod.fecharModal;
     });
 
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
     test('esconde o modal setando display none', () => {
+        jest.useFakeTimers();
         fecharModal('modal-teste');
+        jest.runAllTimers();
         expect(document.getElementById('modal-teste').style.display).toBe('none');
     });
 
@@ -67,6 +88,7 @@ describe('ui.js — atualizarEstadoBotoes()', () => {
     let atualizarEstadoBotoes;
     beforeEach(async () => {
         setupDOM();
+        mockMatchMedia();
         S.operadorAtual = '';
         S.caixaAberto = false;
         S.usuarioAtual = null;
@@ -117,6 +139,7 @@ describe('ui.js — renderizarCatalogo()', () => {
     let renderizarCatalogo;
     beforeEach(async () => {
         setupDOM();
+        mockMatchMedia();
         S.produtos = [];
         S.carrinho = [];
         S.modoGerenciaEstoque = false;
@@ -187,6 +210,7 @@ describe('ui.js — atualizarUI()', () => {
     let atualizarUI;
     beforeEach(async () => {
         setupDOM();
+        mockMatchMedia();
         S.produtos = [
             { id: 1, nome: 'Cerveja', preco_atual: 10, estoque_bar: 50, estoque_deposito: 100, estoque_min_bar: 5, estoque_min_deposito: 10, url_imagem: '' },
         ];
