@@ -91,6 +91,19 @@ def requer_login(f):
         g.usuario_id = dados['id']
         g.usuario_email = dados['email']
         g.usuario_meta = dados['metadata']
+
+        db = next(get_db())
+        try:
+            usuario = db.query(Usuario).filter_by(id=g.usuario_id).first()
+            if usuario and not usuario.ativo:
+                return jsonify({
+                    'status': 'erro',
+                    'mensagem': 'Usuario inativo. Procure um administrador.',
+                    'codigo': 'USUARIO_INATIVO'
+                }), 403
+        finally:
+            db.close()
+
         return f(*args, **kwargs)
 
     return decorated
@@ -115,7 +128,7 @@ def requer_admin(f):
         # Verifica perfil no banco
         db = next(get_db())
         try:
-            usuario = db.query(Usuario).filter_by(id=g.usuario_id).first()
+            usuario = db.query(Usuario).filter_by(id=g.usuario_id, ativo=True).first()
             if not usuario or usuario.perfil != 'admin':
                 return jsonify({
                     'status': 'erro',

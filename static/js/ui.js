@@ -239,15 +239,15 @@ export function initBottomSheetGestures() {
 
     /* Spring curve constants */
     const SPRING_CURVE = 'cubic-bezier(0.32, 0.72, 0, 1)';
-    const DISMISS_THRESHOLD_RATIO = 0.35; 
-    const VELOCITY_DISMISS = 0.5;         
-    const DRAG_THRESHOLD = 10;            
+    const DISMISS_THRESHOLD_RATIO = 0.35;
+    const VELOCITY_DISMISS = 0.5;
+    const DRAG_THRESHOLD = 10;
 
     /* ─── Touch Start ─── */
     document.addEventListener('touchstart', (e) => {
         const touch = e.touches[0];
 
-        
+
         const header = e.target.closest('.modal-drag-header');
         if (header) {
             const content = header.closest('.modal-content');
@@ -396,7 +396,7 @@ export function initBottomSheetGestures() {
             const last = points[points.length - 1];
             const dt = last.t - first.t;
             if (dt <= 0) return 0;
-            return (last.y - first.y) / dt; 
+            return (last.y - first.y) / dt;
         }
 
         /* ── Modal ── */

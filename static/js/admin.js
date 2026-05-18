@@ -422,7 +422,8 @@ function renderUsuarios() {
         if (!u.ativo) tr.classList.add('row-inactive');
         tr.innerHTML = `
             <td data-label="Nome"><input value="${esc(u.nome)}" data-uid="${u.id}" data-campo="nome"></td>
-            <td class="td-email" data-label="Email">${esc(u.email)}</td>
+            <td class="td-email" data-label="Email"><input type="email" value="${esc(u.email)}" data-uid="${u.id}" data-campo="email"></td>
+            <td data-label="Nova Senha"><input type="password" value="" data-uid="${u.id}" data-campo="senha" placeholder="Opcional"></td>
             <td data-label="Perfil"><select data-uid="${u.id}" data-campo="perfil">
                 <option value="operador" ${u.perfil === 'operador' ? 'selected' : ''}>Operador</option>
                 <option value="admin" ${u.perfil === 'admin' ? 'selected' : ''}>Admin</option>
@@ -432,7 +433,8 @@ function renderUsuarios() {
                 <button class="btn btn-save btn-sm" data-action="salvar-usuario" data-id="${u.id}">Salvar</button>
                 ${u.ativo
                 ? `<button class="btn btn-del btn-sm" data-action="toggle-usuario" data-id="${u.id}" data-ativo="false">Desativar</button>`
-                : `<button class="btn btn-reativar btn-sm" data-action="toggle-usuario" data-id="${u.id}" data-ativo="true">Reativar</button>`}
+                : `<button class="btn btn-reativar btn-sm" data-action="toggle-usuario" data-id="${u.id}" data-ativo="true">Reativar</button>
+                   <button class="btn btn-del btn-sm" data-action="excluir-usuario" data-id="${u.id}" data-nome="${esc(u.nome)}">Excluir</button>`}
             </div></td>`;
         tbody.appendChild(tr);
     });
@@ -454,6 +456,16 @@ async function toggleUsuario(id, ativo) {
     const data = await r.json();
     toast(data.mensagem, data.status === 'ok');
     if (data.status === 'ok') carregarUsuarios();
+}
+
+async function excluirUsuario(id, nome) {
+    UIModal.confirm(`Excluir definitivamente o acesso autenticavel de "${nome}"?`, async function () {
+        const r = await authFetch(`${BASE}/api/admin/usuarios/${id}`, { method: 'DELETE' });
+        if (!r) return;
+        const data = await r.json();
+        toast(data.mensagem, data.status === 'ok');
+        if (data.status === 'ok') carregarUsuarios();
+    });
 }
 
 async function carregarVendas() {
@@ -615,6 +627,7 @@ function setupEventListeners() {
         const id = btn.dataset.id;
         if (action === 'salvar-usuario') salvarUsuario(id);
         if (action === 'toggle-usuario') toggleUsuario(id, btn.dataset.ativo === 'true');
+        if (action === 'excluir-usuario') excluirUsuario(id, btn.dataset.nome || 'usuário');
     });
 
     // ── Admin Sidebar Mobile ──

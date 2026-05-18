@@ -21,7 +21,9 @@ Endpoints:
     POST   /api/admin/membros/<id>/ajuste              → Ajuste manual de saldo
 
     GET    /api/admin/usuarios                        → Lista todos os usuários
+    POST   /api/admin/usuarios                        → Cria usuário no Auth + tabela local
     PUT    /api/admin/usuarios/<id>                    → Edita perfil/ativo do usuário
+    DELETE /api/admin/usuarios/<id>                    → Soft delete no Auth + inativa localmente
 
     GET    /api/admin/vendas                          → Lista vendas (com filtros)
 
@@ -36,9 +38,10 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, request, current_app, g
 
-from app.auth_middleware import requer_admin, _supabase
+from app.auth_middleware import requer_admin
 from app.database import get_db
 from app.models.configuracao import ConfiguracaoSistema
+from app.supabase_admin import get_supabase_admin_client
 from app.models.venda import Venda
 from app.services import produto_service, membro_service, usuario_service
 
@@ -330,7 +333,7 @@ def criar_usuario():
     dados = request.get_json(silent=True) or {}
     db = next(get_db())
     try:
-        resultado = usuario_service.criar_usuario_admin(db, _supabase, dados)
+        resultado = usuario_service.criar_usuario_admin(db, get_supabase_admin_client(), dados)
         status_code = 201 if resultado.get('status') == 'ok' else 400
         return jsonify(resultado), status_code
     finally:
@@ -339,11 +342,35 @@ def criar_usuario():
 @bp.route('/usuarios/<user_id>', methods=['PUT'])
 @requer_admin
 def editar_usuario(user_id):
-    """Edita perfil e/ou status ativo de um usuário."""
+    """Edita dados locais e credenciais autenticáveis de um usuário."""
     dados = request.get_json(silent=True) or {}
     db = next(get_db())
     try:
-        resultado = usuario_service.editar_usuario(db, user_id, dados)
+        resultado = usuario_service.editar_usuario(
+            db,
+            get_supabase_admin_client(),
+            str(g.usuario_id),
+            user_id,
+            dados,
+        )
+        status_code = 200 if resultado.get('status') == 'ok' else 400
+        return jsonify(resultado), status_code
+    finally:
+        db.close()
+
+
+@bp.route('/usuarios/<user_id>', methods=['DELETE'])
+@requer_admin
+def excluir_usuario(user_id):
+    """Remove o usuário do Supabase Auth e mantém o registro local inativo."""
+    db = next(get_db())
+    try:
+        resultado = usuario_service.excluir_usuario_admin(
+            db,
+            get_supabase_admin_client(),
+            str(g.usuario_id),
+            user_id,
+        )
         status_code = 200 if resultado.get('status') == 'ok' else 400
         return jsonify(resultado), status_code
     finally:
