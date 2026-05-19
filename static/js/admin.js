@@ -105,7 +105,6 @@ function renderProdutos() {
         tr.innerHTML = `
             <td class="col-imagem" data-label="Img">${imgHtml}
                 <button class="btn-upload-sm" data-action="upload-img" data-id="${p.id}">Foto</button></td>
-            <td class="col-id" data-label="ID">${p.id}</td>
             <td data-label="Nome"><input value="${esc(p.nome)}" data-pid="${p.id}" data-campo="nome"></td>
             <td data-label="Preço"><input type="number" step="0.01" value="${p.preco_atual}" data-pid="${p.id}" data-campo="preco_atual"></td>
             <td data-label="Categ."><select data-pid="${p.id}" data-campo="categoria">
