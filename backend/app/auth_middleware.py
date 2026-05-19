@@ -2,7 +2,7 @@ import logging
 from functools import wraps
 
 from flask import request, jsonify, g
-from supabase import create_client, Client
+from supabase import Client, ClientOptions, create_client
 
 from app.config import Config
 from app.database import get_db
@@ -15,6 +15,10 @@ logger = logging.getLogger(__name__)
 _supabase: Client = create_client(
     Config.SUPABASE_URL,
     Config.SUPABASE_SERVICE_ROLE_KEY,
+    options=ClientOptions(
+        auto_refresh_token=False,
+        persist_session=False,
+    ),
 )
 
 

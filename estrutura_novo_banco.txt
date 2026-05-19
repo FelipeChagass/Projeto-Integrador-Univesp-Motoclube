@@ -1,260 +1,393 @@
-create table public.usuarios (
-  id uuid not null,
-  nome text not null,
-  perfil text not null default 'operador'::text,
-  ativo boolean not null default true,
-  criado_em timestamp with time zone not null default now(),
-  atualizado_em timestamp with time zone not null default now(),
-  email character varying not null,
-  constraint usuarios_pkey primary key (id),
-  constraint usuarios_email_key unique (email),
-  constraint usuarios_id_fkey foreign KEY (id) references auth.users (id) on delete CASCADE,
-  constraint usuarios_perfil_check check (
-    (
-      perfil = any (array['admin'::text, 'operador'::text])
-    )
+-- =============================================================
+-- SCHEMA MELHORADO V2 - CORRIGIDO
+-- Baseado no SQL real de produção
+-- Melhorias aplicadas: 1, 2, 3, 4, 5, 6, 7, 8, 9
+-- Correção aplicada:
+-- - Criação da função public.definir_atualizado_em()
+--   antes de qualquer CREATE TRIGGER que dependa dela
+-- =============================================================
+
+
+-- =============================================================
+-- EXTENSÕES NECESSÁRIAS
+-- =============================================================
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+
+-- =============================================================
+-- MELHORIA 1: ENUMs nativos
+-- =============================================================
+
+CREATE TYPE perfil_usuario_enum      AS ENUM ('admin', 'operador');
+CREATE TYPE status_caixa_enum        AS ENUM ('aberto', 'fechado');
+CREATE TYPE largura_impressao_enum   AS ENUM ('ticket-80mm', 'ticket-58mm');
+CREATE TYPE tipo_venda_enum          AS ENUM ('normal', 'fiado', 'recebimento_divida', 'ajuste');
+CREATE TYPE metodo_pagamento_enum    AS ENUM ('dinheiro', 'pix', 'cartao_credito', 'cartao_debito', 'fiado', 'ajuste');
+CREATE TYPE tipo_movimentacao_enum   AS ENUM ('debito', 'credito', 'ajuste');
+CREATE TYPE origem_movimentacao_enum AS ENUM ('venda_fiado', 'pagamento', 'ajuste_manual');
+
+
+-- =============================================================
+-- FUNÇÃO GENÉRICA PARA ATUALIZAR atualizado_em
+-- Necessária antes da criação dos triggers
+-- =============================================================
+
+CREATE OR REPLACE FUNCTION public.definir_atualizado_em()
+RETURNS trigger AS $$
+BEGIN
+  NEW.atualizado_em = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- =============================================================
+-- USUARIOS
+-- Melhorias: 1 (enum perfil), 4 (soft delete)
+-- =============================================================
+
+CREATE TABLE public.usuarios (
+  id            uuid                NOT NULL,
+  nome          text                NOT NULL,
+  perfil        perfil_usuario_enum NOT NULL DEFAULT 'operador',
+  ativo         boolean             NOT NULL DEFAULT true,
+  deleted_at    timestamptz                  DEFAULT NULL,
+  criado_em     timestamptz         NOT NULL DEFAULT now(),
+  atualizado_em timestamptz         NOT NULL DEFAULT now(),
+  email         character varying   NOT NULL,
+  CONSTRAINT usuarios_pkey      PRIMARY KEY (id),
+  CONSTRAINT usuarios_email_key UNIQUE (email),
+  CONSTRAINT usuarios_id_fkey   FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
+) TABLESPACE pg_default;
+
+CREATE TRIGGER trg_usuarios_atualizado_em
+BEFORE UPDATE ON public.usuarios
+FOR EACH ROW EXECUTE FUNCTION public.definir_atualizado_em();
+
+
+-- =============================================================
+-- CONFIGURACOES_SISTEMA
+-- Melhorias: 1 (enum largura_impressao), 5 (singleton documentado)
+-- =============================================================
+
+CREATE TABLE public.configuracoes_sistema (
+  id                  integer                NOT NULL DEFAULT 1,
+  url_logo            text                            NULL,
+  imprimir_automatico boolean                NOT NULL DEFAULT true,
+  largura_impressao   largura_impressao_enum NOT NULL DEFAULT 'ticket-80mm',
+  atualizado_em       timestamptz            NOT NULL DEFAULT now(),
+  CONSTRAINT configuracoes_sistema_pkey  PRIMARY KEY (id),
+  CONSTRAINT configuracoes_sistema_unica CHECK (id = 1)
+) TABLESPACE pg_default;
+
+CREATE TRIGGER trg_configuracoes_atualizado_em
+BEFORE UPDATE ON public.configuracoes_sistema
+FOR EACH ROW EXECUTE FUNCTION public.definir_atualizado_em();
+
+
+-- =============================================================
+-- MEMBROS
+-- Melhoria: 4 (soft delete)
+-- Mantidos: trigger atualizado_em, índice único lower(nome)
+-- =============================================================
+
+CREATE TABLE public.membros (
+  id            uuid          NOT NULL DEFAULT gen_random_uuid(),
+  nome          text          NOT NULL,
+  saldo_devedor numeric(12,2) NOT NULL DEFAULT 0,
+  ativo         boolean       NOT NULL DEFAULT true,
+  deleted_at    timestamptz            DEFAULT NULL,
+  criado_em     timestamptz   NOT NULL DEFAULT now(),
+  atualizado_em timestamptz   NOT NULL DEFAULT now(),
+  CONSTRAINT membros_pkey                PRIMARY KEY (id),
+  CONSTRAINT membros_saldo_devedor_check CHECK (saldo_devedor >= 0)
+) TABLESPACE pg_default;
+
+CREATE UNIQUE INDEX IF NOT EXISTS membros_nome_unico
+  ON public.membros USING btree (lower(nome)) TABLESPACE pg_default;
+
+CREATE TRIGGER trg_membros_atualizado_em
+BEFORE UPDATE ON public.membros
+FOR EACH ROW EXECUTE FUNCTION public.definir_atualizado_em();
+
+
+-- =============================================================
+-- CAIXAS
+-- Melhoria: 1 (enum status)
+-- Mantidos: todos os índices e constraints originais
+-- =============================================================
+
+CREATE TABLE public.caixas (
+  id                    uuid              NOT NULL DEFAULT gen_random_uuid(),
+  usuario_abertura_id   uuid              NOT NULL,
+  usuario_fechamento_id uuid                       NULL,
+  aberto_em             timestamptz       NOT NULL DEFAULT now(),
+  fechado_em            timestamptz                NULL,
+  valor_abertura        numeric(12,2)     NOT NULL DEFAULT 0,
+  valor_fechamento      numeric(12,2)              NULL,
+  status                status_caixa_enum NOT NULL DEFAULT 'aberto',
+  observacoes           text                       NULL,
+  CONSTRAINT caixas_pkey                       PRIMARY KEY (id),
+  CONSTRAINT caixas_usuario_abertura_id_fkey   FOREIGN KEY (usuario_abertura_id)   REFERENCES public.usuarios(id) ON DELETE RESTRICT,
+  CONSTRAINT caixas_usuario_fechamento_id_fkey FOREIGN KEY (usuario_fechamento_id) REFERENCES public.usuarios(id) ON DELETE SET NULL,
+  CONSTRAINT caixas_valor_abertura_check       CHECK (valor_abertura >= 0),
+  CONSTRAINT caixas_valor_fechamento_check     CHECK (valor_fechamento IS NULL OR valor_fechamento >= 0)
+) TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS caixas_usuario_abertura_idx
+  ON public.caixas USING btree (usuario_abertura_id) TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS caixas_status_idx
+  ON public.caixas USING btree (status) TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS caixas_aberto_em_idx
+  ON public.caixas USING btree (aberto_em DESC) TABLESPACE pg_default;
+
+CREATE UNIQUE INDEX IF NOT EXISTS caixas_um_aberto_por_usuario_idx
+  ON public.caixas USING btree (usuario_abertura_id) TABLESPACE pg_default
+  WHERE (status = 'aberto');
+
+CREATE INDEX IF NOT EXISTS caixas_usuario_fechamento_idx
+  ON public.caixas USING btree (usuario_fechamento_id) TABLESPACE pg_default;
+
+
+-- =============================================================
+-- PRODUTOS
+-- Melhoria: 3 (uuid no lugar de bigint identity), 4 (soft delete)
+-- Mantidos: trigger atualizado_em, índices nome e categoria
+-- =============================================================
+
+CREATE TABLE public.produtos (
+  id                         uuid          NOT NULL DEFAULT gen_random_uuid(),
+  nome                       text          NOT NULL,
+  preco_atual                numeric(12,2) NOT NULL,
+  estoque_bar                integer       NOT NULL DEFAULT 0,
+  estoque_deposito           integer       NOT NULL DEFAULT 0,
+  url_imagem                 text                   NULL,
+  categoria                  text                   NULL,
+  estoque_min_bar            integer       NOT NULL DEFAULT 0,
+  estoque_min_deposito       integer       NOT NULL DEFAULT 0,
+  ativo                      boolean       NOT NULL DEFAULT true,
+  deleted_at                 timestamptz            DEFAULT NULL,
+  criado_em                  timestamptz   NOT NULL DEFAULT now(),
+  atualizado_em              timestamptz   NOT NULL DEFAULT now(),
+  CONSTRAINT produtos_pkey                       PRIMARY KEY (id),
+  CONSTRAINT produtos_preco_atual_check          CHECK (preco_atual >= 0),
+  CONSTRAINT produtos_estoque_bar_check          CHECK (estoque_bar >= 0),
+  CONSTRAINT produtos_estoque_deposito_check     CHECK (estoque_deposito >= 0),
+  CONSTRAINT produtos_estoque_min_bar_check      CHECK (estoque_min_bar >= 0),
+  CONSTRAINT produtos_estoque_min_deposito_check CHECK (estoque_min_deposito >= 0)
+) TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS produtos_nome_idx
+  ON public.produtos USING btree (lower(nome)) TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS produtos_categoria_idx
+  ON public.produtos USING btree (categoria) TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS produtos_ativo_idx
+  ON public.produtos USING btree (ativo) TABLESPACE pg_default
+  WHERE deleted_at IS NULL;
+
+CREATE TRIGGER trg_produtos_atualizado_em
+BEFORE UPDATE ON public.produtos
+FOR EACH ROW EXECUTE FUNCTION public.definir_atualizado_em();
+
+
+-- =============================================================
+-- MELHORIA 8: Função para baixa de estoque com controle de concorrência
+-- Use no lugar de UPDATE direto na camada de aplicação
+-- =============================================================
+
+CREATE OR REPLACE FUNCTION public.fn_baixar_estoque_bar(
+  p_produto_id uuid,
+  p_quantidade integer
+)
+RETURNS boolean AS $$
+DECLARE
+  v_rows integer;
+BEGIN
+  UPDATE public.produtos
+  SET estoque_bar = estoque_bar - p_quantidade
+  WHERE id = p_produto_id
+    AND estoque_bar >= p_quantidade
+    AND deleted_at IS NULL;
+
+  GET DIAGNOSTICS v_rows = ROW_COUNT;
+
+  RETURN v_rows > 0;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- =============================================================
+-- VENDAS
+-- Melhoria: 1 (enums tipo_venda e metodo_pagamento)
+-- Mantidas: todas as FKs e constraints originais
+-- =============================================================
+
+CREATE TABLE public.vendas (
+  id               uuid                  NOT NULL DEFAULT gen_random_uuid(),
+  id_externo       text                           UNIQUE,
+  caixa_id         uuid                           NULL,
+  usuario_id       uuid                           NULL,
+  membro_id        uuid                           NULL,
+  tipo_venda       tipo_venda_enum       NOT NULL,
+  metodo_pagamento metodo_pagamento_enum NOT NULL,
+  nome_cliente     text                           NULL,
+  valor_total      numeric(12,2)         NOT NULL CHECK (valor_total >= 0),
+  observacoes      text                           NULL,
+  criado_em        timestamptz           NOT NULL DEFAULT now(),
+  CONSTRAINT vendas_pkey            PRIMARY KEY (id),
+  CONSTRAINT vendas_caixa_id_fkey   FOREIGN KEY (caixa_id)   REFERENCES public.caixas(id),
+  CONSTRAINT vendas_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES public.usuarios(id),
+  CONSTRAINT vendas_membro_id_fkey  FOREIGN KEY (membro_id)  REFERENCES public.membros(id)
+) TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS vendas_caixa_id_idx
+  ON public.vendas USING btree (caixa_id) TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS vendas_usuario_id_idx
+  ON public.vendas USING btree (usuario_id) TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS vendas_membro_id_idx
+  ON public.vendas USING btree (membro_id) TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS vendas_criado_em_idx
+  ON public.vendas USING btree (criado_em DESC) TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS vendas_tipo_venda_idx
+  ON public.vendas USING btree (tipo_venda) TABLESPACE pg_default;
+
+
+-- =============================================================
+-- ITENS_VENDA
+-- Melhoria: 3 (produto_id uuid), 9 (ON DELETE SET NULL + preco_na_epoca)
+-- =============================================================
+
+CREATE TABLE public.itens_venda (
+  id                       uuid          NOT NULL DEFAULT gen_random_uuid(),
+  venda_id                 uuid          NOT NULL,
+  produto_id               uuid                   NULL,
+  nome_produto             text          NOT NULL,
+  preco_unitario_na_epoca  numeric(12,2) NOT NULL CHECK (preco_unitario_na_epoca >= 0),
+  quantidade               integer       NOT NULL CHECK (quantidade > 0),
+  preco_unitario           numeric(12,2) NOT NULL CHECK (preco_unitario >= 0),
+  preco_total              numeric(12,2) NOT NULL CHECK (preco_total >= 0),
+  observacoes              text                   NULL,
+  CONSTRAINT itens_venda_pkey            PRIMARY KEY (id),
+  CONSTRAINT itens_venda_venda_id_fkey   FOREIGN KEY (venda_id)   REFERENCES public.vendas(id),
+  CONSTRAINT itens_venda_produto_id_fkey FOREIGN KEY (produto_id) REFERENCES public.produtos(id) ON DELETE SET NULL
+) TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS itens_venda_venda_id_idx
+  ON public.itens_venda USING btree (venda_id) TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS itens_venda_produto_id_idx
+  ON public.itens_venda USING btree (produto_id) TABLESPACE pg_default;
+
+
+-- =============================================================
+-- MELHORIA 6: Trigger para consistência de vendas.valor_total
+-- Recalcula automaticamente ao inserir/editar/deletar itens
+-- =============================================================
+
+CREATE OR REPLACE FUNCTION public.fn_recalcular_valor_total_venda()
+RETURNS trigger AS $$
+BEGIN
+  UPDATE public.vendas
+  SET valor_total = (
+    SELECT COALESCE(SUM(preco_total), 0)
+    FROM public.itens_venda
+    WHERE venda_id = COALESCE(NEW.venda_id, OLD.venda_id)
+  )
+  WHERE id = COALESCE(NEW.venda_id, OLD.venda_id);
+
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_recalcular_valor_total
+AFTER INSERT OR UPDATE OR DELETE ON public.itens_venda
+FOR EACH ROW EXECUTE FUNCTION public.fn_recalcular_valor_total_venda();
+
+
+-- =============================================================
+-- MOVIMENTACOES_MEMBRO
+-- Melhoria: 1 (enums tipo_movimentacao e origem)
+-- Mantidos: todos os índices e constraints originais
+-- =============================================================
+
+CREATE TABLE public.movimentacoes_membro (
+  id                uuid                     NOT NULL DEFAULT gen_random_uuid(),
+  membro_id         uuid                     NOT NULL,
+  venda_id          uuid                              NULL,
+  usuario_id        uuid                              NULL,
+  tipo_movimentacao tipo_movimentacao_enum   NOT NULL,
+  origem            origem_movimentacao_enum NOT NULL,
+  descricao         text                              NULL,
+  valor             numeric(12,2)            NOT NULL CHECK (valor >= 0),
+  criado_em         timestamptz              NOT NULL DEFAULT now(),
+  CONSTRAINT movimentacoes_membro_pkey            PRIMARY KEY (id),
+  CONSTRAINT movimentacoes_membro_membro_id_fkey  FOREIGN KEY (membro_id)  REFERENCES public.membros(id)  ON DELETE CASCADE,
+  CONSTRAINT movimentacoes_membro_venda_id_fkey   FOREIGN KEY (venda_id)   REFERENCES public.vendas(id)   ON DELETE SET NULL,
+  CONSTRAINT movimentacoes_membro_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES public.usuarios(id) ON DELETE SET NULL
+) TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS movimentacoes_membro_membro_id_idx
+  ON public.movimentacoes_membro USING btree (membro_id, criado_em DESC) TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS movimentacoes_membro_venda_id_idx
+  ON public.movimentacoes_membro USING btree (venda_id) TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS movimentacoes_membro_usuario_id_idx
+  ON public.movimentacoes_membro USING btree (usuario_id) TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS movimentacoes_membro_tipo_idx
+  ON public.movimentacoes_membro USING btree (tipo_movimentacao) TABLESPACE pg_default;
+
+
+-- =============================================================
+-- AJUSTES_ESTOQUE
+-- Melhoria: 3 (produto_id uuid)
+-- Mantidos: todos os índices e constraints originais
+-- =============================================================
+
+CREATE TABLE public.ajustes_estoque (
+  id                            uuid        NOT NULL DEFAULT gen_random_uuid(),
+  produto_id                    uuid        NOT NULL,
+  usuario_id                    uuid                 NULL,
+  estoque_bar_anterior          integer     NOT NULL,
+  estoque_bar_novo              integer     NOT NULL,
+  estoque_deposito_anterior     integer     NOT NULL,
+  estoque_deposito_novo         integer     NOT NULL,
+  estoque_min_bar_anterior      integer              NULL,
+  estoque_min_bar_novo          integer              NULL,
+  estoque_min_deposito_anterior integer              NULL,
+  estoque_min_deposito_novo     integer              NULL,
+  motivo                        text                 NULL,
+  criado_em                     timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT ajustes_estoque_pkey            PRIMARY KEY (id),
+  CONSTRAINT ajustes_estoque_produto_id_fkey FOREIGN KEY (produto_id) REFERENCES public.produtos(id) ON DELETE CASCADE,
+  CONSTRAINT ajustes_estoque_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES public.usuarios(id) ON DELETE SET NULL,
+  CONSTRAINT ajustes_estoque_valores_validos CHECK (
+    estoque_bar_anterior      >= 0 AND
+    estoque_bar_novo          >= 0 AND
+    estoque_deposito_anterior >= 0 AND
+    estoque_deposito_novo     >= 0 AND
+    (estoque_min_bar_anterior      IS NULL OR estoque_min_bar_anterior      >= 0) AND
+    (estoque_min_bar_novo          IS NULL OR estoque_min_bar_novo          >= 0) AND
+    (estoque_min_deposito_anterior IS NULL OR estoque_min_deposito_anterior >= 0) AND
+    (estoque_min_deposito_novo     IS NULL OR estoque_min_deposito_novo     >= 0)
   )
 ) TABLESPACE pg_default;
 
-create trigger trg_usuarios_atualizado_em BEFORE
-update on usuarios for EACH row
-execute FUNCTION definir_atualizado_em ();
+CREATE INDEX IF NOT EXISTS ajustes_estoque_produto_id_idx
+  ON public.ajustes_estoque USING btree (produto_id) TABLESPACE pg_default;
 
-create table public.ajustes_estoque (
-  id uuid not null default gen_random_uuid (),
-  produto_id bigint not null,
-  usuario_id uuid null,
-  estoque_bar_anterior integer not null,
-  estoque_bar_novo integer not null,
-  estoque_deposito_anterior integer not null,
-  estoque_deposito_novo integer not null,
-  estoque_min_bar_anterior integer null,
-  estoque_min_bar_novo integer null,
-  estoque_min_deposito_anterior integer null,
-  estoque_min_deposito_novo integer null,
-  motivo text null,
-  criado_em timestamp with time zone not null default now(),
-  constraint ajustes_estoque_pkey primary key (id),
-  constraint ajustes_estoque_produto_id_fkey foreign KEY (produto_id) references produtos (id) on delete CASCADE,
-  constraint ajustes_estoque_usuario_id_fkey foreign KEY (usuario_id) references usuarios (id) on delete set null,
-  constraint ajustes_estoque_valores_validos check (
-    (
-      (estoque_bar_anterior >= 0)
-      and (estoque_bar_novo >= 0)
-      and (estoque_deposito_anterior >= 0)
-      and (estoque_deposito_novo >= 0)
-      and (
-        (estoque_min_bar_anterior is null)
-        or (estoque_min_bar_anterior >= 0)
-      )
-      and (
-        (estoque_min_bar_novo is null)
-        or (estoque_min_bar_novo >= 0)
-      )
-      and (
-        (estoque_min_deposito_anterior is null)
-        or (estoque_min_deposito_anterior >= 0)
-      )
-      and (
-        (estoque_min_deposito_novo is null)
-        or (estoque_min_deposito_novo >= 0)
-      )
-    )
-  )
-) TABLESPACE pg_default;
+CREATE INDEX IF NOT EXISTS ajustes_estoque_usuario_id_idx
+  ON public.ajustes_estoque USING btree (usuario_id) TABLESPACE pg_default;
 
-create index IF not exists ajustes_estoque_produto_id_idx on public.ajustes_estoque using btree (produto_id) TABLESPACE pg_default;
-
-create index IF not exists ajustes_estoque_usuario_id_idx on public.ajustes_estoque using btree (usuario_id) TABLESPACE pg_default;
-
-create index IF not exists ajustes_estoque_criado_em_idx on public.ajustes_estoque using btree (criado_em desc) TABLESPACE pg_default;
-
-create table public.caixas (
-  id uuid not null default gen_random_uuid (),
-  usuario_abertura_id uuid not null,
-  usuario_fechamento_id uuid null,
-  aberto_em timestamp with time zone not null default now(),
-  fechado_em timestamp with time zone null,
-  valor_abertura numeric(12, 2) not null default 0,
-  valor_fechamento numeric(12, 2) null,
-  status text not null default 'aberto'::text,
-  observacoes text null,
-  constraint caixas_pkey primary key (id),
-  constraint caixas_usuario_abertura_id_fkey foreign KEY (usuario_abertura_id) references usuarios (id) on delete RESTRICT,
-  constraint caixas_usuario_fechamento_id_fkey foreign KEY (usuario_fechamento_id) references usuarios (id) on delete set null,
-  constraint caixas_status_check check (
-    (
-      status = any (array['aberto'::text, 'fechado'::text])
-    )
-  ),
-  constraint caixas_valor_abertura_check check ((valor_abertura >= (0)::numeric)),
-  constraint caixas_valor_fechamento_check check (
-    (
-      (valor_fechamento is null)
-      or (valor_fechamento >= (0)::numeric)
-    )
-  )
-) TABLESPACE pg_default;
-
-create index IF not exists caixas_usuario_abertura_idx on public.caixas using btree (usuario_abertura_id) TABLESPACE pg_default;
-
-create index IF not exists caixas_status_idx on public.caixas using btree (status) TABLESPACE pg_default;
-
-create index IF not exists caixas_aberto_em_idx on public.caixas using btree (aberto_em desc) TABLESPACE pg_default;
-
-create unique INDEX IF not exists caixas_um_aberto_por_usuario_idx on public.caixas using btree (usuario_abertura_id) TABLESPACE pg_default
-where
-  (status = 'aberto'::text);
-
-create table public.configuracoes_sistema (
-  id integer not null default 1,
-  url_logo text null,
-  imprimir_automatico boolean not null default true,
-  largura_impressao text not null default 'ticket-80mm'::text,
-  atualizado_em timestamp with time zone not null default now(),
-  constraint configuracoes_sistema_pkey primary key (id),
-  constraint configuracoes_sistema_largura_impressao_check check (
-    (
-      largura_impressao = any (array['ticket-80mm'::text, 'ticket-58mm'::text])
-    )
-  ),
-  constraint configuracoes_sistema_unica check ((id = 1))
-) TABLESPACE pg_default;
-
-create trigger trg_configuracoes_atualizado_em BEFORE
-update on configuracoes_sistema for EACH row
-execute FUNCTION definir_configuracoes_atualizado_em ();
-
-create table public.membros (
-  id uuid not null default gen_random_uuid (),
-  nome text not null,
-  saldo_devedor numeric(12, 2) not null default 0,
-  ativo boolean not null default true,
-  criado_em timestamp with time zone not null default now(),
-  atualizado_em timestamp with time zone not null default now(),
-  constraint membros_pkey primary key (id),
-  constraint membros_saldo_devedor_check check ((saldo_devedor >= (0)::numeric))
-) TABLESPACE pg_default;
-
-create unique INDEX IF not exists membros_nome_unico on public.membros using btree (lower(nome)) TABLESPACE pg_default;
-
-create trigger trg_membros_atualizado_em BEFORE
-update on membros for EACH row
-execute FUNCTION definir_atualizado_em ();
-
-create table public.movimentacoes_membro (
-  id uuid not null default gen_random_uuid (),
-  membro_id uuid not null,
-  venda_id uuid null,
-  usuario_id uuid null,
-  tipo_movimentacao text not null,
-  origem text not null,
-  descricao text null,
-  valor numeric(12, 2) not null,
-  criado_em timestamp with time zone not null default now(),
-  constraint movimentacoes_membro_pkey primary key (id),
-  constraint movimentacoes_membro_usuario_id_fkey foreign KEY (usuario_id) references usuarios (id) on delete set null,
-  constraint movimentacoes_membro_venda_id_fkey foreign KEY (venda_id) references vendas (id) on delete set null,
-  constraint movimentacoes_membro_membro_id_fkey foreign KEY (membro_id) references membros (id) on delete CASCADE,
-  constraint movimentacoes_membro_tipo_movimentacao_check check (
-    (
-      tipo_movimentacao = any (
-        array['debito'::text, 'credito'::text, 'ajuste'::text]
-      )
-    )
-  ),
-  constraint movimentacoes_membro_origem_check check (
-    (
-      origem = any (
-        array[
-          'venda_fiado'::text,
-          'pagamento'::text,
-          'ajuste_manual'::text
-        ]
-      )
-    )
-  ),
-  constraint movimentacoes_membro_valor_check check ((valor >= (0)::numeric))
-) TABLESPACE pg_default;
-
-create index IF not exists movimentacoes_membro_membro_id_idx on public.movimentacoes_membro using btree (membro_id, criado_em desc) TABLESPACE pg_default;
-
-create index IF not exists movimentacoes_membro_venda_id_idx on public.movimentacoes_membro using btree (venda_id) TABLESPACE pg_default;
-
-create index IF not exists movimentacoes_membro_usuario_id_idx on public.movimentacoes_membro using btree (usuario_id) TABLESPACE pg_default;
-
-create index IF not exists movimentacoes_membro_tipo_idx on public.movimentacoes_membro using btree (tipo_movimentacao) TABLESPACE pg_default;
-
-create table public.produtos (
-  id bigint generated by default as identity not null,
-  nome text not null,
-  preco_atual numeric(12, 2) not null,
-  estoque_bar integer not null default 0,
-  estoque_deposito integer not null default 0,
-  url_imagem text null,
-  categoria text null,
-  estoque_min_bar integer not null default 0,
-  estoque_min_deposito integer not null default 0,
-  ativo boolean not null default true,
-  criado_em timestamp with time zone not null default now(),
-  atualizado_em timestamp with time zone not null default now(),
-  constraint produtos_pkey primary key (id),
-  constraint produtos_estoque_bar_check check ((estoque_bar >= 0)),
-  constraint produtos_estoque_deposito_check check ((estoque_deposito >= 0)),
-  constraint produtos_estoque_min_bar_check check ((estoque_min_bar >= 0)),
-  constraint produtos_estoque_min_deposito_check check ((estoque_min_deposito >= 0)),
-  constraint produtos_preco_atual_check check ((preco_atual >= (0)::numeric))
-) TABLESPACE pg_default;
-
-create index IF not exists produtos_nome_idx on public.produtos using btree (lower(nome)) TABLESPACE pg_default;
-
-create index IF not exists produtos_categoria_idx on public.produtos using btree (categoria) TABLESPACE pg_default;
-
-create trigger trg_produtos_atualizado_em BEFORE
-update on produtos for EACH row
-execute FUNCTION definir_atualizado_em ();
-
-create table public.usuarios (
-  id uuid not null,
-  nome text not null,
-  perfil text not null default 'operador'::text,
-  ativo boolean not null default true,
-  criado_em timestamp with time zone not null default now(),
-  atualizado_em timestamp with time zone not null default now(),
-  email character varying not null,
-  constraint usuarios_pkey primary key (id),
-  constraint usuarios_email_key unique (email),
-  constraint usuarios_id_fkey foreign KEY (id) references auth.users (id) on delete CASCADE,
-  constraint usuarios_perfil_check check (
-    (
-      perfil = any (array['admin'::text, 'operador'::text])
-    )
-  )
-) TABLESPACE pg_default;
-
-create trigger trg_usuarios_atualizado_em BEFORE
-update on usuarios for EACH row
-execute FUNCTION definir_atualizado_em ();
-
-create table public.usuarios (
-  id uuid not null,
-  nome text not null,
-  perfil text not null default 'operador'::text,
-  ativo boolean not null default true,
-  criado_em timestamp with time zone not null default now(),
-  atualizado_em timestamp with time zone not null default now(),
-  email character varying not null,
-  constraint usuarios_pkey primary key (id),
-  constraint usuarios_email_key unique (email),
-  constraint usuarios_id_fkey foreign KEY (id) references auth.users (id) on delete CASCADE,
-  constraint usuarios_perfil_check check (
-    (
-      perfil = any (array['admin'::text, 'operador'::text])
-    )
-  )
-) TABLESPACE pg_default;
-
-create trigger trg_usuarios_atualizado_em BEFORE
-update on usuarios for EACH row
-execute FUNCTION definir_atualizado_em ();
-
+CREATE INDEX IF NOT EXISTS ajustes_estoque_criado_em_idx
+  ON public.ajustes_estoque USING btree (criado_em DESC) TABLESPACE pg_default;
