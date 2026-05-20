@@ -99,8 +99,7 @@ def fechar_caixa(db: Session, dados: dict) -> dict:
             total_dinheiro_no_turno = db.query(
                 func.coalesce(func.sum(Venda.valor_total), 0)
             ).filter(
-                Venda.criado_em >= caixa.aberto_em,
-                Venda.criado_em <= agora,
+                Venda.caixa_id == caixa.id,
                 Venda.metodo_pagamento == 'dinheiro',
                 Venda.tipo_venda != 'fiado',
             ).scalar() or Decimal('0')

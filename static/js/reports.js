@@ -22,7 +22,8 @@ export function gerarRelatorio(tipo) {
     if (tipo === 'TURNO') {
         filtro = {
             operador: S.operadorAtual,
-            inicio: S.inicioTurno ? S.inicioTurno.toString() : new Date().toString()
+            inicio: S.inicioTurno ? S.inicioTurno.toString() : new Date().toString(),
+            caixa_id: S.caixaId
         };
     }
     S.tipoRelatorioAtual = tipo;
