@@ -1,7 +1,7 @@
 from functools import lru_cache
 
 from supabase import Client, create_client
-from supabase.lib.client_options import ClientOptions
+from supabase.lib.client_options import SyncClientOptions
 
 from app.config import Config
 
@@ -17,7 +17,7 @@ def get_supabase_admin_client() -> Client:
     return create_client(
         Config.SUPABASE_URL,
         Config.SUPABASE_SERVICE_ROLE_KEY,
-        options=ClientOptions(
+        options=SyncClientOptions(
             auto_refresh_token=False,
             persist_session=False,
         ),
