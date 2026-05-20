@@ -5,7 +5,7 @@ Estes modelos substituem o `dados: dict` genérico, tornando o contrato
 de entrada explícito, documentado e validado automaticamente.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
 
 
@@ -15,6 +15,13 @@ class ItemPayload(BaseModel):
     qtd: int
     nome: str = ""
     obs: str = ""
+
+    @field_validator('qtd')
+    @classmethod
+    def qtd_deve_ser_positiva(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError('A quantidade deve ser pelo menos 1.')
+        return v
 
 
 class VendaNormalPayload(BaseModel):

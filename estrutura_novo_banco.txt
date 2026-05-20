@@ -257,4 +257,3 @@ create table public.usuarios (
 create trigger trg_usuarios_atualizado_em BEFORE
 update on usuarios for EACH row
 execute FUNCTION definir_atualizado_em ();
-

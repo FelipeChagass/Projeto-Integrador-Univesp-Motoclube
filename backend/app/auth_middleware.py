@@ -86,7 +86,13 @@ def requer_login(f):
         db = next(get_db())
         try:
             usuario = db.query(Usuario).filter_by(id=g.usuario_id).first()
-            if usuario and not usuario.ativo:
+            if not usuario:
+                return jsonify({
+                    'status': 'erro',
+                    'mensagem': 'Usuário não cadastrado no sistema. Contate um administrador.',
+                    'codigo': 'USUARIO_NAO_ENCONTRADO'
+                }), 403
+            if not usuario.ativo:
                 return jsonify({
                     'status': 'erro',
                     'mensagem': 'Usuario inativo. Procure um administrador.',
