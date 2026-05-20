@@ -105,7 +105,6 @@ function renderProdutos() {
         tr.innerHTML = `
             <td class="col-imagem" data-label="Img">${imgHtml}
                 <button class="btn-upload-sm" data-action="upload-img" data-id="${p.id}">Foto</button></td>
-            <td class="col-id" data-label="ID">${p.id}</td>
             <td data-label="Nome"><input value="${esc(p.nome)}" data-pid="${p.id}" data-campo="nome"></td>
             <td data-label="Preço"><input type="number" step="0.01" value="${p.preco_atual}" data-pid="${p.id}" data-campo="preco_atual"></td>
             <td data-label="Categ."><select data-pid="${p.id}" data-campo="categoria">
@@ -661,8 +660,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ── Clique no overlay (fora do conteúdo) fecha o modal ──
+    let _adminModalMouseDownOnOverlay = false;
+    document.addEventListener('mousedown', (e) => {
+        _adminModalMouseDownOnOverlay = e.target.classList.contains('modal-overlay');
+    });
+
     document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('modal-overlay') && !e.target.classList.contains('d-none')) {
+        if (e.target.classList.contains('modal-overlay') && !e.target.classList.contains('d-none') && _adminModalMouseDownOnOverlay) {
             e.target.classList.add('closing');
             setTimeout(() => { e.target.classList.add('d-none'); e.target.classList.remove('closing'); }, 250);
         }

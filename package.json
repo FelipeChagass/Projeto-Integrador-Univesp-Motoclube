@@ -25,6 +25,7 @@
   "devDependencies": {
     "@jest/globals": "^30.3.0",
     "jest": "^30.3.0",
-    "jest-environment-jsdom": "^30.3.0"
+    "jest-environment-jsdom": "^30.3.0",
+    "jest-location-mock": "^3.0.0"
   }
 }

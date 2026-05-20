@@ -25,10 +25,17 @@ def gerar_relatorio(db: Session, tipo: str, dados_filtro: dict) -> dict:
 
     # Define período
     if tipo == 'TURNO':
-        if dados_filtro.get('inicio'):
+        caixa = None
+        if dados_filtro.get('caixa_id'):
+            caixa = db.query(Caixa).filter_by(id=dados_filtro['caixa_id']).first()
+            
+        if caixa:
+            data_inicio = caixa.aberto_em
+        elif dados_filtro.get('inicio'):
             data_inicio = _parse_data(dados_filtro['inicio'])
         else:
             data_inicio = agora.replace(hour=0, minute=0, second=0, microsecond=0)
+            
         data_fim = agora
         # Frontend envia 'operador' (nome); aceita ambos os campos
         nome_operador = (
@@ -39,20 +46,42 @@ def gerar_relatorio(db: Session, tipo: str, dados_filtro: dict) -> dict:
         texto_periodo = f"Turno: {nome_operador}"
 
     elif tipo == 'DIA':
-        d = agora
-        # Se antes das 6h, considera dia anterior
-        if d.hour < 6:
-            d = d - timedelta(days=1)
-        data_inicio = d.replace(hour=0, minute=0, second=0, microsecond=0)
-        data_fim = d.replace(hour=23, minute=59, second=59, microsecond=999999)
-        texto_periodo = f"Dia: {d.strftime('%d/%m/%Y')}"
+        # Calcula o horário atual no Brasil (BRT: UTC-3)
+        agora_brt = agora - timedelta(hours=3)
+        d_brt = agora_brt
+        
+        # Para bares, o "dia de negócio" vai até as 06:00 da manhã do dia seguinte.
+        # Se for antes das 06:00 BRT, as vendas contam para o dia anterior.
+        if d_brt.hour < 6:
+            d_brt = d_brt - timedelta(days=1)
+            
+        # Define o limite do "dia" no fuso local: de 06:00 de d_brt até 05:59 do próximo
+        inicio_brt = d_brt.replace(hour=6, minute=0, second=0, microsecond=0)
+        fim_brt = (d_brt + timedelta(days=1)).replace(hour=5, minute=59, second=59, microsecond=999999)
+        
+        # Converte de volta para UTC para pesquisar no banco de dados
+        data_inicio = inicio_brt + timedelta(hours=3)
+        data_fim = fim_brt + timedelta(hours=3)
+        
+        texto_periodo = f"Dia (Operação): {d_brt.strftime('%d/%m/%Y')}"
 
     elif tipo == 'PERIODO':
         if not dados_filtro.get('inicio') or not dados_filtro.get('fim'):
             return {'erro': 'Datas inválidas'}
         data_inicio = _parse_data(dados_filtro['inicio'] + 'T00:00:00')
         data_fim = _parse_data(dados_filtro['fim'] + 'T23:59:59')
-        texto_periodo = f"Período: {dados_filtro['inicio']} até {dados_filtro['fim']}"
+        
+        # Converte YYYY-MM-DD para DD/MM/YYYY para exibição
+        inicio_str = dados_filtro['inicio'].split('T')[0]
+        fim_str = dados_filtro['fim'].split('T')[0]
+        try:
+            inicio_fmt = datetime.strptime(inicio_str, '%Y-%m-%d').strftime('%d/%m/%Y')
+            fim_fmt = datetime.strptime(fim_str, '%Y-%m-%d').strftime('%d/%m/%Y')
+        except ValueError:
+            inicio_fmt = inicio_str
+            fim_fmt = fim_str
+            
+        texto_periodo = f"Período: {inicio_fmt} até {fim_fmt}"
 
     else:
         return {'erro': f'Tipo de relatório inválido: {tipo}'}
@@ -63,9 +92,12 @@ def gerar_relatorio(db: Session, tipo: str, dados_filtro: dict) -> dict:
         Venda.criado_em <= data_fim,
     )
 
-    # Filtro por operador (turno)
-    if tipo == 'TURNO' and dados_filtro.get('operador_id'):
-        query = query.filter(Venda.usuario_id == dados_filtro['operador_id'])
+    # Filtro por operador (turno) ou caixa_id
+    if tipo == 'TURNO':
+        if dados_filtro.get('caixa_id'):
+            query = query.filter(Venda.caixa_id == dados_filtro['caixa_id'])
+        elif dados_filtro.get('operador_id'):
+            query = query.filter(Venda.usuario_id == dados_filtro['operador_id'])
 
     vendas = query.order_by(Venda.criado_em).all()
 
@@ -108,8 +140,13 @@ def gerar_relatorio(db: Session, tipo: str, dados_filtro: dict) -> dict:
 
         tipo_hist = 'RECEBIMENTO' if is_recebimento else ('FIADO' if tipo_v == 'fiado' else 'VENDA')
 
+        hora_formatada = ''
+        if venda.criado_em:
+            hora_local = venda.criado_em - timedelta(hours=3)
+            hora_formatada = hora_local.strftime('%d/%m %H:%M')
+
         resumo['historico'].append({
-            'hora': venda.criado_em.strftime('%d/%m %H:%M') if venda.criado_em else '',
+            'hora': hora_formatada,
             'descricao': descricao,
             'valor': valor,
             'metodo': metodo.upper(),
@@ -162,10 +199,13 @@ def _calcular_abertura(
         Caixa.aberto_em <= data_fim,
     )
 
-    if tipo == 'TURNO' and dados_filtro.get('operador_id'):
-        query = query.filter(
-            Caixa.usuario_abertura_id == dados_filtro['operador_id']
-        )
+    if tipo == 'TURNO':
+        if dados_filtro.get('caixa_id'):
+            query = query.filter(Caixa.id == dados_filtro['caixa_id'])
+        elif dados_filtro.get('operador_id'):
+            query = query.filter(
+                Caixa.usuario_abertura_id == dados_filtro['operador_id']
+            )
 
     resultado = query.scalar()
     return float(resultado) if resultado else 0.0

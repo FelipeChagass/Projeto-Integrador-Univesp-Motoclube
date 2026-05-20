@@ -383,11 +383,6 @@ CREATE TABLE public.ajustes_estoque (
   )
 ) TABLESPACE pg_default;
 
-CREATE INDEX IF NOT EXISTS ajustes_estoque_produto_id_idx
-  ON public.ajustes_estoque USING btree (produto_id) TABLESPACE pg_default;
-
-CREATE INDEX IF NOT EXISTS ajustes_estoque_usuario_id_idx
-  ON public.ajustes_estoque USING btree (usuario_id) TABLESPACE pg_default;
-
-CREATE INDEX IF NOT EXISTS ajustes_estoque_criado_em_idx
-  ON public.ajustes_estoque USING btree (criado_em DESC) TABLESPACE pg_default;
+create trigger trg_usuarios_atualizado_em BEFORE
+update on usuarios for EACH row
+execute FUNCTION definir_atualizado_em ();

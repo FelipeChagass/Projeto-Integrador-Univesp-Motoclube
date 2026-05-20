@@ -459,6 +459,7 @@ export function confirmarAberturaValor() {
     if (isNaN(val)) val = 0;
     S.valorAbertura = val;
     S.caixaAberto = true;
+    S.inicioTurno = new Date();
     API.abrirCaixa(val)
         .then(res => { if (res.caixa_id) S.caixaId = res.caixa_id; salvarDadosLocais(); })
         .catch(err => console.error('Erro ao abrir caixa no servidor:', err));
