@@ -660,8 +660,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ── Clique no overlay (fora do conteúdo) fecha o modal ──
+    let _adminModalMouseDownOnOverlay = false;
+    document.addEventListener('mousedown', (e) => {
+        _adminModalMouseDownOnOverlay = e.target.classList.contains('modal-overlay');
+    });
+
     document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('modal-overlay') && !e.target.classList.contains('d-none')) {
+        if (e.target.classList.contains('modal-overlay') && !e.target.classList.contains('d-none') && _adminModalMouseDownOnOverlay) {
             e.target.classList.add('closing');
             setTimeout(() => { e.target.classList.add('d-none'); e.target.classList.remove('closing'); }, 250);
         }

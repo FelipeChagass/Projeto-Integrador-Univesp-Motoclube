@@ -43,8 +43,13 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+let _modalMouseDownOnOverlay = false;
+document.addEventListener('mousedown', (e) => {
+    _modalMouseDownOnOverlay = e.target.classList.contains('modal-overlay');
+});
+
 document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('modal-overlay')) {
+    if (e.target.classList.contains('modal-overlay') && _modalMouseDownOnOverlay) {
         fecharModal(e.target.id);
     }
 });
