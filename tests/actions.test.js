@@ -13,6 +13,8 @@ const mockedApi = {
     getListaMembros: jest.fn(() => Promise.resolve([{ nome: 'João' }, { nome: 'Maria' }])),
     buscarExtratoMembro: jest.fn(() => Promise.resolve({ total: 50, itens: [{ qtd: 2, produto: 'Cerveja', valor: 20 }] })),
     abrirCaixa: jest.fn(() => Promise.resolve({ caixa_id: 'cx-test-123' })),
+    fecharCaixa: jest.fn(() => Promise.resolve({ status: 'ok' })),
+    logout: jest.fn(() => Promise.resolve({ status: 'ok' })),
     invalidateCache: jest.fn(),
     getDadosIniciais: jest.fn(() => Promise.resolve({ produtos: [], membros: [] })),
     getProdutos: jest.fn(() => Promise.resolve({ produtos: [] })),
@@ -87,11 +89,15 @@ function setupDOM() {
         <div id="lista-fechamento"></div>
         <div id="total-fechamento">R$ 0,00</div>
         <div id="area-impressao"></div>
+        <div id="modal-fechar-caixa" style="display:none"></div>
+        <input id="input-valor-fechamento" type="number" />
+        <input id="input-obs-fechamento" type="text" />
+        <div id="modal-relatorios" style="display:none"></div>
     `;
 }
 
 /* Helpers to load modules */
-let actions, ui;
+let actions, ui, reports;
 async function loadModules() {
     setupDOM();
     jest.clearAllMocks();
@@ -112,6 +118,7 @@ async function loadModules() {
     S.config = { imprimir: false, largura: 'ticket-80mm', logo: '/static/img/motorhead.png' };
     ui = await import('../static/js/ui.js');
     actions = await import('../static/js/actions.js');
+    reports = await import('../static/js/reports.js');
 }
 
 describe('actions.js — Carrinho', () => {
@@ -212,6 +219,39 @@ describe('actions.js — Abertura/Fechamento Caixa', () => {
         actions.abrirModalAberturaCaixa();
         // Should not open modal, should show toast
         expect(document.getElementById('toast').innerText).toContain('já está aberto');
+    });
+
+    test('executarFechamentoCaixa impede fechamento se valor for invalido', () => {
+        document.getElementById('input-valor-fechamento').value = '-50';
+        reports.executarFechamentoCaixa();
+        expect(API.fecharCaixa).not.toHaveBeenCalled();
+        expect(document.getElementById('toast').innerText).toContain('valor em caixa válido');
+    });
+
+    test('executarFechamentoCaixa fecha o caixa com sucesso e realiza logout', async () => {
+        const redirectSpy = jest.fn();
+        globalThis.redirect = redirectSpy;
+
+        S.caixaAberto = true;
+        S.caixaId = 'cx-test-123';
+        S.valorAbertura = 100;
+        
+        document.getElementById('input-valor-fechamento').value = '150';
+        document.getElementById('input-obs-fechamento').value = 'Tudo OK';
+
+        reports.executarFechamentoCaixa();
+
+        // Wait for the async API calls and UI state transitions to complete
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        expect(API.fecharCaixa).toHaveBeenCalledWith('cx-test-123', 150, 'Tudo OK');
+        expect(S.caixaAberto).toBe(false);
+        expect(S.caixaId).toBeNull();
+        expect(S.valorAbertura).toBe(0);
+        expect(API.logout).toHaveBeenCalled();
+        expect(redirectSpy).toHaveBeenCalledWith('/login');
+
+        delete globalThis.redirect;
     });
 });
 

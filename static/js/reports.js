@@ -135,6 +135,14 @@ export function confirmarFechamentoCaixa() {
     document.getElementById('input-valor-fechamento').focus();
 }
 
+function redirect(url) {
+    if (typeof globalThis.redirect === 'function') {
+        globalThis.redirect(url);
+    } else {
+        window.location.replace(url);
+    }
+}
+
 export function executarFechamentoCaixa() {
     const valorInput = document.getElementById('input-valor-fechamento').value;
     const obsInput = document.getElementById('input-obs-fechamento').value.trim();
@@ -142,22 +150,35 @@ export function executarFechamentoCaixa() {
     if (valorFechamento !== null && (isNaN(valorFechamento) || valorFechamento < 0)) {
         return showToast('Informe um valor em caixa válido.');
     }
+    
     fecharModal('modal-fechar-caixa');
-    API.fecharCaixa(S.caixaId, valorFechamento, obsInput || null)
-        .catch(e => console.error('Erro ao fechar caixa no servidor:', e));
+    
+    const loadingEl = document.getElementById('loading');
+    if (loadingEl) loadingEl.style.display = 'flex';
 
-    S.caixaAberto = false;
-    S.valorAbertura = 0;
-    S.caixaId = null;
-    S.operadorAtual = '';
-    S.usuarioAtual = null;
-    S.inicioTurno = null;
-    S.carrinho = [];
-    atualizarUI();
-    fecharModal('modal-relatorios');
-    atualizarEstadoBotoes();
-    API.logout().then(() => window.location.replace('/login'))
-        .catch(() => window.location.replace('/login'));
+    API.fecharCaixa(S.caixaId, valorFechamento, obsInput || null)
+        .then(() => {
+            S.caixaAberto = false;
+            S.valorAbertura = 0;
+            S.caixaId = null;
+            S.operadorAtual = '';
+            S.usuarioAtual = null;
+            S.inicioTurno = null;
+            S.carrinho = [];
+            atualizarUI();
+            fecharModal('modal-relatorios');
+            atualizarEstadoBotoes();
+            return API.logout();
+        })
+        .then(() => {
+            if (loadingEl) loadingEl.style.display = 'none';
+            redirect('/login');
+        })
+        .catch(e => {
+            if (loadingEl) loadingEl.style.display = 'none';
+            console.error('Erro ao fechar caixa no servidor:', e);
+            showToast(`Erro ao fechar caixa: ${e.message || e}`);
+        });
 }
 
 /* ─── Printing ─── */

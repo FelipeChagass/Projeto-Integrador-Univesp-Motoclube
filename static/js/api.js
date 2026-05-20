@@ -263,7 +263,7 @@ export const API = (function () {
             if (!client) return { status: 'erro', mensagem: 'Supabase não inicializado' };
             const { data, error } = await client.auth.signInWithPassword({ email: email, password: senha });
             if (error) return { status: 'erro', mensagem: error.message };
-            return { status: 'ok', usuario: data.user };
+            return { status: 'ok', usuario: data.user, session: data.session };
         },
 
         signup: async function (email, senha, nome) {

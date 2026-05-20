@@ -1,13 +1,10 @@
-"""
-Models ORM - Mapeamento das tabelas do banco de dados.
-
-Cada classe aqui corresponde EXATAMENTE a uma tabela definida em
-estrutura_novo_banco.txt. O SQLAlchemy cuida de traduzir objetos
-Python em linhas no PostgreSQL.
-
-IMPORTANTE: Estas classes NÃO criam tabelas automaticamente.
-As tabelas já foram criadas no Supabase via SQL.
-O SQLAlchemy apenas "mapeia" as tabelas existentes.
-"""
-
+"""Models ORM"""
 from app.database import Base
+from .configuracao import ConfiguracaoSistema
+from .usuario import Usuario
+from .membro import Membro
+from .movimentacao_membro import MovimentacaoMembro
+from .produto import Produto
+from .ajuste_estoque import AjusteEstoque
+from .venda import Venda, ItemVenda
+from .caixa import Caixa

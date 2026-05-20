@@ -60,48 +60,69 @@ document.getElementById('login-senha').addEventListener('keydown', (e) => {
 });
 
 function realizarLogin() {
-    const email = document.getElementById('login-email').value.trim();
+    const loginInput = document.getElementById('login-email').value.trim();
     const senha = document.getElementById('login-senha').value;
     const lembrar = document.getElementById('lembrar-me').checked;
-    if (!email || !senha) return showToast('Preencha e-mail e senha.');
+    if (!loginInput || !senha) return showToast('Preencha e-mail/usuário e senha.');
 
     setLoading(true);
-    API.login(email, senha)
-        .then(res => {
-            if (res.status === 'ok') {
-                if (lembrar) {
-                    localStorage.setItem('motoBarLembrarMe', 'true');
-                } else {
-                    localStorage.removeItem('motoBarLembrarMe');
-                }
-
-                return API.getMe().then(meRes => {
-                    if (meRes.status === 'pendente') {
-                        const nome = (res.usuario && res.usuario.user_metadata && res.usuario.user_metadata.nome) || email.split('@')[0];
-                        return fetch(`${window.location.origin}/api/auth/sincronizar`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${(res.usuario && res.usuario.access_token) ? res.usuario.access_token : ''}`
-                            },
-                            body: JSON.stringify({ nome, perfil: 'operador' })
-                        }).then(() => {
-                            setLoading(false);
-                            window.location.href = '/';
-                        });
-                    }
-                    setLoading(false);
-                    window.location.href = '/';
-                });
-            } else {
-                setLoading(false);
-                showToast(res.mensagem || 'Erro no login.');
-            }
-        })
-        .catch(err => {
+    
+    // Resolve email if username was provided
+    fetch(`${window.location.origin}/api/auth/resolve_email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ login: loginInput })
+    })
+    .then(res => res.json())
+    .then(resolveData => {
+        if (resolveData.status !== 'ok') {
             setLoading(false);
-            showToast(`Erro de conexão: ${err.message || err}`);
-        });
+            return showToast(resolveData.mensagem || 'Usuário não encontrado.');
+        }
+
+        const email = resolveData.email;
+        
+        API.login(email, senha)
+            .then(res => {
+                if (res.status === 'ok') {
+                    if (lembrar) {
+                        localStorage.setItem('motoBarLembrarMe', 'true');
+                    } else {
+                        localStorage.removeItem('motoBarLembrarMe');
+                    }
+
+                    return API.getMe().then(meRes => {
+                        if (meRes.status === 'pendente') {
+                            const nome = (res.usuario && res.usuario.user_metadata && res.usuario.user_metadata.nome) || email.split('@')[0];
+                            return fetch(`${window.location.origin}/api/auth/sincronizar`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${(res.session && res.session.access_token) ? res.session.access_token : ''}`
+                                },
+                                body: JSON.stringify({ nome, perfil: 'operador' })
+                            }).then(() => {
+                                setLoading(false);
+                                window.location.href = '/';
+                            });
+                        }
+                        setLoading(false);
+                        window.location.href = '/';
+                    });
+                } else {
+                    setLoading(false);
+                    showToast(res.mensagem || 'Erro no login.');
+                }
+            })
+            .catch(err => {
+                setLoading(false);
+                showToast(`Erro de conexão: ${err.message || err}`);
+            });
+    })
+    .catch(err => {
+        setLoading(false);
+        showToast(`Erro ao resolver usuário: ${err.message || err}`);
+    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
