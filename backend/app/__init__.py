@@ -7,7 +7,8 @@ Autenticação: Supabase Auth (JWT). Flask não gerencia sessões.
 """
 
 import os
-from flask import Flask, redirect, render_template
+import time
+from flask import Flask, redirect, render_template, g, request
 from flask_cors import CORS
 from app.config import Config
 
@@ -19,6 +20,18 @@ def create_app():
     
     app = Flask(__name__, static_folder=static_dir, static_url_path='/static', template_folder=templates_dir)
     app.config.from_object(Config)
+
+    @app.before_request
+    def start_timer():
+        g.start_time = time.time()
+
+    @app.after_request
+    def add_server_timing(response):
+        if hasattr(g, 'start_time'):
+            dur = (time.time() - g.start_time) * 1000
+            response.headers['Server-Timing'] = f'app;dur={dur:.2f};desc="Processamento Flask"'
+            app.logger.info(f"Performance Metrics: {request.method} {request.path} finalizado em {dur:.2f}ms")
+        return response
 
     # CORS: permite apenas mesma origem em produção.
     # Para desenvolvimento local, adicione a URL do frontend no ALLOWED_ORIGINS do .env.

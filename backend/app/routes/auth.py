@@ -8,38 +8,7 @@ from app.config import Config
 bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
 
-@bp.route('/resolve_email', methods=['POST'])
-def resolve_email():
-    """
-    Recebe 'login' (que pode ser email ou nome de usuário) 
-    e retorna o 'email' correspondente, caso exista no banco.
-    """
-    dados = request.get_json(silent=True) or {}
-    login_str = dados.get('login', '').strip()
-    if not login_str:
-        return jsonify({'status': 'erro', 'mensagem': 'Login é obrigatório.'}), 400
-
-    db = next(get_db())
-    try:
-        usuario = db.query(Usuario).filter(Usuario.email.ilike(login_str)).first()
-        if not usuario:
-            usuario = db.query(Usuario).filter(Usuario.nome.ilike(login_str)).first()
-        
-        if not usuario:
-            # Tenta encontrar correspondente se o usuário informou a parte antes do @
-            usuario = db.query(Usuario).filter(Usuario.email.ilike(f"{login_str}@%")).first()
-
-        if not usuario:
-            return jsonify({'status': 'erro', 'mensagem': 'Usuário não encontrado.'}), 404
-
-        if not getattr(usuario, 'ativo', True):
-            return jsonify({'status': 'erro', 'mensagem': 'Usuário inativo.'}), 403
-
-        return jsonify({'status': 'ok', 'email': usuario.email})
-    except Exception as e:
-        return jsonify({'status': 'erro', 'mensagem': f'Erro ao resolver email: {str(e)}'}), 500
-    finally:
-        db.close()
+# /resolve_email removido conforme Opção B (Login somente por e-mail, sem login por username)
 
 
 @bp.route('/config', methods=['GET'])
@@ -64,6 +33,10 @@ def me():
     O JWT é validado pelo decorator @requer_login.
     O email vem do JWT (g.usuario_email), NÃO do banco.
     """
+    # Usa o usuário obtido no middleware (evita query redundante)
+    if getattr(g, 'usuario_dict', None):
+        return jsonify({'status': 'ok', 'usuario': g.usuario_dict})
+
     db = next(get_db())
     try:
         usuario = usuario_service.buscar_por_id(db, g.usuario_id)
