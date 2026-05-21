@@ -44,6 +44,7 @@ class Venda(Base):
             'id_externo': self.id_externo,
             'caixa_id': str(self.caixa_id) if self.caixa_id else None,
             'usuario_id': str(self.usuario_id) if self.usuario_id else None,
+            'usuario_nome': self.usuario.nome if self.usuario else None,
             'membro_id': str(self.membro_id) if self.membro_id else None,
             'tipo_venda': self.tipo_venda,
             'metodo_pagamento': self.metodo_pagamento,

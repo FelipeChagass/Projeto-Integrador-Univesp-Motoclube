@@ -501,6 +501,7 @@ async function carregarVendas() {
             <td class="td-data" data-label="Data">${dataStr}</td>
             <td data-label="Tipo"><span class="badge ${tipoBadge}">${v.tipo_venda}</span></td>
             <td data-label="Método">${v.metodo_pagamento}</td>
+            <td data-label="Operador">${esc(v.usuario_nome || '—')}</td>
             <td data-label="Cliente">${esc(v.nome_cliente || '—')}</td>
             <td class="td-valor" data-label="Valor">R$ ${v.valor_total.toFixed(2)}</td>
             <td class="td-itens" data-label="Itens">${esc(itensStr)}</td>`;
