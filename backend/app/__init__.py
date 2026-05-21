@@ -33,8 +33,7 @@ def create_app():
             app.logger.info(f"Performance Metrics: {request.method} {request.path} finalizado em {dur:.2f}ms")
         return response
 
-    # CORS: permite apenas mesma origem em produção.
-    # Para desenvolvimento local, adicione a URL do frontend no ALLOWED_ORIGINS do .env.
+   
     allowed_origins = os.getenv('ALLOWED_ORIGINS', 'http://localhost:5000').split(',')
     CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
 
@@ -70,7 +69,6 @@ def create_app():
 
     @app.route('/cadastro')
     def cadastro_page():
-        """Cadastro público removido — usuários são criados pelo admin."""
         return redirect('/login')
 
     @app.route('/pdv')
@@ -82,7 +80,6 @@ def create_app():
     def admin_page():
         return render_template('admin.html')
 
-    # Rota estática nativa do Flask agora lidará com /static/<path:filename>
 
     # ---------- Health ----------
     @app.route('/api/health')

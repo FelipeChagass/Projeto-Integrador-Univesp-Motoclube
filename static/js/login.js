@@ -10,6 +10,11 @@ function setLoading(show) {
     document.getElementById('login-loading').className = show ? 'login-loading active' : 'login-loading';
 }
 
+function redirecionarParaPdv() {
+    setLoading(true);
+    window.location.replace('/');
+}
+
 function toggleSenha() {
     const campo = document.getElementById('login-senha');
     const iconeFechado = document.getElementById('icon-olho-fechado');
@@ -87,12 +92,10 @@ function realizarLogin() {
                             },
                             body: JSON.stringify({ nome, perfil: 'operador' })
                         }).then(() => {
-                            setLoading(false);
-                            window.location.href = '/';
+                            redirecionarParaPdv();
                         });
                     }
-                    setLoading(false);
-                    window.location.href = '/';
+                    redirecionarParaPdv();
                 });
             } else {
                 setLoading(false);
