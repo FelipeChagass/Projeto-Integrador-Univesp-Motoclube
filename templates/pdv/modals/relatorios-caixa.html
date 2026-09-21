@@ -1,0 +1,58 @@
+{# Relatórios e fechamento de caixa; cálculos/exibição em pdv/reports.js.
+   Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
+    <div id="modal-relatorios" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-drag-header">
+                <div class="drag-handle"></div>
+                <h3>Gestão de Caixa</h3>
+            </div>
+            <div class="modal-scroll-body">
+                <div class="section-header">OPERADOR ATUAL</div>
+                <div class="operador-box">
+                    <p id="nome-operador-atual" class="operador-nome">...</p>
+                    <button class="btn-action" id="btn-pendencias">OPERAÇÕES PENDENTES / RECONCILIAÇÃO</button>
+                    <button class="btn-action btn-trocar-operador" id="btn-trocar-membro">
+                        TROCAR MEMBRO (Sair)
+                    </button>
+                </div>
+                <div class="section-header">CAIXA</div>
+                <button class="btn-action btn-abrir-caixa" id="btn-abrir-caixa-rel">
+                    ABRIR CAIXA (INICIO)
+                </button>
+                <div class="section-header">FECHAMENTOS</div>
+                <button class="btn-action btn-fechar-dia" id="btn-fechar-dia">
+                    FECHAR CAIXA TOTAL (DIA)
+                </button>
+                <div class="section-header">RELATÓRIO PERÍODO</div>
+                <div class="date-range-row mb-2">
+                    <input type="date" id="data-inicio" class="config-input">
+                    <input type="date" id="data-fim" class="config-input">
+                </div>
+                <button class="btn-action btn-gerar-periodo" id="btn-gerar-periodo">
+                    GERAR MENSAL/PERIODO
+                </button>
+                <div id="resultado-relatorio" class="resultado-relatorio d-none"></div>
+                <button class="btn-action mt-2" id="btn-fechar-relatorios">FECHAR JANELA</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-fechar-caixa" class="modal-overlay">
+        <div class="modal-content text-center">
+            <div class="modal-drag-header">
+                <div class="drag-handle"></div>
+                <h2 class="modal-title-accent">FECHAMENTO DE CAIXA</h2>
+            </div>
+            <div class="modal-scroll-body">
+                <p class="modal-subtitle">Informe o total físico em caixa no momento do fechamento:</p>
+                <input type="number" id="input-valor-fechamento" class="input-cliente input-valor-grande"
+                    placeholder="0,00" min="0" step="0.01">
+                <p class="modal-subtitle" style="margin-top: 12px;">Observações (opcional):</p>
+                <input type="text" id="input-obs-fechamento" class="input-cliente"
+                    placeholder="Ex: Fechamento do dia, sem ocorrências.">
+                <button class="btn-action btn-fechar-dia mt-2" id="btn-confirmar-fechamento-caixa">CONFIRMAR
+                    FECHAMENTO</button>
+                <button class="btn-action" id="btn-cancelar-fechamento-caixa">CANCELAR</button>
+            </div>
+        </div>
+    </div>

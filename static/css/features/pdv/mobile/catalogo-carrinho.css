@@ -1,0 +1,161 @@
+/* pdv: catalogo-carrinho (adaptações mobile).
+ * Carregado por static/css/ponto_venda-mobile.css; preserve a ordem da cascata no manifesto.
+ */
+@media (max-width: 768px) {
+    #main-content {
+        flex-direction: column;
+        position: relative;
+    }
+
+    #catalogo-section {
+        flex: 1 1 auto;
+        padding: 8px;
+        padding-bottom: 72px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        height: auto;
+    }
+
+    .grid-produtos {
+        grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+        gap: 6px;
+    }
+
+    .card {
+        border-radius: 8px;
+    }
+
+    .card-info {
+        padding: 6px;
+    }
+
+    .card-name {
+        font-size: 0.8rem;
+        line-height: 1.15;
+    }
+
+    .card-price {
+        font-size: 1rem;
+    }
+
+    .card-stock {
+        font-size: 0.65rem;
+        padding: 2px 3px;
+    }
+
+    #carrinho-section {
+        position: fixed !important;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        height: 85vh;
+        max-height: 85vh;
+        border-left: none;
+        border-top: 2px solid rgba(179, 0, 0, 0.4);
+        border-radius: 16px 16px 0 0;
+        transform: translateY(calc(100% - 64px));
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 150;
+        box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.6);
+        opacity: 1;
+    }
+
+    #carrinho-section.mobile-aberto {
+        transform: translateY(0);
+    }
+
+    #carrinho-section.minimizado {
+        transform: translateY(100%) !important;
+        opacity: 0 !important;
+        pointer-events: none;
+    }
+
+    .carrinho-header {
+        cursor: pointer;
+        padding: 14px 16px 12px;
+        position: relative;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .carrinho-header::before {
+        content: '';
+        position: absolute;
+        top: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 44px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.25);
+        border-radius: 2px;
+    }
+
+    .carrinho-header h3 {
+        font-size: 0.85rem;
+    }
+
+    #carrinho-badge-mobile {
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #b30000;
+        color: #fff;
+        border-radius: 999px;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 7px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(179, 0, 0, 0.5);
+    }
+
+    #carrinho-badge-mobile.show {
+        display: inline-flex;
+    }
+
+    .carrinho-lista {
+        padding: 8px 12px;
+    }
+
+    .item-carrinho {
+        padding: 10px;
+    }
+
+    .btn-qty {
+        width: 38px;
+        height: 38px;
+        font-size: 1.3rem;
+    }
+
+    .carrinho-footer {
+        padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+    }
+
+    .total-display {
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+    }
+
+    .input-cliente {
+        padding: 12px;
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+
+    .grid-pagamento {
+        gap: 6px;
+    }
+
+    .btn-action {
+        min-height: 48px;
+        padding: 12px 14px;
+        font-size: 0.82rem;
+    }
+}

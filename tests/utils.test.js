@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import { jest, describe, test, expect, beforeEach } from '@jest/globals';
-import { esc, sanitizeUrl, formatCurrency, LocalDB } from '../static/js/utils.js';
+import { esc, sanitizeUrl, formatCurrency, LocalDB } from '../static/js/shared/utils.js';
 
 describe('utils.js — esc()', () => {
     test('escapa HTML perigoso', () => {

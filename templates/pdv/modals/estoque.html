@@ -1,0 +1,27 @@
+{# Edição de estoque; actions/estoque.js envia os valores esperados para a API.
+   Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
+    <div id="modal-estoque" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-drag-header">
+                <div class="drag-handle"></div>
+                <h3 class="modal-title-estoque">Gestão de Estoque</h3>
+            </div>
+            <div class="modal-scroll-body">
+                <p id="nome-prod-estoque" class="fw-bold mb-3"></p>
+                <div class="estoque-grid">
+                    <div class="config-option"><label class="label-accent">Estoque BAR:</label><input type="number"
+                            id="edit-est-bar" class="config-input" min="0"></div>
+                    <div class="config-option"><label class="label-accent">Estoque DEPÓSITO:</label><input type="number"
+                            id="edit-est-dep" class="config-input" min="0"></div>
+                    <div class="config-option"><label class="label-danger">Mínimo BAR:</label><input type="number"
+                            id="edit-min-bar" class="config-input" min="0"></div>
+                    <div class="config-option"><label class="label-danger">Mínimo DEPÓSITO:</label><input type="number"
+                            id="edit-min-dep" class="config-input" min="0"></div>
+                </div>
+                <p class="estoque-nota"><i>Nota: Ao aumentar o Bar, o valor será subtraído
+                        do Depósito automaticamente.</i></p>
+                <button class="btn-action btn-estoque-salvar" id="btn-salvar-estoque">SALVAR ALTERAÇÕES</button>
+                <button class="btn-action" id="btn-cancelar-estoque">CANCELAR</button>
+            </div>
+        </div>
+    </div>

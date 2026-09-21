@@ -1,0 +1,39 @@
+{# Seleção/extrato de membro; actions/membros.js e pagamentos.js.
+   Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
+    <div id="modal-selecionar-membro" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-drag-header">
+                <div class="drag-handle"></div>
+                <h3>Selecione o Membro</h3>
+            </div>
+            <div class="modal-scroll-body">
+                <select id="select-membro" class="lista-membros-scroll">
+                    <option value="" disabled selected>Carregando...</option>
+                </select>
+                <div id="preview-divida" class="preview-divida"></div>
+                <button class="btn-action w-100 mt-2" id="btn-confirmar-membro">CONTINUAR</button>
+                <button class="btn-action" id="btn-cancelar-membro">CANCELAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-fechar-conta" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-drag-header">
+                <div class="drag-handle"></div>
+                <h3>Fechar Conta</h3>
+            </div>
+            <div class="modal-scroll-body">
+                <p id="nome-fechar-conta" class="nome-fechar-conta"></p>
+                <div id="lista-fechamento" class="extrato-lista">Carregando...</div>
+                <div class="extrato-total" id="total-fechamento">R$ 0,00</div>
+                <div class="prompt-pagamento">Como vai pagar?</div>
+                <div class="grid-pagamento">
+                    <button class="btn-action btn-dinheiro" id="btn-liq-dinheiro">Dinheiro</button>
+                    <button class="btn-action btn-pix" id="btn-liq-pix">Pix</button>
+                    <button class="btn-action btn-cartao" id="btn-liq-cartao">Cartão</button>
+                </div>
+                <button class="btn-action mt-2" id="btn-cancelar-fechar-conta">CANCELAR</button>
+            </div>
+        </div>
+    </div>

@@ -1,0 +1,191 @@
+/* admin: layout (camada base).
+ * Carregado por static/css/admin.css; preserve a ordem da cascata no manifesto.
+ */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0d0d0d;
+    color: #e0e0e0;
+    min-height: 100vh;
+}
+
+header {
+    background: linear-gradient(180deg, #2a2a2a 0%, #222 100%);
+    padding: 8px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    border-bottom: 1px solid rgba(179, 0, 0, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 200;
+}
+
+.header-left {
+    display: flex !important;
+    gap: 12px;
+}
+
+.header-left .logo-admin {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;
+}
+
+header h1 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    /* Fundo com gradiente metálico avermelhado */
+    background: linear-gradient(to bottom, #da0101 0%, #da0101 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.tabs-nav {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    font-family: inherit;
+    text-decoration: none;
+}
+
+.tab-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2;
+    flex-shrink: 0;
+    color: #b30000;
+}
+
+.tab-btn:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #fff;
+}
+
+.tab-btn:active {
+    transform: scale(0.96);
+}
+
+.tab-btn.active {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.container {
+    max-width: 1600px;
+    margin: 1.5rem auto;
+    padding: 0 1.5rem;
+}
+
+.toolbar {
+    gap: 16px;
+    margin-bottom: 1.5rem;
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: #fff;
+    cursor: pointer;
+}
+
+.toggle-label input[type="checkbox"] {
+    accent-color: #b30000;
+    width: 15px;
+    height: 15px;
+}
+
+.filter-group {
+    gap: 8px;
+}
+
+.filter-group label {
+    font-size: 0.78rem;
+    color: #fff;
+    font-weight: 600;
+}
+
+.filter-input {
+    height: 40px;
+    box-sizing: border-box;
+    padding: 0 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    line-height: 1.2;
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: #b30000;
+}
+
+.stats-row {
+    gap: 12px;
+    margin-bottom: 1rem;
+}
+
+.stat-card {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 20px;
+    background: linear-gradient(145deg, #222, #1a1a1a);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    min-width: 120px;
+}
+
+.stat-number {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #b30000;
+}
+
+.stat-label {
+    font-size: 0.72rem;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}

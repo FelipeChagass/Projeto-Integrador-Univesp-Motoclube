@@ -6,17 +6,26 @@ Os itens são normalizados (não mais como string "2x Heineken").
 
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Integer, BigInteger, DateTime, Numeric, ForeignKey, Text
+from sqlalchemy import Column, String, Integer, BigInteger, DateTime, Numeric, ForeignKey, Text, CheckConstraint, Index, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from app.database import Base
+from app.core.database import Base
 
 
 class Venda(Base):
     __tablename__ = 'vendas'
+    __table_args__ = (
+        CheckConstraint("tipo_venda IN ('normal','fiado','recebimento_divida','ajuste')", name='vendas_tipo_venda_check'),
+        CheckConstraint("metodo_pagamento IN ('dinheiro','pix','cartao_credito','cartao_debito','fiado','ajuste')", name='vendas_metodo_pagamento_check'),
+        CheckConstraint('valor_total >= 0', name='vendas_valor_total_check'),
+        Index('ix_vendas_criado_em', 'criado_em'),
+        Index('ix_vendas_caixa_criado', 'caixa_id', 'criado_em'),
+        Index('ix_vendas_usuario_criado', 'usuario_id', 'criado_em'),
+    )
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text('gen_random_uuid()'))
     id_externo = Column(String, unique=True, nullable=True)  # ID gerado no frontend (para evitar duplicatas)
+    payload_hash = Column(String(64), nullable=True)  # Histórico NULL requer reconciliação.
     caixa_id = Column(UUID(as_uuid=True), ForeignKey('caixas.id'), nullable=True)
     usuario_id = Column(UUID(as_uuid=True), ForeignKey('usuarios.id'), nullable=True)
     membro_id = Column(UUID(as_uuid=True), ForeignKey('membros.id'), nullable=True)
@@ -28,9 +37,9 @@ class Venda(Base):
     # Métodos: 'dinheiro', 'pix', 'cartao_credito', 'cartao_debito', 'fiado', 'ajuste'
 
     nome_cliente = Column(String, nullable=True)
-    valor_total = Column(Numeric(12, 2), nullable=False)
+    valor_total = Column(Numeric(), nullable=False)
     observacoes = Column(Text, nullable=True)
-    criado_em = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    criado_em = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), server_default=text('now()'))
 
     # Relacionamentos
     usuario = relationship('Usuario', back_populates='vendas', foreign_keys=[usuario_id])
@@ -58,14 +67,20 @@ class Venda(Base):
 
 class ItemVenda(Base):
     __tablename__ = 'itens_venda'
+    __table_args__ = (
+        CheckConstraint('quantidade > 0', name='itens_venda_quantidade_check'),
+        CheckConstraint('preco_unitario >= 0', name='itens_venda_preco_unitario_check'),
+        CheckConstraint('preco_total >= 0', name='itens_venda_preco_total_check'),
+        Index('ix_itens_venda_venda_id', 'venda_id'),
+    )
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text('gen_random_uuid()'))
     venda_id = Column(UUID(as_uuid=True), ForeignKey('vendas.id'), nullable=False)
     produto_id = Column(BigInteger, ForeignKey('produtos.id'), nullable=True)
     nome_produto = Column(String, nullable=False)
     quantidade = Column(Integer, nullable=False)
-    preco_unitario = Column(Numeric(12, 2), nullable=False)
-    preco_total = Column(Numeric(12, 2), nullable=False)
+    preco_unitario = Column(Numeric(), nullable=False)
+    preco_total = Column(Numeric(), nullable=False)
     observacoes = Column(Text, nullable=True)
 
     # Relacionamentos

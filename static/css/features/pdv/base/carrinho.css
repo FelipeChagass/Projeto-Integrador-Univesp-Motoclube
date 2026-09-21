@@ -1,0 +1,157 @@
+/* pdv: carrinho (camada base).
+ * Carregado por static/css/ponto_venda.css; preserve a ordem da cascata no manifesto.
+ */
+#carrinho-section {
+    width: 380px;
+    background: #0d0d0d;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
+    height: 100%;
+    transition: transform 0.6s ease, opacity 0.6s ease;
+}
+
+#carrinho-section.minimizado {
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 50;
+    opacity: 0;
+    transform: translateX(100%);
+    pointer-events: none;
+    border-left: none;
+}
+
+.carrinho-header {
+    padding: 16px;
+    background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+    text-align: center;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.03);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.carrinho-header svg {
+    width: 20px;
+    height: 20px;
+    stroke: #b30000;
+}
+
+.carrinho-header h3 {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #eee;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 800;
+}
+
+.carrinho-lista {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.item-carrinho {
+    background: #1c1c1c;
+    margin-bottom: 8px;
+    padding: 12px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.02);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s;
+}
+
+.item-detalhes {
+    flex: 1;
+    overflow: hidden;
+}
+
+.item-nome {
+    font-weight: bold;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-obs {
+    color: #fff;
+    font-size: 0.75rem;
+    font-style: italic;
+}
+
+.item-qty-controls {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    margin-left: 8px;
+}
+
+.btn-qty {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-qty:hover {
+    background: #333;
+    border-color: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.carrinho-footer {
+    padding: 18px;
+    background: linear-gradient(0deg, #0a0a0a 0%, #161616 100%);
+    border-top: 2px solid rgba(255, 255, 255, 0.03);
+}
+
+.total-display {
+    font-size: 2.2rem;
+    text-align: right;
+    color: #b30000;
+    margin-bottom: 12px;
+    font-weight: 900;
+    text-shadow: 0 0 15px rgba(179, 0, 0, 0.3);
+}
+
+.input-cliente {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: #0d0d0d;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.input-cliente:focus {
+    outline: none;
+    border-color: #b30000;
+    box-shadow: 0 0 10px rgba(179, 0, 0, 0.1);
+}
+
+.grid-pagamento {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 6px;
+}

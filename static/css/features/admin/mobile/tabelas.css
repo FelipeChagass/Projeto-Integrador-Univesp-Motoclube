@@ -1,0 +1,240 @@
+/* admin: tabelas (adaptações mobile).
+ * Carregado por static/css/admin-mobile.css; preserve a ordem da cascata no manifesto.
+ */
+@media (max-width: 768px) {
+    /* ==========================================================
+       MOBILE CARD-STYLE TABLES — Stacked Layout
+       ========================================================== */
+    .table-wrapper {
+        border-radius: 12px;
+        overflow: hidden;
+        border: none;
+        box-shadow: none;
+        background: transparent;
+    }
+
+    table {
+        display: block;
+        width: 100%;
+    }
+
+    thead {
+        display: none;
+    }
+
+    tbody {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    tr {
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(160deg, #1e1e1e, #171717);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 14px;
+        overflow: hidden;
+        transition: border-color 0.2s;
+    }
+
+    tr:hover {
+        border-color: rgba(179, 0, 0, 0.25);
+    }
+
+    tr.row-inactive {
+        opacity: 0.45;
+    }
+
+    /* ── Default cell: stacked (label above, value below) ── */
+    td {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px 14px;
+        font-size: 0.9rem;
+        text-align: left;
+        border: none;
+        gap: 4px;
+    }
+
+    td+td {
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    td::before {
+        content: attr(data-label);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        color: #aaa;
+        line-height: 1;
+    }
+
+    td input,
+    td select {
+        font-size: 16px;
+        padding: 0.55rem 0.7rem;
+        min-height: 40px;
+        width: 100%;
+        max-width: none;
+        text-align: left;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 8px;
+        color: #fff;
+        display: block;
+        line-height: 1.4;
+        -webkit-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.7rem center;
+        padding-right: 2rem;
+    }
+
+    /* Price: left-aligned like every other text field */
+    td input[type="number"] {
+        width: 100%;
+        max-width: 100%;
+        text-align: left;
+        background-image: none;
+        padding-right: 0.7rem;
+    }
+
+    /* ── Image cell: full width image with button below ── */
+    td[data-label="Img"],
+    td.col-imagem {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0;
+        background: transparent;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+        border-top: none !important;
+    }
+
+    td[data-label="Img"]::before,
+    td.col-imagem::before {
+        display: none;
+    }
+
+    .img-thumb,
+    .img-placeholder {
+        width: 100%;
+        height: 160px;
+        object-fit: contain;
+        background: rgba(0, 0, 0, 0.25);
+        border-radius: 14px 14px 0 0;
+    }
+
+    .img-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: #555;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-upload-sm {
+        margin: 10px 14px;
+        font-size: 0.8rem;
+        padding: 8px 14px;
+        text-align: center;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #fff;
+    }
+
+    td.col-id,
+    td[data-label="ID"] {
+        display: none;
+    }
+
+    /* Estoque e minimos */
+    td[data-label="Estoque"],
+    td[data-label="Mínimos"] {
+        color: #fff;
+    }
+
+    .td-estoque,
+    .td-minimos {
+        color: #fff !important;
+        font-size: 0.88rem;
+    }
+
+    .td-estoque b {
+        font-weight: 600;
+        color: #fff;
+    }
+
+    td.col-status,
+    td[data-label="Status"] {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    td.col-status::before,
+    td[data-label="Status"]::before {
+        white-space: nowrap;
+        flex-shrink: 0;
+        min-width: auto;
+    }
+
+
+    td[data-label="Ações"]::before {
+        display: none;
+    }
+
+    td[data-label="Ações"] {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: stretch;
+        gap: 8px;
+        padding: 12px 14px;
+        background: rgba(255, 255, 255, 0.02);
+        border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+        min-height: auto;
+    }
+
+    td[data-label="Ações"] .btn,
+    td[data-label="Ações"] .btn-sm {
+        flex: 1;
+        text-align: center;
+        justify-content: center;
+        min-height: 40px;
+    }
+
+    .btn {
+        min-height: 38px;
+    }
+
+    .btn-group {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .btn-group .btn-sm {
+        flex: 1;
+        text-align: center;
+    }
+
+    .btn-sm {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.75rem;
+    }
+
+    .badge {
+        font-size: 0.65rem;
+        padding: 3px 10px;
+    }
+}

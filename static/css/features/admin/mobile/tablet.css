@@ -1,0 +1,58 @@
+/* admin: tablet (adaptações mobile).
+ * Carregado por static/css/admin-mobile.css; preserve a ordem da cascata no manifesto.
+ */
+/* ==========================================================
+   ADMIN MOBILE — ≤ 900px
+   ========================================================== */
+@media (max-width: 900px) {
+    header {
+        padding: 0.6rem 0.8rem;
+    }
+
+    .header-left .logo-admin {
+        width: 44px;
+        height: 44px;
+    }
+
+    header h1 {
+        font-size: 0.95rem;
+    }
+
+    .btn-voltar {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+
+    .btn-voltar span,
+    .btn-voltar {
+        gap: 4px;
+    }
+
+    .tabs-nav {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        justify-content: flex-start;
+        padding: 0 0.3rem 0.5rem;
+        gap: 6px;
+        width: 100%;
+    }
+
+    .tab-btn {
+        padding: 10px 12px;
+        font-size: 0.75rem;
+    }
+
+    .container {
+        margin: 0.8rem auto;
+        padding: 0 0.6rem;
+    }
+
+    /* Hamburger hidden at this breakpoint */
+    .btn-hamburger {
+        display: none;
+    }
+
+    .sidebar-mobile {
+        display: none;
+    }
+}

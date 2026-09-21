@@ -1,0 +1,55 @@
+{# Aba de membros e cadastro; comportamento em admin/membros.js.
+   Incluído por admin.html; manter IDs únicos na página composta. #}
+    <section class="tab-content" id="tab-membros">
+        <div class="container">
+            <div class="toolbar d-flex align-items-center flex-wrap">
+                <button class="btn btn-add" id="btn-add-membro">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14" />
+                        <path d="M12 5v14" />
+                    </svg>
+                    Novo Membro
+                </button>
+                <label class="toggle-label">
+                    <input type="checkbox" id="mostrarMembrosInativos">
+                    <span>Mostrar desativados</span>
+                </label>
+            </div>
+
+            <div id="formNovoMembro" class="form-card d-none">
+                <div class="form-card-header d-flex justify-content-between align-items-center">
+                    <h3>Cadastrar Novo Membro</h3>
+                    <button class="btn-icon-close" id="btn-close-form-membro">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M18 6 6 18" />
+                            <path d="m6 6 12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group span-2"><label>Nome do Membro</label><input type="text" id="novo-membro-nome"
+                            placeholder="Nome completo"></div>
+                </div>
+                <div class="form-actions d-flex justify-content-end">
+                    <button class="btn btn-save" id="btn-save-novo-membro">Salvar</button>
+                    <button class="btn btn-cancel" id="btn-cancel-novo-membro">Cancelar</button>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Saldo Devedor</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaMembros"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>

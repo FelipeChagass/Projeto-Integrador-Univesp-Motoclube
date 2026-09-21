@@ -1,125 +1,11 @@
 /**
- * @jest-environment jsdom
+ * Regressões das ações públicas do PDV, incluindo persistência, caixa e erros.
+ * DOM, mocks e IndexedDB isolado são preparados por helpers/pdv.js.
  */
 import { jest, describe, test, expect, beforeEach } from '@jest/globals';
-import { S, salvarDadosLocais } from '../static/js/state.js';
-
-/* ── Mockup: API module + globals (alinha com imports ESM) ── */
-const mockedApi = {
-    verificarSenhaEstoque: jest.fn(),
-    salvarDadosProduto: jest.fn(() => Promise.resolve()),
-    processarVenda: jest.fn(() => Promise.resolve('OK')),
-    quitarContaMembro: jest.fn(() => Promise.resolve('Conta quitada')),
-    getListaMembros: jest.fn(() => Promise.resolve([{ nome: 'João' }, { nome: 'Maria' }])),
-    buscarExtratoMembro: jest.fn(() => Promise.resolve({ total: 50, itens: [{ qtd: 2, produto: 'Cerveja', valor: 20 }] })),
-    abrirCaixa: jest.fn(() => Promise.resolve({ caixa_id: 'cx-test-123' })),
-    fecharCaixa: jest.fn(() => Promise.resolve({ status: 'ok' })),
-    logout: jest.fn(() => Promise.resolve({ status: 'ok' })),
-    invalidateCache: jest.fn(),
-    getDadosIniciais: jest.fn(() => Promise.resolve({ produtos: [], membros: [] })),
-    getProdutos: jest.fn(() => Promise.resolve({ produtos: [] })),
-};
-const mockedUiModal = {
-    confirm: jest.fn((msg, cb) => cb()),
-    alert: jest.fn(),
-};
-
-jest.unstable_mockModule('../static/js/api.js', () => ({
-    API: mockedApi,
-    UIModal: mockedUiModal,
-}));
-
-globalThis.API = mockedApi;
-globalThis.UIModal = mockedUiModal;
-
-function mockMatchMedia() {
-    window.matchMedia = jest.fn().mockImplementation(() => ({
-        matches: false,
-        media: '(max-width: 768px)',
-        onchange: null,
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-        addEventListener: jest.fn(),
-        removeEventListener: jest.fn(),
-        dispatchEvent: jest.fn(),
-    }));
-}
-
-/* ── Minimal DOM ── */
-function setupDOM() {
-    document.body.innerHTML = `
-        <div id="loading" style="display:none"></div>
-        <div id="toast">...</div>
-        <div id="barra-operador"></div>
-        <button id="container-abrir-caixa" class="d-none"></button>
-        <button id="btn-admin" class="d-none"></button>
-        <button id="sidebar-btn-admin" class="d-none"></button>
-        <button id="sidebar-abrir-caixa" class="d-none"></button>
-        <div id="grid-produtos"></div>
-        <div id="carrinho-lista"></div>
-        <div id="total-display">R$ 0,00</div>
-        <img id="logo-preload" class="d-none" />
-        <div id="resultado-relatorio" class="d-none"></div>
-        <input type="text" id="input-cliente" value="" />
-        <div id="modal-obs" class="modal-overlay" style="display:none"></div>
-        <p id="modal-prod-nome"></p>
-        <input type="text" id="custom-obs" value="" />
-        <div id="modal-estoque" class="modal-overlay" style="display:none"></div>
-        <p id="nome-prod-estoque"></p>
-        <input id="edit-est-bar" type="number" />
-        <input id="edit-est-dep" type="number" />
-        <input id="edit-min-bar" type="number" />
-        <input id="edit-min-dep" type="number" />
-        <div id="modal-senha-estoque" style="display:none"></div>
-        <input id="input-senha-estoque" type="password" value="" />
-        <p id="erro-senha-estoque" class="d-none"></p>
-        <button id="btn-estoque"></button>
-        <div id="carrinho-section"></div>
-        <header id="app-header"></header>
-        <div id="modal-abertura-caixa" style="display:none"></div>
-        <input id="input-valor-abertura" type="number" value="100" />
-        <div id="modal-config" style="display:none"></div>
-        <input id="cfg-imprimir" type="checkbox" checked />
-        <select id="cfg-largura"><option value="ticket-80mm">80mm</option><option value="ticket-58mm">58mm</option></select>
-        <div id="modal-selecionar-membro" style="display:none"></div>
-        <select id="select-membro"></select>
-        <div id="preview-divida"></div>
-        <div id="modal-fechar-conta" style="display:none"></div>
-        <p id="nome-fechar-conta"></p>
-        <div id="lista-fechamento"></div>
-        <div id="total-fechamento">R$ 0,00</div>
-        <div id="area-impressao"></div>
-        <div id="modal-fechar-caixa" style="display:none"></div>
-        <input id="input-valor-fechamento" type="number" />
-        <input id="input-obs-fechamento" type="text" />
-        <div id="modal-relatorios" style="display:none"></div>
-    `;
-}
-
-/* Helpers to load modules */
-let actions, ui, reports;
-async function loadModules() {
-    setupDOM();
-    jest.clearAllMocks();
-    mockMatchMedia();
-    localStorage.clear();
-    S.produtos = [
-        { id: 1, nome: 'Cerveja', preco_atual: 10, estoque_bar: 20, estoque_deposito: 50, estoque_min_bar: 5, estoque_min_deposito: 10, url_imagem: '', categoria: 'BEBIDA' },
-        { id: 2, nome: 'Hamburguer', preco_atual: 25, estoque_bar: 10, estoque_deposito: 30, estoque_min_bar: 2, estoque_min_deposito: 5, url_imagem: '', categoria: 'COMIDA' },
-    ];
-    S.carrinho = [];
-    S.membros = [{ nome: 'João' }, { nome: 'Maria' }];
-    S.operadorAtual = 'Teste';
-    S.caixaAberto = true;
-    S.caixaId = 'cx-test';
-    S.modoGerenciaEstoque = false;
-    S.filaVendas = [];
-    S.enviandoVenda = false;
-    S.config = { imprimir: false, largura: 'ticket-80mm', logo: '/static/img/motorhead.png' };
-    ui = await import('../static/js/ui.js');
-    actions = await import('../static/js/actions.js');
-    reports = await import('../static/js/reports.js');
-}
+import { S } from '../static/js/features/pdv/state.js';
+import { persistirOperacao, listarOperacoes } from '../static/js/features/pdv/offline-queue.js';
+import { actions, reports, loadModules } from './helpers/pdv.js';
 
 describe('actions.js — Carrinho', () => {
     beforeEach(loadModules);
@@ -206,10 +92,12 @@ describe('actions.js — cliqueProduto()', () => {
 describe('actions.js — Abertura/Fechamento Caixa', () => {
     beforeEach(loadModules);
 
-    test('confirmarAberturaValor abre o caixa', () => {
+    test('confirmarAberturaValor abre o caixa somente após ACK', async () => {
         S.caixaAberto = false;
         document.getElementById('input-valor-abertura').value = '150';
-        actions.confirmarAberturaValor();
+        const abertura = actions.confirmarAberturaValor();
+        expect(S.caixaAberto).toBe(false);
+        await abertura;
         expect(S.caixaAberto).toBe(true);
         expect(S.valorAbertura).toBe(150);
     });
@@ -239,10 +127,7 @@ describe('actions.js — Abertura/Fechamento Caixa', () => {
         document.getElementById('input-valor-fechamento').value = '150';
         document.getElementById('input-obs-fechamento').value = 'Tudo OK';
 
-        reports.executarFechamentoCaixa();
-
-        // Wait for the async API calls and UI state transitions to complete
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await reports.executarFechamentoCaixa();
 
         expect(API.fecharCaixa).toHaveBeenCalledWith('cx-test-123', 150, 'Tudo OK');
         expect(S.caixaAberto).toBe(false);
@@ -277,17 +162,19 @@ describe('actions.js — Config', () => {
 describe('actions.js — Fila Vendas', () => {
     beforeEach(loadModules);
 
-    test('processarFilaVendas não faz nada com fila vazia', () => {
+    test('processarFilaVendas não faz nada com fila vazia', async () => {
         S.filaVendas = [];
-        actions.processarFilaVendas();
+        await actions.processarFilaVendas();
         expect(API.processarVenda).not.toHaveBeenCalled();
     });
 
-    test('processarFilaVendas envia primeira venda da fila', () => {
-        S.filaVendas = [{ id: '123', itens: [], total: 10, metodo: 'PIX' }];
-        S.processandoFila = false;
-        actions.processarFilaVendas();
-        expect(API.processarVenda).toHaveBeenCalledWith(S.filaVendas[0]);
+    test('processarFilaVendas confirma a mesma identidade persistida', async () => {
+        const payload = { id_externo: '123', usuario_origem_id: S.usuarioAtual.id, caixa_id: S.caixaId, itens: [], metodo: 'PIX' };
+        await persistirOperacao(payload);
+        API.processarVenda.mockResolvedValueOnce({ status: 'ok', id_externo: '123', usuario_id: S.usuarioAtual.id, caixa_id: S.caixaId, venda_id: 'venda-1', total_calculado: 10 });
+        await actions.processarFilaVendas();
+        expect(API.processarVenda).toHaveBeenCalledWith(payload);
+        expect(await listarOperacoes()).toHaveLength(0);
     });
 });
 
@@ -295,15 +182,15 @@ describe('actions.js — Membros', () => {
     beforeEach(loadModules);
 
     test('popularSelectMembros preenche o select', () => {
-        S.membros = [{ nome: 'Ana' }, { nome: 'Bruno' }, { nome: 'Carlos' }];
+        S.membros = [{ id: 'a', nome: 'Ana' }, { id: 'b', nome: 'Bruno' }, { id: 'c', nome: 'Carlos' }];
         actions.popularSelectMembros('select-membro');
         const options = document.querySelectorAll('#select-membro option');
         // 3 membros + 1 default option = 4
         expect(options.length).toBe(4);
         // Verificar ordem alfabética
-        expect(options[1].value).toBe('Ana');
-        expect(options[2].value).toBe('Bruno');
-        expect(options[3].value).toBe('Carlos');
+        expect(options[1].value).toBe('a');
+        expect(options[2].value).toBe('b');
+        expect(options[3].value).toBe('c');
     });
 
     test('fecharModalSelecaoMembro fecha e limpa preview', () => {
@@ -337,5 +224,79 @@ describe('actions.js — Pagamento', () => {
         S.carrinho = [];
         actions.iniciarPagamento('DINHEIRO');
         expect(document.getElementById('toast').innerText).toContain('Vazio');
+    });
+});
+
+describe('Integridade: falhas e reconciliação', () => {
+    beforeEach(loadModules);
+
+    test('abertura com erro mantém caixa fechado', async () => {
+        S.caixaAberto = false;
+        S.caixaId = null;
+        API.abrirCaixa.mockRejectedValueOnce(new Error('indisponível'));
+        await actions.confirmarAberturaValor();
+        expect(S.caixaAberto).toBe(false);
+        expect(S.caixaId).toBeNull();
+    });
+
+    test('abertura repetida usa valor confirmado pelo servidor', async () => {
+        document.getElementById('input-valor-abertura').value = '900';
+        API.abrirCaixa.mockResolvedValueOnce({ status: 'ok', caixa_id: 'same', valor_abertura: 50 });
+        await actions.confirmarAberturaValor();
+        expect(S.valorAbertura).toBe(50);
+    });
+
+    test.each([401, 403, 409, 422, 500])('fechamento rejeitado com %s não fecha nem faz logout', async status => {
+        API.fecharCaixa.mockRejectedValueOnce(Object.assign(new Error('rejeitado'), { status }));
+        await reports.executarFechamentoCaixa();
+        expect(S.caixaAberto).toBe(true);
+        expect(S.caixaId).toBe('cx-test');
+        expect(API.logout).not.toHaveBeenCalled();
+    });
+
+    test('pendência impede fechamento sem chamar servidor', async () => {
+        await persistirOperacao({ id_externo: 'pending', usuario_origem_id: S.usuarioAtual.id, caixa_id: S.caixaId });
+        await reports.executarFechamentoCaixa();
+        expect(API.fecharCaixa).not.toHaveBeenCalled();
+        expect(S.caixaAberto).toBe(true);
+    });
+
+    test('troca de operador não envia operação de outro usuário', async () => {
+        await persistirOperacao({ id_externo: 'foreign', usuario_origem_id: 'another', caixa_id: 'other-box' });
+        await actions.processarFilaVendas();
+        expect(API.processarVenda).not.toHaveBeenCalled();
+        expect(await listarOperacoes()).toHaveLength(1);
+    });
+
+    test.each([401, 403, 409, 422, 500])('falha %s de sincronização preserva operação', async status => {
+        const payload = { id_externo: 'preserved', usuario_origem_id: S.usuarioAtual.id, caixa_id: S.caixaId };
+        await persistirOperacao(payload);
+        API.processarVenda.mockRejectedValueOnce(Object.assign(new Error('rejeitado'), { status, retryable: status >= 500 }));
+        await actions.processarFilaVendas();
+        expect((await listarOperacoes())[0].payload).toEqual(payload);
+        await actions.processarFilaVendas();
+        expect(API.processarVenda).toHaveBeenCalledTimes(1);
+    });
+
+    test('sem persistência durável o carrinho não é apagado', async () => {
+        S.carrinho = [{ id: 1, nome: 'Cerveja', preco: 10, qtd: 1 }];
+        globalThis.indexedDB = undefined;
+        await actions.registrarVendaOtimista('PIX', 'Cliente');
+        expect(S.carrinho).toHaveLength(1);
+        expect(API.processarVenda).not.toHaveBeenCalled();
+    });
+
+    test('relatório exibido e impresso não duplica recebimentos', async () => {
+        API.gerarRelatorioCaixa.mockResolvedValueOnce({ periodo: 'Teste', abertura: 100, dinheiro: 14, pix: 16, cartao: 20,
+            totalEntradas: 50, recebimentoDivida: 10, vendasFiado: 10, historico: [] });
+        await reports.executarRelatorio('TURNO', {});
+        const html = document.getElementById('resultado-relatorio').textContent;
+        expect(html).toContain('150.00');
+        expect(html).not.toContain('160.00');
+        window.focus = jest.fn();
+        window.print = jest.fn();
+        reports.imprimirRelatorioAtual();
+        expect(document.getElementById('area-impressao').textContent).toContain('150.00');
+        expect(document.getElementById('area-impressao').textContent).not.toContain('160.00');
     });
 });

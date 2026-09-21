@@ -1,0 +1,236 @@
+/* pdv: componentes (camada base).
+ * Carregado por static/css/ponto_venda.css; preserve a ordem da cascata no manifesto.
+ */
+.loading-text {
+    margin-top: 12px;
+    font-size: 0.95rem;
+    color: #fff;
+    letter-spacing: 0.5px;
+}
+
+.header-logo {
+    width: 70px;
+    height: 70px;
+}
+
+.modal-title-accent {
+    color: #fff;
+}
+
+.modal-subtitle {
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+.modal-subtitle-muted {
+    color: #fff;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.input-valor-grande {
+    font-size: 2rem;
+    text-align: center;
+    color: var(--success);
+}
+
+.modal-prod-nome-accent {
+    color: var(--accent);
+    font-weight: bold;
+}
+
+.label-muted {
+    color: #fff;
+}
+
+.btn-disabled-initial {
+    width: 100%;
+    margin-top: 10px;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.btn-tipo-cartao {
+    width: 100%;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+}
+
+.btn-tipo-credito {
+    width: 100%;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+}
+
+.modal-title-estoque {
+    color: var(--edit-mode-color);
+}
+
+.estoque-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.label-accent {
+    color: var(--accent);
+}
+
+.label-danger {
+    color: var(--danger);
+}
+
+.estoque-nota {
+    font-size: 0.8rem;
+    color: #fff;
+    margin-top: 5px;
+}
+
+.btn-estoque-salvar {
+    background: var(--edit-mode-color) !important;
+    width: 100%;
+}
+
+.btn-estoque-salvar:hover {
+    background: #cc0000 !important;
+    border-color: var(--edit-mode-color) !important;
+    box-shadow: 0 0 15px rgba(179, 0, 0, 0.3) !important;
+}
+
+.preview-divida {
+    text-align: center;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #aaa;
+    min-height: 1.2em;
+}
+
+.nome-fechar-conta {
+    color: #aaa;
+    font-weight: bold;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.prompt-pagamento {
+    margin-top: 15px;
+    font-size: 0.9em;
+    color: #aaa;
+    margin-bottom: 5px;
+}
+
+.operador-box {
+    padding: 10px;
+    background: #222;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.operador-nome {
+    font-size: 1.2rem;
+    margin: 5px 0 10px 0;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+}
+
+.btn-trocar-operador {
+    width: 100%;
+}
+
+.btn-abrir-caixa {
+    width: 100%;
+    margin-top: 5px;
+    color: white !important;
+}
+
+.btn-fechar-dia {
+    width: 100%;
+    margin-top: 5px;
+}
+
+.date-range-row {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.date-range-row .config-input {
+    margin: 0;
+}
+
+.btn-gerar-periodo {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.resultado-relatorio {
+    margin-top: 15px;
+    border-top: 1px solid #555;
+    padding-top: 10px;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: #1a1a1a;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23b30000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    color: #e0e0e0;
+    padding: 10px 36px 10px 12px;
+    font-family: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+select:focus {
+    outline: none;
+    border-color: #b30000;
+    box-shadow: 0 0 0 2px rgba(179, 0, 0, 0.2);
+}
+
+select option {
+    background: #1a1a1a;
+    color: #e0e0e0;
+}
+
+.lista-membros-scroll {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+    border-color: rgba(255, 255, 255, 0.15);
+    padding: 12px 36px 12px 12px;
+    font-size: 1.05rem;
+    border-radius: 8px;
+}
+
+
+/* Center button text in "Gestão de Caixa" modal */
+#modal-relatorios .btn-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 8px;
+}
+
+/* White calendar icon for date inputs */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}

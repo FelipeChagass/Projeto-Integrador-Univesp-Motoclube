@@ -1,0 +1,214 @@
+/* pdv: modais-relatorios (camada base).
+ * Carregado por static/css/ponto_venda.css; preserve a ordem da cascata no manifesto.
+ */
+#modal-login {
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+}
+
+#modal-login .modal-content {
+    border: 2px solid var(--success);
+    width: 90%;
+    max-width: 600px;
+    text-align: center;
+}
+
+.config-option {
+    margin-bottom: 15px;
+}
+
+.config-option label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.config-option>label:not(:has(input)) {
+    display: block;
+    margin-bottom: 6px;
+    cursor: default;
+}
+
+.config-check {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    accent-color: var(--accent, #ff9800);
+    cursor: pointer;
+    padding: 0;
+    border: none;
+}
+
+.config-select,
+.config-input {
+    width: 100%;
+    padding: 0 10px;
+    height: 48px;
+    background: #222;
+    color: white;
+    border: 1px solid #555;
+    box-sizing: border-box;
+    font-size: 1.1rem;
+    border-radius: 4px;
+    line-height: 46px;
+}
+
+.lista-membros-scroll {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1rem;
+    color: black;
+    background-color: white;
+    border: 1px solid #555;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+
+.section-header {
+    color: var(--accent);
+    font-weight: bold;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding-bottom: 2px;
+    margin: 22px 0 8px 0;
+    opacity: 0.8;
+}
+
+.extrato-lista {
+    max-height: 200px;
+    overflow-y: auto;
+    margin: 10px 0;
+    padding: 5px;
+    background: #222;
+    border-radius: 5px;
+}
+
+.extrato-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px solid #333;
+    font-size: 0.9rem;
+}
+
+.extrato-total {
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: var(--danger);
+    margin: 10px 0;
+}
+
+.valor-pendente {
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--accent);
+    margin-bottom: 10px;
+}
+
+.modal-reconciliacao-content {
+    max-width: 900px;
+}
+
+.reconciliacao-description {
+    color: #aaa;
+    line-height: 1.5;
+    margin: 0 0 18px;
+}
+
+.lista-pendencias {
+    display: grid;
+    gap: 10px;
+    max-height: 48vh;
+    overflow-y: auto;
+    margin-bottom: 18px;
+}
+
+.pendencia-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+}
+
+.pendencia-detalhes {
+    color: #ddd;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.btn-reenviar-pendencia {
+    flex: 0 0 auto;
+    width: auto;
+    margin: 0;
+    padding: 9px 12px;
+    font-size: 0.78rem;
+}
+
+.reconciliacao-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.reconciliacao-actions .btn-action {
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .pendencia-item {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .btn-reenviar-pendencia {
+        width: 100%;
+    }
+
+    .reconciliacao-actions {
+        flex-direction: column;
+    }
+}
+
+.display-troco {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--success);
+    margin: 10px 0;
+    padding: 10px;
+    background: #222;
+    border-radius: 5px;
+}
+
+.cupom-visual {
+    background-color: #fffbe6;
+    color: #000;
+    font-family: 'Courier New', monospace;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+    max-height: 350px;
+    overflow-y: auto;
+    text-align: left;
+}
+
+.relatorio-linha {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dashed #ccc;
+    padding: 3px 0;
+    font-size: 0.95rem;
+}

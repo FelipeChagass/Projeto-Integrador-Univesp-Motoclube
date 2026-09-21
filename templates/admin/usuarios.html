@@ -1,0 +1,64 @@
+{# Aba de usuários e cadastro; comportamento em admin/usuarios.js.
+Incluído por admin.html; manter IDs únicos na página composta. #}
+<section class="tab-content" id="tab-usuarios">
+    <div class="container">
+        <div class="toolbar d-flex align-items-center flex-wrap">
+            <button class="btn btn-add" id="btn-add-usuario">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <line x1="19" y1="8" x2="19" y2="14" />
+                    <line x1="22" y1="11" x2="16" y2="11" />
+                </svg>
+                Novo Usuário
+            </button>
+        </div>
+
+        <div id="formNovoUsuario" class="form-card d-none">
+            <div class="form-card-header d-flex justify-content-between align-items-center">
+                <h3>Cadastrar Novo Usuário</h3>
+                <button class="btn-icon-close" id="btn-close-form-usuario">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="form-grid">
+                <div class="form-group"><label>Nome de Exibição</label><input type="text" id="novo-user-nome"
+                        placeholder="Nome"></div>
+                <div class="form-group"><label>E-mail (Login)</label><input type="email" id="novo-user-email"
+                        placeholder="usuario@email.com"></div>
+                <div class="form-group"><label>Senha Inicial</label><input type="password" id="novo-user-senha"
+                        placeholder="Mínimo 6 caracteres"></div>
+                <div class="form-group"><label>Perfil de Acesso</label>
+                    <select id="novo-user-perfil">
+                        <option value="operador" selected>Operador</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-actions d-flex justify-content-end">
+                <button class="btn btn-save" id="btn-save-novo-usuario">Salvar Usuário</button>
+                <button class="btn btn-cancel" id="btn-cancel-novo-usuario">Cancelar</button>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Nova Senha</th>
+                        <th>Perfil</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaUsuarios"></tbody>
+            </table>
+        </div>
+    </div>
+</section>

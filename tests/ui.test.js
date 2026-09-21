@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import { jest, describe, test, expect, beforeEach, afterEach } from '@jest/globals';
-import { S } from '../static/js/state.js';
+import { S } from '../static/js/features/pdv/state.js';
 
 function mockMatchMedia() {
     window.matchMedia = jest.fn().mockImplementation(() => ({
@@ -40,7 +40,7 @@ describe('ui.js — showToast()', () => {
     beforeEach(async () => {
         setupDOM();
         mockMatchMedia();
-        const mod = await import('../static/js/ui.js');
+        const mod = await import('../static/js/features/pdv/ui.js');
         showToast = mod.showToast;
     });
 
@@ -64,7 +64,7 @@ describe('ui.js — fecharModal()', () => {
         setupDOM();
         mockMatchMedia();
         document.body.insertAdjacentHTML('beforeend', '<div id="modal-teste" class="modal-overlay" style="display:flex"></div>');
-        const mod = await import('../static/js/ui.js');
+        const mod = await import('../static/js/features/pdv/ui.js');
         fecharModal = mod.fecharModal;
     });
 
@@ -92,7 +92,7 @@ describe('ui.js — atualizarEstadoBotoes()', () => {
         S.operadorAtual = '';
         S.caixaAberto = false;
         S.usuarioAtual = null;
-        const mod = await import('../static/js/ui.js');
+        const mod = await import('../static/js/features/pdv/ui.js');
         atualizarEstadoBotoes = mod.atualizarEstadoBotoes;
     });
 
@@ -143,7 +143,7 @@ describe('ui.js — renderizarCatalogo()', () => {
         S.produtos = [];
         S.carrinho = [];
         S.modoGerenciaEstoque = false;
-        const mod = await import('../static/js/ui.js');
+        const mod = await import('../static/js/features/pdv/ui.js');
         renderizarCatalogo = mod.renderizarCatalogo;
     });
 
@@ -216,7 +216,7 @@ describe('ui.js — atualizarUI()', () => {
         ];
         S.carrinho = [];
         S.modoGerenciaEstoque = false;
-        const mod = await import('../static/js/ui.js');
+        const mod = await import('../static/js/features/pdv/ui.js');
         atualizarUI = mod.atualizarUI;
     });
 

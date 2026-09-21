@@ -1,0 +1,30 @@
+{# Formulário de configurações globais; comportamento em admin/configuracoes.js.
+Incluído por admin.html; manter IDs únicos na página composta. #}
+<section class="tab-content" id="tab-config">
+    <div class="container">
+        <div class="form-card d-block">
+            <div class="form-card-header d-flex justify-content-between align-items-center">
+                <h3>Configurações do Sistema</h3>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Impressão Automática</label>
+                    <select id="cfg-imprimir">
+                        <option value="true">Sim</option>
+                        <option value="false">Não</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Largura do Papel</label>
+                    <select id="cfg-largura">
+                        <option value="ticket-80mm">80mm</option>
+                        <option value="ticket-58mm">58mm</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-actions d-flex justify-content-end">
+                <button class="btn btn-save" id="btn-save-config">Salvar Configurações</button>
+            </div>
+        </div>
+    </div>
+</section>

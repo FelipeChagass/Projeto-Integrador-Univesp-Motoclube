@@ -5,16 +5,16 @@ Registra toda alteração manual de estoque para auditoria.
 
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Integer, BigInteger, DateTime, ForeignKey, Text
+from sqlalchemy import Column, Integer, BigInteger, DateTime, ForeignKey, Text, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from app.database import Base
+from app.core.database import Base
 
 
 class AjusteEstoque(Base):
     __tablename__ = 'ajustes_estoque'
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text('gen_random_uuid()'))
     produto_id = Column(BigInteger, ForeignKey('produtos.id'), nullable=False)
     usuario_id = Column(UUID(as_uuid=True), ForeignKey('usuarios.id'), nullable=True)
     estoque_bar_anterior = Column(Integer, nullable=False)
@@ -26,7 +26,7 @@ class AjusteEstoque(Base):
     estoque_min_deposito_anterior = Column(Integer, nullable=True)
     estoque_min_deposito_novo = Column(Integer, nullable=True)
     motivo = Column(Text, nullable=True)
-    criado_em = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    criado_em = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), server_default=text('now()'))
 
     # Relacionamentos
     produto = relationship('Produto', back_populates='ajustes_estoque')

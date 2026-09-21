@@ -1,0 +1,48 @@
+{# Observações e métodos de pagamento; actions/carrinho.js e pagamentos.js.
+   Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
+    <div id="modal-obs" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-drag-header">
+                <div class="drag-handle"></div>
+                <h3>Personalizar</h3>
+            </div>
+            <div class="modal-scroll-body">
+                <p id="modal-prod-nome" class="modal-prod-nome-accent"></p>
+                <input type="text" id="custom-obs" placeholder="Ex: Sem cebola..." class="input-cliente mt-1 mb-1">
+                <button class="btn-action w-100" id="btn-confirmar-obs">CONFIRMAR PEDIDO</button>
+                <button class="btn-action" id="btn-cancelar-obs">CANCELAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-dinheiro" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-drag-header">
+                <div class="drag-handle"></div>
+                <h3>Pagamento em Dinheiro</h3>
+            </div>
+            <div class="modal-scroll-body">
+                <div class="valor-pendente" id="valor-total-dinheiro">Total: R$ 0,00</div>
+                <label class="label-muted">Valor Recebido:</label>
+                <input type="number" id="valor-recebido" class="input-cliente input-valor-grande" placeholder="0,00">
+                <div class="display-troco" id="display-troco">Troco: R$ 0,00</div>
+                <button id="btn-confirmar-dinheiro" class="btn-action btn-disabled-initial">CONFIRMAR PAGAMENTO</button>
+                <button class="btn-action" id="btn-cancelar-dinheiro">CANCELAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-cartao" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-drag-header">
+                <div class="drag-handle"></div>
+                <h3>Selecione o Tipo</h3>
+            </div>
+            <div class="modal-scroll-body">
+                <p class="modal-subtitle-muted">Qual a função do cartão?</p>
+                <button class="btn-action btn-tipo-cartao" id="btn-cartao-debito">DÉBITO</button>
+                <button class="btn-action btn-tipo-credito" id="btn-cartao-credito">CRÉDITO</button>
+                <button class="btn-action" id="btn-cancelar-cartao">CANCELAR</button>
+            </div>
+        </div>
+    </div>

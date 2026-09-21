@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import { jest, describe, test, expect, beforeEach } from '@jest/globals';
-import { S, salvarEstadoLocal, salvarDadosLocais, carregarDadosLocais } from '../static/js/state.js';
+import { S, salvarEstadoLocal, salvarDadosLocais, carregarDadosLocais } from '../static/js/features/pdv/state.js';
 
 describe('state.js — Estado Inicial', () => {
     test('S tem todas as propriedades obrigatórias', () => {

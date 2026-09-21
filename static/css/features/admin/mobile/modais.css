@@ -1,0 +1,127 @@
+/* admin: modais (adaptações mobile).
+ * Carregado por static/css/admin-mobile.css; preserve a ordem da cascata no manifesto.
+ */
+@media (max-width: 768px) {
+    /* ── Modals (bottom-sheet style) ── */
+    .modal-overlay {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+
+    .modal-content {
+
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: 92vh !important;
+        border-radius: 16px 16px 0 0 !important;
+        padding: 20px 18px calc(20px + env(safe-area-inset-bottom)) !important;
+        overflow-y: auto;
+        animation: adminModalSlideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        margin: 0 !important;
+        position: relative;
+        touch-action: pan-y;
+    }
+
+    .modal-overlay.closing .modal-content {
+        animation: adminModalSlideDown 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes adminModalSlideUp {
+        from {
+            transform: translateY(100%);
+            opacity: 1;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes adminModalSlideDown {
+        from {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        to {
+            transform: translateY(100%);
+            opacity: 1;
+        }
+    }
+
+    .modal-lg {
+        max-width: 100% !important;
+    }
+
+    .modal-header {
+        padding: 1rem 1.2rem;
+    }
+
+    .modal-header h3 {
+        font-size: 1rem;
+    }
+
+    .modal-content .form-grid {
+        padding: 1rem;
+    }
+
+    .modal-content .form-actions {
+        padding: 0 1rem calc(1rem + env(safe-area-inset-bottom));
+    }
+
+    .extrato-body {
+        max-height: 50vh;
+        padding: 0.5rem;
+    }
+
+    .extrato-saldo-display {
+        font-size: 1rem;
+        padding: 0.8rem;
+    }
+
+    .inner-table th,
+    .inner-table td {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    /* Inner tables (extrato etc.) stay as standard tables */
+    .inner-table {
+        display: table;
+    }
+
+    .inner-table thead {
+        display: table-header-group;
+    }
+
+    .inner-table tbody {
+        display: table-row-group;
+    }
+
+    .inner-table tr {
+        display: table-row;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        padding: 0;
+        gap: 0;
+    }
+
+    .inner-table td {
+        display: table-cell;
+        text-align: center;
+    }
+
+    .inner-table td::before {
+        display: none;
+    }
+
+    .toast {
+        left: 0.8rem;
+        right: 0.8rem;
+        bottom: calc(0.8rem + env(safe-area-inset-bottom));
+        text-align: center;
+    }
+}

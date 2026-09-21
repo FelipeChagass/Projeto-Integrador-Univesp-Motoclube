@@ -1,0 +1,59 @@
+/* pdv: variantes (adaptações mobile).
+ * Carregado por static/css/ponto_venda-mobile.css; preserve a ordem da cascata no manifesto.
+ */
+@media (max-width: 380px) {
+    .grid-produtos {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 5px;
+    }
+
+    .header-logo {
+        width: 55px;
+        height: 55px;
+    }
+
+    .total-display {
+        font-size: 1.5rem;
+    }
+
+    .btn-action {
+        font-size: 0.78rem;
+        padding: 10px 12px;
+    }
+
+    .card-name {
+        font-size: 0.75rem;
+    }
+
+    .card-price {
+        font-size: 0.9rem;
+    }
+
+    .sidebar-panel {
+        width: 260px;
+    }
+}
+
+@media (min-width: 769px) {
+    .btn-hamburger {
+        display: none;
+    }
+
+    .sidebar-mobile {
+        display: none !important;
+    }
+
+    #carrinho-badge-mobile {
+        display: none !important;
+    }
+}
+
+@media (hover: none) and (pointer: coarse) {
+
+    .btn-action:hover,
+    .btn-header:hover,
+    .btn:hover,
+    .card:hover {
+        transform: none;
+    }
+}

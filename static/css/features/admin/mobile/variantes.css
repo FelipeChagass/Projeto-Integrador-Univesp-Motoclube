@@ -1,0 +1,66 @@
+/* admin: variantes (adaptações mobile).
+ * Carregado por static/css/admin-mobile.css; preserve a ordem da cascata no manifesto.
+ */
+/* ==========================================================
+   ADMIN MOBILE — ≤ 420px  (small phones)
+   ========================================================== */
+@media (max-width: 420px) {
+    .stat-card {
+        flex: 1 1 100%;
+    }
+
+    header h1 {
+        font-size: 0.8rem;
+    }
+
+    .sidebar-panel {
+        width: 260px;
+    }
+
+    tr {
+        padding: 10px;
+    }
+
+    td {
+        font-size: 0.82rem;
+    }
+
+    td::before {
+        font-size: 0.65rem;
+        min-width: 65px;
+    }
+
+    .btn-sm {
+        font-size: 0.7rem;
+        padding: 0.35rem 0.6rem;
+    }
+
+    .modal-content {
+        margin: 0 auto !important;
+        position: relative;
+    }
+}
+
+/* ==========================================================
+   DESKTOP GUARD — ≥ 769px
+   ========================================================== */
+@media (min-width: 769px) {
+    .btn-hamburger {
+        display: none !important;
+    }
+
+    .sidebar-mobile {
+        display: none !important;
+    }
+}
+
+/* ==========================================================
+   TOUCH DEVICES
+   ========================================================== */
+@media (hover: none) and (pointer: coarse) {
+
+    .btn:hover,
+    .tab-btn:hover {
+        transform: none;
+    }
+}

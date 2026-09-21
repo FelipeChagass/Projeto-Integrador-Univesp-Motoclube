@@ -1,0 +1,87 @@
+/* pdv: modais (adaptações mobile).
+ * Carregado por static/css/ponto_venda-mobile.css; preserve a ordem da cascata no manifesto.
+ */
+@media (max-width: 768px) {
+    .modal-overlay {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    /* Modal Drag Handle — now a real element, remove pseudo */
+    .modal-content::before {
+        display: none;
+    }
+
+    .modal-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: 92vh !important;
+        border-radius: 16px 16px 0 0 !important;
+        padding: 0 !important;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        margin: 0 !important;
+        position: relative;
+        will-change: transform;
+        /* Entry animation controlled by JS via transition */
+        transform: translateY(100%);
+        transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    .modal-overlay.sheet-open .modal-content {
+        transform: translateY(0);
+    }
+
+    .modal-content.sheet-dismissing {
+        transform: translateY(100%) !important;
+        transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1) !important;
+    }
+
+    /* Override common.css animations on mobile — transitions take over */
+    .modal-content {
+        animation: none !important;
+    }
+
+    .modal-overlay.closing .modal-content {
+        animation: none !important;
+    }
+
+    /* Scroll body padding on mobile */
+    .modal-scroll-body {
+        padding: 0 18px calc(18px + env(safe-area-inset-bottom));
+    }
+
+
+
+    #modal-login .modal-content {
+        max-width: 100% !important;
+        border-radius: 16px 16px 0 0 !important;
+    }
+
+    .input-valor-grande {
+        font-size: 1.8rem;
+    }
+
+    .extrato-lista {
+        max-height: 28vh;
+    }
+
+    input,
+    select,
+    textarea,
+    .config-input,
+    .config-select,
+    .lista-membros-scroll {
+        font-size: 16px !important;
+    }
+
+    .config-option label {
+        font-size: 0.95rem;
+    }
+
+    .date-range-row {
+        flex-direction: column;
+        gap: 8px;
+    }
+}

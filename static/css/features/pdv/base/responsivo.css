@@ -1,0 +1,37 @@
+/* pdv: responsivo (camada base).
+ * Carregado por static/css/ponto_venda.css; preserve a ordem da cascata no manifesto.
+ */
+@media (max-width: 850px) {
+    #main-content {
+        flex-direction: column;
+        height: auto;
+    }
+
+    #catalogo-section {
+        width: 100%;
+        flex: 1;
+        padding: 10px;
+    }
+
+    #carrinho-section {
+        width: 100%;
+        height: auto;
+        min-height: 250px;
+        max-height: 45vh;
+        border-left: none;
+        border-top: 2px solid rgba(255, 152, 0, 0.3);
+    }
+
+    .grid-produtos {
+        grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+        gap: 8px;
+    }
+
+    .btn-header span.btn-text {
+        display: none;
+    }
+
+    .btn-header {
+        padding: 7px 10px;
+    }
+}

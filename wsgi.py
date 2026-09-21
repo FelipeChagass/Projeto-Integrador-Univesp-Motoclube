@@ -2,7 +2,7 @@
 Ponto de entrada na raiz do projeto.
 
 Executar:
-    python app.py
+    python wsgi.py
 
 Equivalente a:
     cd backend && python run.py
@@ -13,7 +13,7 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
 
-from app import create_app 
+from app import create_app
 
 application = create_app()
 
@@ -30,5 +30,5 @@ if __name__ == '__main__':
     application.run(
         host='0.0.0.0',
         port=5000,
-        debug=True,
+        debug=application.config['DEBUG'],
     )

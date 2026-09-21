@@ -1,0 +1,55 @@
+{# Extrato e ajuste de saldo; IDs consumidos por admin/membros.js.
+Incluído por admin.html; manter IDs únicos na página composta. #}
+<div class="modal-overlay d-none" id="modalExtrato">
+    <div class="modal-content modal-lg">
+        <div class="modal-header d-flex justify-content-between align-items-center">
+            <h3 id="extrato-titulo">Extrato</h3>
+            <button class="btn-icon-close" id="btn-close-modal-extrato">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                </svg>
+            </button>
+        </div>
+        <div id="extrato-saldo" class="extrato-saldo-display"></div>
+        <div id="extrato-body" class="extrato-body"></div>
+    </div>
+</div>
+
+<div class="modal-overlay d-none" id="modalAjuste">
+    <div class="modal-content">
+        <div class="modal-header d-flex justify-content-between align-items-center">
+            <h3>Ajuste de Saldo</h3>
+            <button class="btn-icon-close" id="btn-close-modal-ajuste">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                </svg>
+            </button>
+        </div>
+        <p id="ajuste-membro-nome" class="admin-ajuste-nome"></p>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Tipo</label>
+                <select id="ajuste-tipo">
+                    <option value="credito">Crédito (abater dívida)</option>
+                    <option value="debito">Débito (aumentar dívida)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Valor (R$)</label>
+                <input type="number" id="ajuste-valor" step="0.01" min="0" placeholder="0.00">
+            </div>
+            <div class="form-group span-2">
+                <label>Descrição (opcional)</label>
+                <input type="text" id="ajuste-descricao" placeholder="Motivo do ajuste">
+            </div>
+        </div>
+        <div class="form-actions d-flex justify-content-end">
+            <button class="btn btn-save" id="btn-confirmar-ajuste-saldo">Confirmar Ajuste</button>
+            <button class="btn btn-cancel" id="btn-cancel-modal-ajuste">Cancelar</button>
+        </div>
+    </div>
+</div>

@@ -31,7 +31,6 @@ if __name__ == '__main__':
     print("    POST /api/caixa/abrir")
     print("    POST /api/caixa/fechar")
     print("    POST /api/relatorios")
-    print("    POST /api/admin/verificar-senha")
     print("    CRUD /api/admin/produtos")
     print()
     print("=" * 50)
@@ -39,5 +38,5 @@ if __name__ == '__main__':
     app.run(
         host='0.0.0.0',
         port=5000,
-        debug=True,
+        debug=app.core.config['DEBUG'],
     )

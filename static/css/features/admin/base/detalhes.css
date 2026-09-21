@@ -1,0 +1,112 @@
+/* admin: detalhes (camada base).
+ * Carregado por static/css/admin.css; preserve a ordem da cascata no manifesto.
+ */
+@keyframes skeleton-shimmer {
+    0% {
+        background-position: -400px 0;
+    }
+
+    100% {
+        background-position: 400px 0;
+    }
+}
+
+.skeleton-row td {
+    padding: 10px 8px;
+}
+
+.skeleton-row td>.skel {
+    height: 18px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #1e1e1e 25%, #2a2a2a 50%, #1e1e1e 75%);
+    background-size: 400px 100%;
+    animation: skeleton-shimmer 1.4s ease infinite;
+    margin: 0 auto;
+}
+
+.admin-ajuste-nome,
+.admin-estoque-nome {
+    font-size: 1.1rem;
+    color: #fff;
+    font-weight: 600;
+    padding: 1.25rem 1.5rem 0 1.5rem;
+    margin: 0;
+}
+
+.td-minimos {
+    font-size: 0.82rem;
+    color: #fff;
+}
+
+.td-minimos b {
+    color: #fff;
+    font-weight: 700 !important;
+}
+
+.td-email {
+    color: #fff;
+    font-size: 0.85rem;
+}
+
+.td-valor {
+    font-weight: 600;
+}
+
+.admin-loading-text {
+    text-align: center;
+    color: #fff;
+}
+
+.admin-empty-text {
+    text-align: center;
+    color: #fff;
+    padding: 2rem;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: rgba(0, 0, 0, 0.3);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23b30000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #e0e0e0;
+    height: 40px;
+    box-sizing: border-box;
+    padding: 0 2rem 0 0.9rem;
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+select:focus {
+    outline: none;
+    border-color: #b30000;
+    box-shadow: 0 0 0 2px rgba(179, 0, 0, 0.2);
+}
+
+select option {
+    background: #1a1a1a;
+    color: #e0e0e0;
+}
+
+/* White calendar icon for date inputs */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}

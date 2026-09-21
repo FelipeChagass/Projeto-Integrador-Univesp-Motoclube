@@ -1,0 +1,31 @@
+/* pdv: tablet (adaptações mobile).
+ * Carregado por static/css/ponto_venda-mobile.css; preserve a ordem da cascata no manifesto.
+ */
+@media (max-width: 900px) {
+    .btn-header .btn-text {
+        display: none;
+    }
+
+    .btn-header svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .header-logo {
+        width: 55px;
+        height: 55px;
+    }
+
+    #barra-operador {
+        font-size: 0.72rem;
+        padding: 6px 10px;
+    }
+
+    .btn-hamburger {
+        display: none;
+    }
+
+    .sidebar-mobile {
+        display: none;
+    }
+}

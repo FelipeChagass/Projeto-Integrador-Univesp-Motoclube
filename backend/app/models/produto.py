@@ -5,26 +5,30 @@ Possui estoque de bar e depósito separados.
 """
 
 from datetime import datetime, timezone
-from sqlalchemy import Column, BigInteger, String, Integer, Boolean, DateTime, Numeric
+from sqlalchemy import Column, BigInteger, String, Integer, Boolean, DateTime, Numeric, CheckConstraint, Identity, text
 from sqlalchemy.orm import relationship
-from app.database import Base
+from app.core.database import Base
 
 
 class Produto(Base):
     __tablename__ = 'produtos'
+    __table_args__ = tuple(
+        CheckConstraint(f'{column} >= 0', name=f'produtos_{column}_check')
+        for column in ('preco_atual', 'estoque_bar', 'estoque_deposito', 'estoque_min_bar', 'estoque_min_deposito')
+    )
 
-    id = Column(BigInteger, primary_key=True)
+    id = Column(BigInteger, Identity(always=True), primary_key=True)
     nome = Column(String, nullable=False)
-    preco_atual = Column(Numeric(12, 2), nullable=False)
-    estoque_bar = Column(Integer, nullable=False, default=0)
-    estoque_deposito = Column(Integer, nullable=False, default=0)
+    preco_atual = Column(Numeric(), nullable=False)
+    estoque_bar = Column(Integer, nullable=False, default=0, server_default=text('0'))
+    estoque_deposito = Column(Integer, nullable=False, default=0, server_default=text('0'))
     url_imagem = Column(String, nullable=True)
     categoria = Column(String, nullable=True)
-    estoque_min_bar = Column(Integer, nullable=False, default=0)
-    estoque_min_deposito = Column(Integer, nullable=False, default=0)
-    ativo = Column(Boolean, nullable=False, default=True)
-    criado_em = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
-    atualizado_em = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    estoque_min_bar = Column(Integer, nullable=False, default=0, server_default=text('0'))
+    estoque_min_deposito = Column(Integer, nullable=False, default=0, server_default=text('0'))
+    ativo = Column(Boolean, nullable=False, default=True, server_default=text('true'))
+    criado_em = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), server_default=text('now()'))
+    atualizado_em = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), server_default=text('now()'))
 
     # Relacionamentos
     itens_venda = relationship('ItemVenda', back_populates='produto')

@@ -1,5 +1,5 @@
 """Models ORM"""
-from app.database import Base
+from app.core.database import Base
 from .configuracao import ConfiguracaoSistema
 from .usuario import Usuario
 from .membro import Membro

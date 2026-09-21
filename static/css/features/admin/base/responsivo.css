@@ -1,0 +1,67 @@
+/* admin: responsivo (camada base).
+ * Carregado por static/css/admin.css; preserve a ordem da cascata no manifesto.
+ */
+@media (max-width: 900px) {
+    .container {
+        padding: 0 0.8rem;
+    }
+
+    .tabs-nav {
+        padding: 0 0.5rem;
+    }
+
+    .tab-btn {
+        padding: 8px 12px;
+        font-size: 0.75rem;
+    }
+
+    .tab-btn .btn-text {
+        display: none;
+    }
+
+    .tab-btn svg {
+        width: 18px;
+        height: 18px;
+        display: block;
+    }
+
+    table {
+        font-size: 0.75rem;
+    }
+
+    td input[type="number"] {
+        width: 50px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group.span-2 {
+        grid-column: span 1;
+    }
+
+    header {
+        padding: 0.7rem 1rem;
+    }
+
+    .filter-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 600px) {
+    .toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .btn-group {
+        flex-direction: column;
+    }
+
+    .stats-row {
+        flex-direction: column;
+    }
+}

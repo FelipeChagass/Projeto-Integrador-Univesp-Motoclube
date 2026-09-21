@@ -1,0 +1,94 @@
+{# Aba de produtos e formulário de cadastro; renderização em admin/produtos.js.
+Incluído por admin.html; manter IDs únicos na página composta. #}
+<section class="tab-content active" id="tab-produtos">
+    <div class="container">
+        <div class="toolbar d-flex align-items-center flex-wrap">
+            <button class="btn btn-add" id="btn-add-produto">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14" />
+                    <path d="M12 5v14" />
+                </svg>
+                Novo Produto
+            </button>
+            <label class="toggle-label">
+                <input type="checkbox" id="mostrarProdutosInativos">
+                <span>Mostrar desativados</span>
+            </label>
+        </div>
+
+        <div id="formNovoProduto" class="form-card d-none">
+            <div class="form-card-header d-flex justify-content-between align-items-center">
+                <h3>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                        <path d="m3.3 7 8.7 5 8.7-5" />
+                        <path d="M12 22V12" />
+                    </svg>
+                    Cadastrar Novo Produto
+                </h3>
+                <button class="btn-icon-close" id="btn-close-form-produto">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="form-grid">
+                <div class="form-group span-2"><label for="novo-nome">Nome</label><input type="text" id="novo-nome"
+                        placeholder="Ex: Cerveja 600ml"></div>
+                <div class="form-group"><label for="novo-preco">Preço (R$)</label><input type="number" id="novo-preco"
+                        step="0.01" min="0" placeholder="0.00"></div>
+                <div class="form-group"><label for="novo-categoria">Categoria</label>
+                    <select id="novo-categoria">
+                        <option value="bebida">Bebida</option>
+                        <option value="comida">Comida</option>
+                        <option value="outro">Outro</option>
+                    </select>
+                </div>
+                <div class="form-group span-2">
+                    <label>Imagem do Produto</label>
+                    <div class="upload-zone" id="novo-upload-zone">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" x2="12" y1="3" y2="15" />
+                        </svg>
+                        <span>Clique para selecionar</span><small>PNG, JPG, GIF ou WebP</small>
+                    </div>
+                    <input type="file" id="novo-file-input" accept="image/*" class="d-none">
+                    <div id="novo-img-preview" class="img-preview-container d-none">
+                        <img id="novo-img-tag" src="" alt="Preview">
+                        <button class="btn-remove-img" id="btn-remove-preview-produto">Remover</button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-actions d-flex justify-content-end">
+                <button class="btn btn-save" id="btn-save-novo-produto">Salvar Produto</button>
+                <button class="btn btn-cancel" id="btn-cancel-novo-produto">Cancelar</button>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead class>
+                    <tr>
+                        <th>Img</th>
+                        <th>Nome</th>
+                        <th>Preço</th>
+                        <th>Categ.</th>
+                        <th>Estoque</th>
+                        <th>Mínimos</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaProdutos"></tbody>
+            </table>
+        </div>
+    </div>
+</section>

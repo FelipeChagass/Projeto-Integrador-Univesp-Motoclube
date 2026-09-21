@@ -1,0 +1,166 @@
+/* admin: formularios (camada base).
+ * Carregado por static/css/admin.css; preserve a ordem da cascata no manifesto.
+ */
+.form-card {
+    background: linear-gradient(145deg, #222, #1a1a1a);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 0;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.form-card-header {
+    padding: 1rem 1.5rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.form-card-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #e0e0e0;
+    margin: 0;
+    line-height: 1;
+}
+
+.form-card-header h3 svg {
+    color: #b30000;
+}
+
+.btn-icon-close {
+    background: none;
+    border: none;
+    color: #8a8a9a;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.1;
+    transition: all 0.2s;
+}
+
+.btn-icon-close svg {
+    display: block;
+}
+
+.btn-icon-close:hover {
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    padding: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group.span-2 {
+    grid-column: span 2;
+}
+
+.form-group label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #fff;
+}
+
+.form-group input,
+.form-group select {
+    padding: 0 0.9rem;
+    height: 44px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    transition: border-color 0.2s;
+    line-height: 42px;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #b30000;
+}
+
+.form-actions {
+    gap: 12px;
+    padding: 1rem 1.5rem 1.5rem;
+}
+
+.upload-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 1.5rem;
+    border: 2px dashed rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #888;
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.upload-zone:hover {
+    border-color: #b30000;
+    color: #b30000;
+    background: rgba(179, 0, 0, 0.05);
+}
+
+.upload-zone span {
+    font-size: 0.82rem;
+    font-weight: 500;
+}
+
+.upload-zone small {
+    font-size: 0.7rem;
+    color: #888;
+}
+
+.img-preview-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.img-preview-container img {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-remove-img {
+    padding: 6px 12px;
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+    border-radius: 6px;
+    color: #ff6b6b;
+    font-size: 0.78rem;
+    cursor: pointer;
+    font-family: inherit;
+}

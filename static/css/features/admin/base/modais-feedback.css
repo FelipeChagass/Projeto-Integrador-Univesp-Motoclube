@@ -1,0 +1,83 @@
+/* admin: modais-feedback (camada base).
+ * Carregado por static/css/admin.css; preserve a ordem da cascata no manifesto.
+ */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.modal-content {
+    background: linear-gradient(145deg, #222, #1a1a1a);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-lg {
+    max-width: 700px;
+}
+
+.modal-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.modal-header h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #b30000;
+    margin: 0;
+    line-height: 1;
+}
+
+.modal-content .form-grid {
+    padding: 1.5rem;
+    gap: 1.2rem;
+}
+
+.modal-content .form-actions {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    gap: 12px;
+}
+
+.toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    padding: 0.8rem 1.4rem;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 500;
+    font-size: 0.88rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    z-index: 1000;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.ok {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+}
+
+.toast.err {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+}

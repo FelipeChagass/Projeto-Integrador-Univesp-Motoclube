@@ -30,7 +30,7 @@ multidict==6.7.1
 packaging==26.0
 postgrest==2.28.3
 propcache==0.4.1
-psycopg2==2.9.11
+psycopg2-binary==2.9.11
 pycparser==3.0
 pydantic==2.12.5
 pydantic_core==2.41.5
@@ -61,3 +61,6 @@ Werkzeug==3.1.8
 yarl==1.23.0
 zstandard==0.25.0
 gunicorn==23.0.0
+alembic==1.16.5
+tzdata==2025.2
+Pillow==11.3.0

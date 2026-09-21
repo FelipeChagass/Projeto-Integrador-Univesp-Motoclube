@@ -8,44 +8,62 @@ Autenticação: Supabase Auth (JWT). Flask não gerencia sessões.
 
 import os
 import time
-from flask import Flask, redirect, render_template, g, request
+import uuid
+from flask import Flask, render_template, g, request
 from flask_cors import CORS
-from app.config import Config
+from app.core.config import Config, validate_config
+from app.core.errors import register_error_handlers
 
 
-def create_app():
+def create_app(test_config=None):
     frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
     templates_dir = os.path.join(frontend_dir, 'templates')
     static_dir = os.path.join(frontend_dir, 'static')
-    
+
     app = Flask(__name__, static_folder=static_dir, static_url_path='/static', template_folder=templates_dir)
     app.config.from_object(Config)
+    if test_config:
+        app.config.update(test_config)
+    validate_config(app.config)
+    register_error_handlers(app)
 
     @app.before_request
     def start_timer():
-        g.start_time = time.time()
+        g.start_time = time.perf_counter()
+        g.request_id = str(uuid.uuid4())
 
     @app.after_request
     def add_server_timing(response):
         if hasattr(g, 'start_time'):
-            dur = (time.time() - g.start_time) * 1000
+            dur = (time.perf_counter() - g.start_time) * 1000
             response.headers['Server-Timing'] = f'app;dur={dur:.2f};desc="Processamento Flask"'
-            app.logger.info(f"Performance Metrics: {request.method} {request.path} finalizado em {dur:.2f}ms")
+            if request.path.startswith('/api/') and request.path != '/api/health':
+                app.logger.info(
+                    'request method=%s endpoint=%s status=%s duration_ms=%.2f request_id=%s user_id=%s',
+                    request.method, request.endpoint, response.status_code, dur,
+                    g.request_id, getattr(g, 'usuario_id', None),
+                )
+        response.headers['X-Request-ID'] = g.request_id
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['Referrer-Policy'] = 'same-origin'
+        response.headers['X-Frame-Options'] = 'DENY'
+        if request.path.startswith('/api/'):
+            response.headers['Cache-Control'] = 'no-store'
         return response
 
-   
-    allowed_origins = os.getenv('ALLOWED_ORIGINS', 'http://localhost:5000').split(',')
+
+    allowed_origins = app.config['ALLOWED_ORIGINS']
     CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
 
     # ---------- Blueprints ----------
-    from app.routes.dados_iniciais import bp as dados_bp
-    from app.routes.produtos import bp as produtos_bp
-    from app.routes.membros import bp as membros_bp
-    from app.routes.vendas import bp as vendas_bp
-    from app.routes.caixa import bp as caixa_bp
-    from app.routes.relatorios import bp as relatorios_bp
-    from app.routes.admin import bp as admin_bp
-    from app.routes.auth import bp as auth_bp
+    from app.features.pdv.routes import bp as dados_bp
+    from app.features.produtos.routes import bp as produtos_bp
+    from app.features.membros.routes import bp as membros_bp
+    from app.features.vendas.routes import bp as vendas_bp
+    from app.features.caixa.routes import bp as caixa_bp
+    from app.features.relatorios.routes import bp as relatorios_bp
+    from app.features.admin.routes import bp as admin_bp
+    from app.features.auth.routes import bp as auth_bp
 
     app.register_blueprint(dados_bp)
     app.register_blueprint(produtos_bp)
@@ -66,15 +84,6 @@ def create_app():
     @app.route('/login')
     def login_page():
         return render_template('login.html')
-
-    @app.route('/cadastro')
-    def cadastro_page():
-        return redirect('/login')
-
-    @app.route('/pdv')
-    def pdv_page():
-        """Alias mantido para compatibilidade."""
-        return redirect('/')
 
     @app.route('/admin')
     def admin_page():

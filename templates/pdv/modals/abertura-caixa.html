@@ -1,0 +1,17 @@
+{# Abertura de caixa; actions/sessao.js só confirma estado após resposta da API.
+   Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
+    <div id="modal-abertura-caixa" class="modal-overlay">
+        <div class="modal-content text-center">
+            <div class="modal-drag-header">
+                <div class="drag-handle"></div>
+                <h2 class="modal-title-accent">ABERTURA DE CAIXA</h2>
+            </div>
+            <div class="modal-scroll-body">
+                <p class="modal-subtitle">Informe o Fundo de Caixa (Troco Inicial):</p>
+                <input type="number" id="input-valor-abertura" class="input-cliente input-valor-grande"
+                    placeholder="0,00">
+                <button class="btn-action" id="btn-confirmar-abertura">ABRIR CAIXA</button>
+                <button class="btn-action" id="btn-cancelar-abertura">CANCELAR</button>
+            </div>
+        </div>
+    </div>

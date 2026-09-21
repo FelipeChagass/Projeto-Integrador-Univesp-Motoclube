@@ -1,0 +1,63 @@
+/* admin: vendas (adaptações mobile).
+ * Carregado por static/css/admin-mobile.css; preserve a ordem da cascata no manifesto.
+ */
+@media (max-width: 768px) {
+    /* Reorganiza a aba de Vendas usando ordem visual do Flexbox */
+    #tab-vendas .container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    #vendas-resumo {
+        order: 1;
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    #tab-vendas .toolbar {
+        order: 2;
+        margin-bottom: 0;
+    }
+
+    #tab-vendas .filter-group {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        gap: 6px;
+    }
+
+    #tab-vendas .filter-group label {
+        align-self: flex-start;
+        text-align: left;
+    }
+
+    #tab-vendas .filter-group .btn {
+        align-self: flex-start;
+        width: auto;
+        margin-left: 0;
+    }
+
+    #tab-vendas .table-wrapper {
+        order: 3;
+    }
+
+    /* Deixa os cards mais proporcionais */
+    .stat-card {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 24px 12px;
+        text-align: center;
+    }
+
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+}

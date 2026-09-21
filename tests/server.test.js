@@ -3,12 +3,13 @@
  * 
  * Testes de integração HTTP — Valida que o servidor Flask 
  * responde corretamente nas rotas de login, PDV e admin.
+ * Também percorre imports ESM/CSS para detectar componentes não publicados.
  * 
- * Requer o servidor rodando em http://localhost:5000
+ * Use scripts/run_js_tests.py para iniciar servidor isolado em 127.0.0.1:5055.
  */
 import { describe, test, expect, beforeAll } from '@jest/globals';
 
-const BASE = 'http://localhost:5000';
+const BASE = process.env.PDV_TEST_BASE_URL || 'http://127.0.0.1:5055';
 
 async function fetchText(url, opts = {}) {
     const res = await fetch(url, { redirect: 'manual', ...opts });
@@ -30,7 +31,7 @@ describe('Servidor — Página de Login', () => {
     });
 
     test('login.js é servido corretamente', async () => {
-        const { status, body } = await fetchText(`${BASE}/static/js/login.js`);
+        const { status, body } = await fetchText(`${BASE}/static/js/features/auth/login.js`);
         expect(status).toBe(200);
         expect(body).toContain('realizarLogin');
     });
@@ -38,44 +39,47 @@ describe('Servidor — Página de Login', () => {
 
 describe('Servidor — Módulos ES6 do PDV', () => {
     test('app.js é servido como módulo', async () => {
-        const { status, body } = await fetchText(`${BASE}/static/js/app.js`);
+        const { status, body } = await fetchText(`${BASE}/static/js/features/pdv/app.js`);
         expect(status).toBe(200);
         expect(body).toContain('import');
         expect(body).toContain('iniciarSistema');
     });
 
     test('utils.js é servido', async () => {
-        const { status, body } = await fetchText(`${BASE}/static/js/utils.js`);
+        const { status, body } = await fetchText(`${BASE}/static/js/shared/utils.js`);
         expect(status).toBe(200);
         expect(body).toContain('export function esc');
     });
 
     test('state.js é servido', async () => {
-        const { status, body } = await fetchText(`${BASE}/static/js/state.js`);
+        const { status, body } = await fetchText(`${BASE}/static/js/features/pdv/state.js`);
         expect(status).toBe(200);
         expect(body).toContain('export const S');
     });
 
     test('ui.js é servido', async () => {
-        const { status, body } = await fetchText(`${BASE}/static/js/ui.js`);
+        const { status, body } = await fetchText(`${BASE}/static/js/features/pdv/ui.js`);
         expect(status).toBe(200);
         expect(body).toContain('export function renderizarCatalogo');
     });
 
     test('actions.js é servido', async () => {
-        const { status, body } = await fetchText(`${BASE}/static/js/actions.js`);
+        const { status, body } = await fetchText(`${BASE}/static/js/features/pdv/actions.js`);
         expect(status).toBe(200);
-        expect(body).toContain('export function adicionarAoCarrinho');
+        expect(body).toContain('export { adicionarAoCarrinho');
+        const implementation = await fetchText(`${BASE}/static/js/features/pdv/actions/carrinho.js`);
+        expect(implementation.status).toBe(200);
+        expect(implementation.body).toContain('export function adicionarAoCarrinho');
     });
 
     test('reports.js é servido', async () => {
-        const { status, body } = await fetchText(`${BASE}/static/js/reports.js`);
+        const { status, body } = await fetchText(`${BASE}/static/js/features/pdv/reports.js`);
         expect(status).toBe(200);
         expect(body).toContain('export function montarImpressao');
     });
 
     test('api.js é servido', async () => {
-        const { status, body } = await fetchText(`${BASE}/static/js/api.js`);
+        const { status, body } = await fetchText(`${BASE}/static/js/shared/api.js`);
         expect(status).toBe(200);
         expect(body).toContain('API');
     });
@@ -117,7 +121,7 @@ describe('Servidor — Painel Admin', () => {
     });
 
     test('admin.js é servido', async () => {
-        const { status, body } = await fetchText(`${BASE}/static/js/admin.js`);
+        const { status, body } = await fetchText(`${BASE}/static/js/features/admin/admin.js`);
         expect(status).toBe(200);
     });
 });
@@ -152,5 +156,41 @@ describe('Servidor — Segurança', () => {
     test('caminhos inexistentes retornam 404', async () => {
         const { status } = await fetchText(`${BASE}/rota-que-nao-existe`);
         expect([404, 302]).toContain(status);
+    });
+});
+
+describe('Servidor — Dependências extraídas', () => {
+    test('todos os imports dos entry points JavaScript são servidos', async () => {
+        const pending = ['/static/js/features/pdv/app.js', '/static/js/features/admin/admin.js', '/static/js/features/auth/login.js'];
+        const visited = new Set();
+        while (pending.length) {
+            const path = pending.pop();
+            if (visited.has(path)) continue;
+            visited.add(path);
+            const result = await fetchText(BASE + path);
+            expect({ path, status: result.status }).toEqual({ path, status: 200 });
+            for (const match of result.body.matchAll(/\bfrom\s+['"](\.[^'"]+)['"]/g)) {
+                pending.push(new URL(match[1], BASE + path).pathname);
+            }
+        }
+        expect(visited.has('/static/js/features/admin/events.js')).toBe(true);
+        expect(visited.has('/static/js/features/pdv/actions/sincronizacao.js')).toBe(true);
+        expect(visited.has('/static/js/shared/modals.js')).toBe(true);
+    });
+
+    test('todos os componentes dos manifestos CSS são servidos', async () => {
+        const files = ['admin.css', 'admin-mobile.css', 'ponto_venda.css', 'ponto_venda-mobile.css'];
+        for (const filename of files) {
+            const path = `/static/css/${filename}`;
+            const manifest = await fetchText(BASE + path);
+            expect(manifest.status).toBe(200);
+            const imports = [...manifest.body.matchAll(/@import\s+url\(['"]([^'"]+)['"]\);/g)];
+            expect(imports.length).toBeGreaterThan(1);
+            for (const match of imports) {
+                const component = await fetchText(new URL(match[1], BASE + path));
+                expect(component.status).toBe(200);
+                expect(component.body).toContain('{');
+            }
+        }
     });
 });

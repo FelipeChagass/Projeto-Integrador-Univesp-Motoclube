@@ -20,23 +20,24 @@ Schema do banco:
 """
 
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Boolean, DateTime
+from sqlalchemy import Column, String, Boolean, DateTime, CheckConstraint, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from app.database import Base
+from app.core.database import Base
 
 
 class Usuario(Base):
     __tablename__ = 'usuarios'
+    __table_args__ = (CheckConstraint("perfil IN ('admin','operador')", name='usuarios_perfil_check'),)
 
     # ID = mesmo UUID do auth.users (FK gerenciada no Supabase)
     id = Column(UUID(as_uuid=True), primary_key=True)
     nome = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
-    perfil = Column(String, nullable=False, default='operador')  # 'admin' ou 'operador'
-    ativo = Column(Boolean, nullable=False, default=True)
-    criado_em = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
-    atualizado_em = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    perfil = Column(String, nullable=False, default='operador', server_default=text("'operador'"))
+    ativo = Column(Boolean, nullable=False, default=True, server_default=text('true'))
+    criado_em = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), server_default=text('now()'))
+    atualizado_em = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), server_default=text('now()'))
 
     # Relacionamentos
     vendas = relationship('Venda', back_populates='usuario', foreign_keys='Venda.usuario_id')
