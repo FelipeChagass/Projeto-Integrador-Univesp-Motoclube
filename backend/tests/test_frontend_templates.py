@@ -2,6 +2,7 @@
 
 Ignora comentários/espaçamento, mas preserva tags, atributos e texto. Alterações
 intencionais de UI exigem revisar os hashes; não substitui screenshots/E2E.
+Revisão de utilities Bootstrap: plans/utilities-bootstrap.md (25/09/2026).
 """
 import hashlib
 from html.parser import HTMLParser
@@ -40,8 +41,8 @@ def structure_digest(html):
 
 
 @pytest.mark.parametrize(('path', 'expected'), [
-    ('/', '49b108c813573a0c6c4b159ae61c3d757d6a2b583519627be649e4502d15113c'),
-    ('/admin', '06c9194e27e44e120c5e6b03ef0958977c5b3d7cac79212a3a4faa4bc4c5098d'),
+    ('/', '4aa9e5b8e05ab2ddf6442dc19332828115969ff609f0936d525c280e62e6f56f'),
+    ('/admin', 'f7281d6be5658ca73db0db5871533794d2121afafac2b576c8472e819236a5e4'),
 ])
 def test_rendered_structure_matches_approved_contract(path, expected):
     response = create_app({'TESTING': True}).test_client().get(path)

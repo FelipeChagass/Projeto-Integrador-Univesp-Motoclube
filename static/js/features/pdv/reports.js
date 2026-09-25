@@ -149,11 +149,11 @@ export async function executarFechamentoCaixa() {
     if (valorFechamento !== null && (isNaN(valorFechamento) || valorFechamento < 0)) {
         return showToast('Informe um valor em caixa válido.');
     }
-    
+
     try {
         if (await possuiPendenciasCaixa(S.caixaId)) return showToast('Existem operações pendentes deste caixa. Sincronize ou reconcilie antes de fechar.');
     } catch (error) { return showToast(`Não foi possível verificar pendências: ${error.message}`); }
-    
+
     const loadingEl = document.getElementById('loading');
     if (loadingEl) loadingEl.style.display = 'flex';
 

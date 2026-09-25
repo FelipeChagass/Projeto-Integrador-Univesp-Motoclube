@@ -26,6 +26,7 @@ class Venda(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text('gen_random_uuid()'))
     id_externo = Column(String, unique=True, nullable=True)  # ID gerado no frontend (para evitar duplicatas)
     payload_hash = Column(String(64), nullable=True)  # Histórico NULL requer reconciliação.
+    versao = Column(Integer, nullable=False, default=1, server_default=text('1'))
     caixa_id = Column(UUID(as_uuid=True), ForeignKey('caixas.id'), nullable=True)
     usuario_id = Column(UUID(as_uuid=True), ForeignKey('usuarios.id'), nullable=True)
     membro_id = Column(UUID(as_uuid=True), ForeignKey('membros.id'), nullable=True)
@@ -50,6 +51,7 @@ class Venda(Base):
     def to_dict(self):
         return {
             'id': str(self.id),
+            'versao': self.versao,
             'id_externo': self.id_externo,
             'caixa_id': str(self.caixa_id) if self.caixa_id else None,
             'usuario_id': str(self.usuario_id) if self.usuario_id else None,
@@ -63,6 +65,12 @@ class Venda(Base):
             'criado_em': self.criado_em.isoformat() if self.criado_em else None,
             'itens': [item.to_dict() for item in self.itens] if self.itens else [],
         }
+
+
+class OperacaoExcluida(Base):
+    """Somente a chave técnica: impede recriação de uma venda por fila offline antiga."""
+    __tablename__ = 'operacoes_excluidas'
+    id_externo = Column(String, primary_key=True)
 
 
 class ItemVenda(Base):

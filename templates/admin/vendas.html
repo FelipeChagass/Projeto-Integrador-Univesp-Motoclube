@@ -14,6 +14,7 @@ Incluído por admin.html; manter IDs únicos na página composta. #}
                     <option value="recebimento_divida">Recebimento</option>
                 </select>
                 <button class="btn btn-save" id="btn-filtrar-vendas">Filtrar</button>
+                <button type="button" class="btn btn-save" id="btn-exportar-vendas">Exportar CSV</button>
             </div>
         </div>
         <div id="vendas-resumo" class="stats-row d-flex flex-wrap"></div>
@@ -28,6 +29,7 @@ Incluído por admin.html; manter IDs únicos na página composta. #}
                         <th>Cliente</th>
                         <th>Valor</th>
                         <th>Itens</th>
+                        <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody id="tabelaVendas"></tbody>

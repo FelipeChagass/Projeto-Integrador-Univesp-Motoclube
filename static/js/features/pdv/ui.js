@@ -148,9 +148,20 @@ export function getQtdCarrinho(id) {
     return total;
 }
 
+export function selecionarCategoria(categoria) {
+    if (!['todos', 'bebida', 'comida', 'outro'].includes(categoria)) return;
+    S.categoriaCatalogo = categoria;
+    renderizarCatalogo();
+}
+
 export function renderizarCatalogo() {
     const gridContainer = document.getElementById('grid-produtos');
     gridContainer.innerHTML = '';
+    document.querySelectorAll('#filtro-catalogo [data-categoria]').forEach(btn => {
+        const ativo = btn.dataset.categoria === S.categoriaCatalogo;
+        btn.classList.toggle('active', ativo);
+        btn.setAttribute('aria-pressed', String(ativo));
+    });
     if (!S.produtos || !Array.isArray(S.produtos) || S.produtos.length === 0) {
         gridContainer.innerHTML = `
             <div style="grid-column: 1 / -1; text-align:center; padding: 40px; color:#aaa;">
@@ -159,8 +170,18 @@ export function renderizarCatalogo() {
             </div>`;
         return;
     }
+    const produtos = S.produtos.filter(produto => {
+        const categoria = String(produto.categoria || '').trim().toLowerCase();
+        if (S.categoriaCatalogo === 'todos') return true;
+        if (S.categoriaCatalogo === 'outro') return !['bebida', 'comida'].includes(categoria);
+        return categoria === S.categoriaCatalogo;
+    });
+    if (!produtos.length) {
+        gridContainer.innerHTML = '<p class="catalogo-vazio">Nenhum produto nesta categoria.</p>';
+        return;
+    }
     const fragment = document.createDocumentFragment();
-    S.produtos.forEach(produto => {
+    produtos.forEach(produto => {
         const estoqueBarTotal = Number(produto.estoque_bar) || 0;
         const qtdNoCarrinho = getQtdCarrinho(produto.id);
         const estoqueBarDisponivel = estoqueBarTotal - qtdNoCarrinho;
@@ -188,7 +209,7 @@ export function renderizarCatalogo() {
                 <img src="${esc(urlImagem)}" onerror="this.src='https://placehold.co/150x150/333/FFF?text=Erro'">
                 ${geralZeradoHtml}${barZeradoHtml}
             </div>
-            <div class="card-info">
+            <div class="card-info d-flex flex-column justify-content-between text-center">
                 <div class="card-name">${esc(produto.nome)}</div>
                 <div class="card-price">${formatCurrency(precoFmt)}</div>
                 <div class="card-stock">

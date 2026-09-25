@@ -21,6 +21,7 @@ const { setupEventListeners } = await import('../static/js/features/admin/events
 const { switchTab } = await import('../static/js/features/admin/navigation.js');
 const { authFetch } = await import('../static/js/features/admin/requests.js');
 const { esc } = await import('../static/js/features/admin/ui.js');
+const { criarCsv } = await import('../static/js/features/admin/csv.js');
 
 const product = { id: 7, nome: 'Água', preco_atual: 10, estoque_bar: 5, estoque_deposito: 10,
     categoria: 'bebida', estoque_min_bar: 1, estoque_min_deposito: 2, ativo: true };
@@ -40,7 +41,7 @@ beforeEach(() => {
         throw new Error(`Unexpected test request: ${endpoint}`);
     });
     document.body.innerHTML = `
-        <div id="toast"></div>
+        <div id="toast"></div><button id="btn-exportar-vendas"></button>
         <input type="checkbox" id="mostrarProdutosInativos"><input type="checkbox" id="mostrarMembrosInativos">
         <table><tbody id="tabelaProdutos"></tbody></table>
         <table><tbody id="tabelaMembros"></tbody></table>
@@ -105,9 +106,9 @@ test('membros: evento conserva UUID e atualização de nome', async () => {
 test('usuários: evento conserva UUID e booleano de ativação', async () => {
     setupEventListeners();
     await usuarios.carregarUsuarios();
-    document.querySelector('[data-action="toggle-usuario"]').click();
+    document.querySelector('[data-action="excluir-usuario"]').click();
     await settleEvents();
-    expect(request).toHaveBeenCalledWith('PUT', '/admin/usuarios/user-uuid', { ativo: false });
+    expect(request).toHaveBeenCalledWith('DELETE', '/admin/usuarios/user-uuid', undefined);
 });
 
 test('navegação reutiliza dados de membros já carregados', async () => {
@@ -133,4 +134,51 @@ test('adapter compartilhado mantém tratamento de erro do painel', async () => {
     request.mockRejectedValueOnce(new Error('Não autorizado'));
     expect(await authFetch('/api/admin/usuarios')).toBeNull();
     expect(document.getElementById('toast').textContent).toBe('Não autorizado');
+});
+
+test('edição de linha habilita campos e cancelar restaura os valores', async () => {
+    await produtos.carregarProdutos();
+    const input = document.querySelector('[data-pid="7"][data-campo="nome"]');
+    const botoes = [...document.querySelectorAll('#tabelaProdutos button')];
+    expect(input.disabled).toBe(true);
+    botoes.find(b => b.textContent === 'Editar').click();
+    expect(input.disabled).toBe(false);
+    input.value = 'Alteração descartada';
+    botoes.find(b => b.textContent === 'Cancelar').click();
+    expect(input.value).toBe(product.nome);
+    expect(input.disabled).toBe(true);
+    expect(request.mock.calls.every(([method]) => method === 'GET')).toBe(true);
+});
+
+test('CSV protege fórmulas, aspas, acentos e separadores', () => {
+    const csv = criarCsv([{ nome_cliente: '=SUM(A1)', usuario_nome: 'João; "Teste"\nLinha', valor_total: 12.5, itens: [] }]);
+    expect(csv.startsWith('\uFEFF')).toBe(true);
+    expect(csv).toContain('"\'=SUM(A1)"');
+    expect(csv).toContain('"João; ""Teste""\nLinha"');
+    expect(csv).toContain('"12,50"');
+});
+
+test('exportação percorre todas as páginas e mantém filtros', async () => {
+    document.getElementById('vendas-data-inicio').value = '2026-09-01';
+    document.getElementById('vendas-data-fim').value = '2026-09-30';
+    request.mockResolvedValueOnce({ vendas: [{ id: '1', valor_total: 10 }], paginacao: { tem_mais: true } });
+    request.mockResolvedValueOnce({ vendas: [{ id: '2', valor_total: 20 }], paginacao: { tem_mais: false } });
+    URL.createObjectURL = jest.fn(() => 'blob:test');
+    URL.revokeObjectURL = jest.fn();
+    const clique = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    await vendas.exportarVendasCsv();
+    expect(request).toHaveBeenCalledWith('GET', expect.stringContaining('data_inicio=2026-09-01&data_fim=2026-09-30&limite=500&offset=1'), undefined);
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+    expect(clique).toHaveBeenCalledTimes(1);
+    expect(document.getElementById('btn-exportar-vendas').disabled).toBe(false);
+    clique.mockRestore();
+});
+
+test('falha na segunda página não baixa um CSV parcial', async () => {
+    request.mockResolvedValueOnce({ vendas: [{ id: '1', valor_total: 10 }], paginacao: { tem_mais: true } });
+    request.mockRejectedValueOnce(new Error('Sem conexão'));
+    URL.createObjectURL = jest.fn();
+    await vendas.exportarVendasCsv();
+    expect(URL.createObjectURL).not.toHaveBeenCalled();
+    expect(document.getElementById('btn-exportar-vendas').disabled).toBe(false);
 });

@@ -23,7 +23,6 @@ header {
 }
 
 .header-left {
-    display: flex !important;
     gap: 12px;
 }
 

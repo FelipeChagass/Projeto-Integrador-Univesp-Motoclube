@@ -45,7 +45,7 @@ def editar_usuario(user_id):
 @bp.route('/usuarios/<user_id>', methods=['DELETE'])
 @requer_admin
 def excluir_usuario(user_id):
-    """Remove o usuário do Supabase Auth e mantém o registro local inativo."""
+    """Exclui perfil e identidade, verificando vínculos operacionais."""
     with session_scope() as db:
         resultado = usuario_service.excluir_usuario_admin(
             db,

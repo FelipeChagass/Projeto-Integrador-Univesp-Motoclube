@@ -6,6 +6,14 @@ from app.core.database import session_scope
 from app.core.errors import json_object
 from app.core.schemas import Paginacao
 from app.features.membros import service as membro_service
+from app.features.vendas.admin_service import alterar_movimento
+
+
+@bp.route('/membros/<uuid:membro_id>/movimentos/<uuid:movimento_id>', methods=['PUT', 'DELETE'])
+@requer_admin
+def administrar_movimento(membro_id, movimento_id):
+    with session_scope() as db:
+        return jsonify(alterar_movimento(db, membro_id, movimento_id, json_object(), excluir=request.method == 'DELETE'))
 
 @bp.route('/membros', methods=['GET'])
 @requer_admin
@@ -40,10 +48,10 @@ def editar_membro(membro_id):
 
 @bp.route('/membros/<membro_id>', methods=['DELETE'])
 @requer_admin
-def desativar_membro(membro_id):
-    """Desativa membro (soft-delete)."""
+def excluir_membro(membro_id):
+    """Exclui membro sem pendências financeiras."""
     with session_scope() as db:
-        resultado = membro_service.desativar_membro(db, membro_id)
+        resultado = membro_service.excluir_membro(db, membro_id)
         status_code = 200 if resultado.get('status') == 'ok' else 400
         return jsonify(resultado), status_code
 

@@ -19,6 +19,7 @@ function mockMatchMedia() {
 
 /* ── Helpers: minimal DOM for ui.js ── */
 function setupDOM() {
+    S.categoriaCatalogo = 'todos';
     document.body.innerHTML = `
         <div id="loading" style="display:flex"><div class="spinner"></div></div>
         <div id="toast">...</div>
@@ -34,6 +35,27 @@ function setupDOM() {
         <div id="resultado-relatorio" class="d-none"></div>
     `;
 }
+
+test('filtro fixo separa categorias sem alterar produtos ou carrinho', async () => {
+    setupDOM();
+    const { selecionarCategoria } = await import('../static/js/features/pdv/ui.js');
+    document.body.insertAdjacentHTML('afterbegin', '<nav id="filtro-catalogo"><button data-categoria="bebida"></button><button data-categoria="comida"></button></nav>');
+    S.produtos = [
+        { id: 1, nome: 'Cerveja', categoria: 'bebida', preco_atual: 10, estoque_bar: 5 },
+        { id: 2, nome: 'Lanche', categoria: 'comida', preco_atual: 20, estoque_bar: 5 },
+    ];
+    S.carrinho = [{ id: 1, qtd: 1 }];
+    selecionarCategoria('bebida');
+    expect(document.querySelectorAll('.card')).toHaveLength(1);
+    expect(document.getElementById('grid-produtos').textContent).toContain('Cerveja');
+    selecionarCategoria('comida');
+    expect(document.getElementById('grid-produtos').textContent).toContain('Lanche');
+    expect(document.querySelector('[data-categoria="comida"]').getAttribute('aria-pressed')).toBe('true');
+    expect(S.produtos).toHaveLength(2);
+    expect(S.carrinho).toEqual([{ id: 1, qtd: 1 }]);
+    selecionarCategoria('outro');
+    expect(document.querySelector('.catalogo-vazio')).not.toBeNull();
+});
 
 describe('ui.js — showToast()', () => {
     let showToast;

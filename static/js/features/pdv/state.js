@@ -3,6 +3,7 @@ import { LocalDB } from '../../shared/utils.js';
 export const S = {
     logoUrl: '/static/img/motorhead.png',
     produtos: [],
+    categoriaCatalogo: 'bebida',
     membros: [],
     carrinho: [],
     filaVendas: [],

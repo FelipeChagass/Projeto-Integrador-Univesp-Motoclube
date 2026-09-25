@@ -1,78 +1,85 @@
 {# Catálogo e carrinho; renderização em pdv/ui.js, ações em actions/carrinho.js.
-   Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
-    <div id="main-content">
-        <section id="catalogo-section">
-            <div id="grid-produtos" class="grid-produtos"></div>
-        </section>
-        <section id="carrinho-section">
-            <div class="carrinho-header">
+Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
+<div id="main-content">
+    <section id="catalogo-section">
+        <nav id="filtro-catalogo" class="filtro-catalogo d-flex flex-wrap gap-2" aria-label="Categoria dos produtos">
+            <button type="button" class="btn-categoria active" data-categoria="bebida"
+                aria-pressed="true">Bebidas</button>
+            <button type="button" class="btn-categoria" data-categoria="comida" aria-pressed="false">Comidas</button>
+            <button type="button" class="btn-categoria" data-categoria="outro" aria-pressed="false">Outros</button>
+            <button type="button" class="btn-categoria" data-categoria="todos" aria-pressed="false">Todos</button>
+        </nav>
+        <div id="grid-produtos" class="grid-produtos"></div>
+    </section>
+    <section id="carrinho-section">
+        <div class="carrinho-header">
 
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-                    <circle cx="8" cy="21" r="1" />
-                    <circle cx="19" cy="21" r="1" />
-                    <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
-                </svg>
-                <h3 id="titulo-carrinho">PEDIDO ATUAL</h3>
-                <span id="carrinho-badge-mobile">0</span>
-            </div>
-            <div id="carrinho-lista" class="carrinho-lista"></div>
-            <div class="carrinho-footer">
-                <div class="total-display" id="total-display">R$ 0,00</div>
-                <input type="text" id="input-cliente" class="input-cliente" placeholder="Nome Visitante (Opcional)">
-                <div class="grid-pagamento">
-                    <button class="btn-action-pedido btn-dinheiro" id="btn-pag-dinheiro">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-                            <line x1="12" x2="12" y1="2" y2="22" />
-                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                        </svg>
-                        DINHEIRO
-                    </button>
-                    <button class="btn-action-pedido btn-pix" id="btn-pag-pix">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-                            <rect width="5" height="5" x="3" y="3" rx="1" />
-                            <rect width="5" height="5" x="16" y="3" rx="1" />
-                            <rect width="5" height="5" x="3" y="16" rx="1" />
-                            <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
-                            <path d="M21 21v.01" />
-                            <path d="M12 7v3a2 2 0 0 1-2 2H7" />
-                            <path d="M3 12h.01" />
-                            <path d="M12 3h.01" />
-                            <path d="M12 16v.01" />
-                            <path d="M16 12h1" />
-                            <path d="M21 12v.01" />
-                            <path d="M12 21v-1" />
-                        </svg>
-                        PIX
-                    </button>
-                    <button class="btn-action-pedido btn-cartao" id="btn-pag-cartao">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-                            <rect width="20" height="14" x="2" y="5" rx="2" />
-                            <line x1="2" x2="22" y1="10" y2="10" />
-                        </svg>
-                        CARTÃO
-                    </button>
-                    <button class="btn-action-pedido btn-fiado" id="btn-pag-fiado">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                            <circle cx="9" cy="7" r="4" />
-                            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                        </svg>
-                        PENDURAR
-                    </button>
-                </div>
-                <button class="btn-action-pedido btn-fechar-conta" id="btn-fechar-conta">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                <circle cx="8" cy="21" r="1" />
+                <circle cx="19" cy="21" r="1" />
+                <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+            </svg>
+            <h3 id="titulo-carrinho">PEDIDO ATUAL</h3>
+            <span id="carrinho-badge-mobile">0</span>
+        </div>
+        <div id="carrinho-lista" class="carrinho-lista"></div>
+        <div class="carrinho-footer">
+            <div class="total-display" id="total-display">R$ 0,00</div>
+            <input type="text" id="input-cliente" class="input-cliente" placeholder="Nome Visitante (Opcional)">
+            <div class="grid-pagamento">
+                <button class="btn-action-pedido btn-dinheiro" id="btn-pag-dinheiro">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                        <line x1="12" x2="12" y1="2" y2="22" />
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                     </svg>
-                    FECHAR CONTA DE MEMBRO
+                    DINHEIRO
+                </button>
+                <button class="btn-action-pedido btn-pix" id="btn-pag-pix">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                        <rect width="5" height="5" x="3" y="3" rx="1" />
+                        <rect width="5" height="5" x="16" y="3" rx="1" />
+                        <rect width="5" height="5" x="3" y="16" rx="1" />
+                        <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+                        <path d="M21 21v.01" />
+                        <path d="M12 7v3a2 2 0 0 1-2 2H7" />
+                        <path d="M3 12h.01" />
+                        <path d="M12 3h.01" />
+                        <path d="M12 16v.01" />
+                        <path d="M16 12h1" />
+                        <path d="M21 12v.01" />
+                        <path d="M12 21v-1" />
+                    </svg>
+                    PIX
+                </button>
+                <button class="btn-action-pedido btn-cartao" id="btn-pag-cartao">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                        <rect width="20" height="14" x="2" y="5" rx="2" />
+                        <line x1="2" x2="22" y1="10" y2="10" />
+                    </svg>
+                    CARTÃO
+                </button>
+                <button class="btn-action-pedido btn-fiado" id="btn-pag-fiado">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                    PENDURAR
                 </button>
             </div>
-        </section>
-    </div>
+            <button class="btn-action-pedido btn-fechar-conta" id="btn-fechar-conta">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+                FECHAR CONTA DE MEMBRO
+            </button>
+        </div>
+    </section>
+</div>

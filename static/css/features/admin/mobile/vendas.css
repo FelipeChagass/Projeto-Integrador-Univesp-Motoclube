@@ -2,6 +2,7 @@
  * Carregado por static/css/admin-mobile.css; preserve a ordem da cascata no manifesto.
  */
 @media (max-width: 768px) {
+
     /* Reorganiza a aba de Vendas usando ordem visual do Flexbox */
     #tab-vendas .container {
         display: flex;
@@ -58,6 +59,6 @@
     input,
     select,
     textarea {
-        font-size: 16px !important;
+        font-size: calc(16px * var(--escala-fonte, 1)) !important;
     }
 }

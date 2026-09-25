@@ -30,6 +30,7 @@
     {% include 'admin/modals/membros.html' %}
 
     {% include 'admin/modals/estoque.html' %}
+    {% include 'admin/modals/edicao-financeira.html' %}
 
     <div class="toast" id="toast"></div>
 
@@ -37,6 +38,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module" src="{{ url_for('static', filename='js/features/admin/admin.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/shared/acessibilidade.js') }}"></script>
 </body>
 
 </html>

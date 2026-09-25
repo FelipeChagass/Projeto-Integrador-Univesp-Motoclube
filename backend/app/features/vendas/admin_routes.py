@@ -8,6 +8,20 @@ from app.core.database import session_scope
 from app.models.venda import Venda
 from app.features.vendas.schemas import FiltroVendas
 from app.features.relatorios.service import FUSO
+from app.core.errors import ApiError, json_object
+from app.features.vendas.admin_service import alterar_venda
+
+
+@bp.route('/vendas/<uuid:venda_id>', methods=['GET', 'PUT', 'DELETE'])
+@requer_admin
+def administrar_venda(venda_id):
+    with session_scope() as db:
+        if request.method == 'GET':
+            venda = db.get(Venda, venda_id)
+            if not venda:
+                raise ApiError('VENDA_NAO_ENCONTRADA', 'Venda não encontrada.', 404)
+            return jsonify({'status': 'ok', 'venda': venda.to_dict()})
+        return jsonify(alterar_venda(db, venda_id, json_object(), excluir=request.method == 'DELETE'))
 
 
 @bp.route('/vendas', methods=['GET'])

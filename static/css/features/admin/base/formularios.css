@@ -15,9 +15,6 @@
     padding: 1rem 1.5rem;
     background: rgba(0, 0, 0, 0.2);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
 }
 
 .form-card-header h3 {

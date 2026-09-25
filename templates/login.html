@@ -22,17 +22,18 @@
         <div class="spinner"></div>
     </div>
 
-    <div class="login-wrapper">
-        <div class="login-card">
+    <div class="login-wrapper d-flex justify-content-center align-items-center min-vh-100">
+        <div class="login-card w-100 text-center">
             <img src="{{ url_for('static', filename='img/motorhead.png') }}" alt="Bar Moto Clube Logo" class="logo-img">
             <h1>LOGIN</h1>
 
-            <input type="text" id="login-email" class="login-input" placeholder="E-mail" autocomplete="username">
+            <input type="text" id="login-email" class="login-input w-100" placeholder="E-mail" autocomplete="username">
 
-            <div class="senha-wrapper">
-                <input type="password" id="login-senha" class="login-input" placeholder="Senha"
+            <div class="senha-wrapper position-relative w-100">
+                <input type="password" id="login-senha" class="login-input w-100" placeholder="Senha"
                     autocomplete="current-password">
-                <button type="button" id="btn-toggle-senha" class="btn-toggle-senha" tabindex="-1"
+                <button type="button" id="btn-toggle-senha"
+                    class="btn-toggle-senha d-flex align-items-center justify-content-center" tabindex="-1"
                     aria-label="Mostrar senha">
 
                     <i id="icon-olho-fechado" class="bi bi-eye-slash"></i>
@@ -41,14 +42,14 @@
                 </button>
             </div>
 
-            <div class="lembrar-wrapper">
+            <div class="w-100 mb-2 text-start">
                 <label class="lembrar-label">
                     <input type="checkbox" id="lembrar-me">
                     <span>Lembrar-me neste dispositivo</span>
                 </label>
             </div>
 
-            <button class="btn-login-primary" id="btn-login" type="button">ENTRAR</button>
+            <button class="btn-login-primary w-100" id="btn-login" type="button">ENTRAR</button>
 
         </div>
     </div>

@@ -52,6 +52,7 @@ def fechar_caixa(db: Session, dados: dict) -> dict:
     with unit_of_work(db):
         caixa = bloquear_caixa_autorizado(db, entrada.caixa_id, entrada.usuario_id, permitir_admin=True)
         valor = entrada.valor_fechamento
+        caixa.fechamento_calculado = valor is None
         if valor is None:
             recebimentos = db.query(func.coalesce(func.sum(Venda.valor_total), 0)).filter(
                 Venda.caixa_id == caixa.id, Venda.metodo_pagamento == 'dinheiro',

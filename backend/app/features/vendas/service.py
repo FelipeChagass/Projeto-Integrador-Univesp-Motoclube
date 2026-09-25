@@ -15,7 +15,7 @@ from app.core.errors import ApiError
 from app.models.membro import Membro
 from app.models.movimentacao_membro import MovimentacaoMembro
 from app.models.produto import Produto
-from app.models.venda import ItemVenda, Venda
+from app.models.venda import ItemVenda, Venda, OperacaoExcluida
 from app.features.vendas.schemas import PagamentoDividaPayload
 from app.features.vendas.schemas import VendaNormalPayload
 from app.features.caixa.service import bloquear_caixa_autorizado
@@ -58,6 +58,8 @@ def _operacao_existente(db, dados, assinatura):
     # Lock no servidor, compartilhado entre workers. Colisões somente serializam.
     chave = int.from_bytes(hashlib.sha256(dados.id_externo.encode()).digest()[:8], 'big', signed=True)
     db.execute(text('SELECT pg_advisory_xact_lock(:chave)'), {'chave': chave})
+    if db.get(OperacaoExcluida, dados.id_externo):
+        raise ApiError('OPERACAO_EXCLUIDA', 'Operação excluída pelo administrador; não pode ser reenviada.', 409)
     existente = db.query(Venda).filter_by(id_externo=dados.id_externo).first()
     if existente:
         if (str(existente.usuario_id) != str(dados.usuario_id)

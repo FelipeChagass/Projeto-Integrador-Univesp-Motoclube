@@ -5,12 +5,14 @@
 import { fecharModalAdmin } from './ui.js';
 import { switchTab, openAdminSidebar, closeAdminSidebar } from './navigation.js';
 import { carregarProdutos, abrirFormNovoProduto, fecharFormNovoProduto, previewNovoProdutoImagem, removerNovoPreview, criarNovoProduto, deletarProduto, reativarProduto, salvarProduto, abrirAjusteEstoque, confirmarAjusteEstoque, abrirUpload, uploadImagem } from './produtos.js';
-import { carregarMembros, abrirFormNovoMembro, criarNovoMembro, salvarMembro, desativarMembro, reativarMembro, verExtrato, abrirAjusteSaldo, confirmarAjusteSaldo } from './membros.js';
+import { carregarMembros, abrirFormNovoMembro, criarNovoMembro, salvarMembro, excluirMembro, reativarMembro, verExtrato, abrirAjusteSaldo, confirmarAjusteSaldo } from './membros.js';
 import { abrirFormNovoUsuario, fecharFormNovoUsuario, criarNovoUsuario, salvarUsuario, toggleUsuario, excluirUsuario } from './usuarios.js';
-import { carregarVendas } from './vendas.js';
+import { carregarVendas, exportarVendasCsv } from './vendas.js';
 import { salvarConfig } from './configuracoes.js';
+import { configurarEdicaoFinanceira } from './financeiro.js';
 
 export function setupEventListeners() {
+    configurarEdicaoFinanceira();
     document.getElementById('tab-btn-produtos')?.addEventListener('click', () => switchTab('produtos'));
     document.getElementById('tab-btn-membros')?.addEventListener('click', () => switchTab('membros'));
     document.getElementById('tab-btn-usuarios')?.addEventListener('click', () => switchTab('usuarios'));
@@ -39,6 +41,7 @@ export function setupEventListeners() {
     document.getElementById('btn-cancel-novo-usuario')?.addEventListener('click', fecharFormNovoUsuario);
 
     document.getElementById('btn-filtrar-vendas')?.addEventListener('click', carregarVendas);
+    document.getElementById('btn-exportar-vendas')?.addEventListener('click', exportarVendasCsv);
     document.getElementById('btn-save-config')?.addEventListener('click', salvarConfig);
 
     document.getElementById('btn-close-modal-extrato')?.addEventListener('click', () => fecharModalAdmin('modalExtrato'));
@@ -60,7 +63,7 @@ export function setupEventListeners() {
         if (action === 'upload-img') abrirUpload(id);
         if (action === 'salvar-produto') salvarProduto(id);
         if (action === 'ajuste-estoque') abrirAjusteEstoque(id);
-        if (action === 'desativar-produto') deletarProduto(id, btn.dataset.nome);
+        if (action === 'excluir-produto') deletarProduto(id, btn.dataset.nome);
         if (action === 'reativar-produto') reativarProduto(id);
     });
 
@@ -72,7 +75,7 @@ export function setupEventListeners() {
         if (action === 'salvar-membro') salvarMembro(id);
         if (action === 'ver-extrato') verExtrato(id, btn.dataset.nome);
         if (action === 'ajuste-saldo') abrirAjusteSaldo(id, btn.dataset.nome);
-        if (action === 'desativar-membro') desativarMembro(id, btn.dataset.nome);
+        if (action === 'excluir-membro') excluirMembro(id, btn.dataset.nome);
         if (action === 'reativar-membro') reativarMembro(id);
     });
 

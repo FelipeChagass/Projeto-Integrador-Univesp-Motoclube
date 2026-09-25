@@ -1,3 +1,4 @@
+import { prepararEdicao } from './edicao-linha.js';
 /**
  * Cadastro e ativação de usuários via API administrativa, sem acesso direto ao Auth.
  * Exporta usuarios como binding vivo para navigation.js; autorização pertence ao backend.
@@ -65,11 +66,10 @@ export function renderUsuarios() {
             <td class="col-status" data-label="Status">${u.ativo ? '<span class="badge badge-active">Ativo</span>' : '<span class="badge badge-inactive">Inativo</span>'}</td>
             <td data-label="Ações"><div class="btn-group">
                 <button class="btn btn-save btn-sm" data-action="salvar-usuario" data-id="${u.id}">Salvar</button>
-                ${u.ativo
-                ? `<button class="btn btn-del btn-sm" data-action="toggle-usuario" data-id="${u.id}" data-ativo="false">Desativar</button>`
-                : `<button class="btn btn-reativar btn-sm" data-action="toggle-usuario" data-id="${u.id}" data-ativo="true">Reativar</button>
-                   <button class="btn btn-del btn-sm" data-action="excluir-usuario" data-id="${u.id}" data-nome="${esc(u.nome)}">Excluir</button>`}
+                <button class="btn btn-del btn-sm" data-action="excluir-usuario" data-id="${u.id}" data-nome="${esc(u.nome)}">Excluir</button>
+                ${!u.ativo ? `<button class="btn btn-reativar btn-sm" data-action="toggle-usuario" data-id="${u.id}" data-ativo="true">Reativar</button>` : ''}
             </div></td>`;
+        prepararEdicao(tr);
         tbody.appendChild(tr);
     });
 }

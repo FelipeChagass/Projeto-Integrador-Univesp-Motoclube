@@ -5,7 +5,7 @@ Representa uma sessão de caixa (abertura → fechamento).
 
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, DateTime, Numeric, ForeignKey, CheckConstraint, Index, text
+from sqlalchemy import Column, String, DateTime, Numeric, ForeignKey, CheckConstraint, Index, text, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.core.database import Base
@@ -27,6 +27,7 @@ class Caixa(Base):
     fechado_em = Column(DateTime(timezone=True), nullable=True)
     valor_abertura = Column(Numeric(), nullable=False, default=0, server_default=text('0'))
     valor_fechamento = Column(Numeric(), nullable=True)
+    fechamento_calculado = Column(Boolean, nullable=False, default=False, server_default=text('false'))
     status = Column(String, nullable=False, default='aberto', server_default=text("'aberto'"))
     observacoes = Column(String, nullable=True)
 

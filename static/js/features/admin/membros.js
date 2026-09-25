@@ -1,3 +1,5 @@
+import { prepararEdicao } from './edicao-linha.js';
+import { administrarMovimento } from './financeiro.js';
 /**
  * Cadastro de membros, extratos e ajustes de saldo do painel administrativo.
  * Exporta membros como binding vivo para a carga sob demanda em navigation.js.
@@ -34,8 +36,9 @@ export function renderMembros() {
                 <button class="btn btn-save btn-sm" data-action="salvar-membro" data-id="${m.id}">Salvar</button>
                 <button class="btn btn-sm" data-action="ver-extrato" data-id="${m.id}" data-nome="${esc(m.nome)}">Extrato</button>
                 <button class="btn btn-warn btn-sm" data-action="ajuste-saldo" data-id="${m.id}" data-nome="${esc(m.nome)}">Ajuste</button>
-                ${m.ativo ? `<button class="btn btn-del btn-sm" data-action="desativar-membro" data-id="${m.id}" data-nome="${esc(m.nome)}">Desativar</button>` : `<button class="btn btn-reativar btn-sm" data-action="reativar-membro" data-id="${m.id}">Reativar</button>`}
+                <button class="btn btn-del btn-sm" data-action="excluir-membro" data-id="${m.id}" data-nome="${esc(m.nome)}">Excluir</button> ${!m.ativo ? `<button class="btn btn-reativar btn-sm" data-action="reativar-membro" data-id="${m.id}">Reativar</button>` : ''}
             </div></td>`;
+        prepararEdicao(tr);
         tbody.appendChild(tr);
     });
 }
@@ -67,8 +70,8 @@ export async function salvarMembro(id) {
     if (data.status === 'ok') carregarMembros();
 }
 
-export async function desativarMembro(id, nome) {
-    UIModal.confirm(`Desativar membro "${nome}"?`, async function () {
+export async function excluirMembro(id, nome) {
+    UIModal.confirm(`Excluir definitivamente membro "${nome}"?`, async function () {
         const r = await authFetch(`${BASE}/api/admin/membros/${id}`, { method: 'DELETE' });
         if (!r) return;
         const data = await r.json();
@@ -87,7 +90,7 @@ export async function reativarMembro(id) {
 
 export async function verExtrato(id, nome) {
     document.getElementById('extrato-titulo').textContent = `Extrato — ${nome}`;
-    document.getElementById('extrato-body').innerHTML = '<p class="admin-loading-text">Carregando...</p>';
+    document.getElementById('extrato-body').innerHTML = '<p class="text-center text-white">Carregando...</p>';
     document.getElementById('modalExtrato').classList.remove('d-none');
     document.body.classList.add('modal-open');
     const r = await authFetch(`${BASE}/api/admin/membros/${id}/extrato`);
@@ -98,13 +101,21 @@ export async function verExtrato(id, nome) {
         document.getElementById('extrato-body').innerHTML = '<p class="admin-empty-text">Nenhuma movimentação encontrada.</p>';
         return;
     }
-    let html = '<table class="inner-table"><thead><tr><th>Data</th><th>Tipo</th><th>Origem</th><th>Descrição</th><th>Valor</th></tr></thead><tbody>';
+    let html = '<table class="inner-table"><thead><tr><th>Data</th><th>Tipo</th><th>Origem</th><th>Descrição</th><th>Valor</th><th>Ações</th></tr></thead><tbody>';
     data.itens.forEach(i => {
         const tipoClass = i.tipo === 'debito' ? 'tipo-debito' : 'tipo-credito';
-        html += `<tr><td>${i.data}</td><td class="${tipoClass}">${i.tipo}</td><td>${i.origem}</td><td>${esc(i.descricao)}</td><td>R$ ${i.valor.toFixed(2)}</td></tr>`;
+        html += `<tr><td>${i.data}</td><td class="${tipoClass}">${i.tipo}</td><td>${i.origem}</td><td>${esc(i.descricao)}</td><td>R$ ${i.valor.toFixed(2)}</td>
+            <td><div class="btn-group"><button type="button" class="btn btn-sm" data-movimento="${i.id}" data-acao="editar">Editar</button>
+            <button type="button" class="btn btn-del btn-sm" data-movimento="${i.id}" data-acao="excluir">Excluir</button></div></td></tr>`;
     });
     html += '</tbody></table>';
     document.getElementById('extrato-body').innerHTML = html;
+    document.querySelectorAll('#extrato-body [data-movimento]').forEach(botao => {
+        botao.addEventListener('click', () => {
+            const movimento = data.itens.find(item => item.id === botao.dataset.movimento);
+            administrarMovimento(id, movimento, botao.dataset.acao);
+        });
+    });
 }
 
 export function abrirAjusteSaldo(id, nome) {

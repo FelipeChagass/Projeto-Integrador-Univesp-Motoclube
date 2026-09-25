@@ -97,7 +97,7 @@ export function registrarFalha(id, error) {
         registro.ultimo_erro = { code: error.code || 'UNEXPECTED_ERROR', status: error.status || 0, message: error.message };
         registro.estado = [401, 403].includes(error.status) ? 'autenticacao' :
             error.status === 409 ? 'conflito' :
-            error.retryable && registro.tentativas < 8 ? 'aguardando_reenvio' : 'reconciliacao';
+                error.retryable && registro.tentativas < 8 ? 'aguardando_reenvio' : 'reconciliacao';
         registro.proxima_tentativa = Date.now() + Math.min(300000, 2000 * 2 ** registro.tentativas) + Math.random() * 1000;
     });
 }

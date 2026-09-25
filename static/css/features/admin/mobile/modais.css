@@ -2,6 +2,7 @@
  * Carregado por static/css/admin-mobile.css; preserve a ordem da cascata no manifesto.
  */
 @media (max-width: 768px) {
+
     /* ── Modals (bottom-sheet style) ── */
     .modal-overlay {
         align-items: flex-end;

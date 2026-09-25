@@ -5,7 +5,7 @@
 import { API } from '../../shared/api.js';
 import { UIModal } from '../../shared/modals.js';
 import { S, carregarDadosLocais, salvarDadosLocais } from './state.js';
-import { showToast, fecharModal, atualizarUI, renderizarCatalogo, atualizarEstadoBotoes, initBottomSheetGestures } from './ui.js';
+import { showToast, fecharModal, atualizarUI, renderizarCatalogo, selecionarCategoria, atualizarEstadoBotoes, initBottomSheetGestures } from './ui.js';
 import {
     adicionarAoCarrinho, incrementarQtd, decrementarQtd, confirmarObs, cliqueProduto,
     alternarModoEstoque, salvarEdicaoEstoque,
@@ -151,6 +151,11 @@ document.getElementById('btn-salvar-config').addEventListener('click', salvarCon
 document.getElementById('btn-cancelar-config').addEventListener('click', () => fecharModal('modal-config'));
 
 /* ─── Event Delegation ─── */
+
+document.getElementById('filtro-catalogo').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-categoria]');
+    if (btn) selecionarCategoria(btn.dataset.categoria);
+});
 
 document.getElementById('carrinho-lista').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-action]');

@@ -2,6 +2,7 @@
  * Carregado por static/css/admin-mobile.css; preserve a ordem da cascata no manifesto.
  */
 @media (max-width: 768px) {
+
     /* ==========================================================
        MOBILE CARD-STYLE TABLES — Stacked Layout
        ========================================================== */
@@ -74,7 +75,7 @@
 
     td input,
     td select {
-        font-size: 16px;
+        font-size: calc(16px * var(--escala-fonte, 1));
         padding: 0.55rem 0.7rem;
         min-height: 40px;
         width: 100%;

@@ -1,10 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 .login-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
     padding: 20px;
     background: linear-gradient(135deg, #111 0%, #080808 50%, #000 100%);
 }
@@ -15,9 +11,7 @@
     border-top: 3px solid #b30000;
     border-radius: 12px;
     padding: 40px 30px;
-    width: 100%;
     max-width: 400px;
-    text-align: center;
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
 }
 
@@ -44,7 +38,6 @@
 }
 
 .login-input {
-    width: 100%;
     padding: 12px 14px;
     margin-bottom: 12px;
     border-radius: 8px;
@@ -66,7 +59,6 @@
 }
 
 .btn-login-primary {
-    width: 100%;
     padding: 14px;
     margin-top: 8px;
     border: none;
@@ -188,8 +180,6 @@
 }
 
 .senha-wrapper {
-    position: relative;
-    width: 100%;
     margin-bottom: 12px;
 }
 
@@ -208,9 +198,6 @@
     cursor: pointer;
     padding: 6px;
     color: #777;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     line-height: 0;
     transition: color 0.2s;
 }
@@ -228,12 +215,6 @@
     font-size: 20px;
     line-height: 1;
     display: block;
-}
-
-.lembrar-wrapper {
-    width: 100%;
-    margin-bottom: 8px;
-    text-align: left;
 }
 
 .lembrar-label {

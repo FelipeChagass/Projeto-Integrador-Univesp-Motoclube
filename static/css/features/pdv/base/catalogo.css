@@ -24,6 +24,47 @@
     gap: 10px;
 }
 
+/* Permanece visível dentro da rolagem do catálogo, inclusive no mobile. */
+.filtro-catalogo {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding: 8px 0 12px;
+    margin-bottom: 4px;
+    background: var(--bg-color);
+}
+
+.btn-categoria {
+    padding: 8px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    background: linear-gradient(145deg, #1c1c1c, #111);
+    color: #eee;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-categoria:hover,
+.btn-categoria:focus-visible {
+    background: #222;
+    border-color: var(--accent);
+}
+
+.btn-categoria.active {
+    border-color: var(--accent);
+    background: rgba(179, 0, 0, 0.2);
+    color: #fff;
+}
+
+.catalogo-vazio {
+    grid-column: 1 / -1;
+    padding: 40px;
+    color: #aaa;
+    text-align: center;
+}
+
 .card {
     background: var(--card-bg);
     border-radius: 10px;
@@ -103,11 +144,7 @@
 
 .card-info {
     padding: 8px;
-    text-align: center;
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
 }
 
 .card-name {

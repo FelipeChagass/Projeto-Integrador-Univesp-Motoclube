@@ -60,4 +60,4 @@ def test_audited_existing_baseline_stamp_and_equivalent_index(pg):
         indexes = inspect(conn).get_indexes('caixas')
         assert [i['name'] for i in indexes] == ['existing_open_cash']
         assert 'payload_hash' in {c['name'] for c in inspect(conn).get_columns('vendas')}
-        assert conn.execute(text('SELECT version_num FROM alembic_version')).scalar() == '0002_integridade'
+        assert conn.execute(text('SELECT version_num FROM alembic_version')).scalar() == '0003_edicao_admin'

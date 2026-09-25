@@ -6,7 +6,7 @@ Toda venda fiado gera um débito, todo pagamento gera um crédito.
 
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, DateTime, Numeric, ForeignKey, Text, CheckConstraint, Index, text
+from sqlalchemy import Column, String, DateTime, Numeric, ForeignKey, Text, CheckConstraint, Index, text, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.core.database import Base
@@ -29,6 +29,7 @@ class MovimentacaoMembro(Base):
     origem = Column(String, nullable=False)  # 'venda_fiado', 'pagamento', 'ajuste_manual'
     descricao = Column(Text, nullable=True)
     valor = Column(Numeric(), nullable=False)
+    versao = Column(Integer, nullable=False, default=1, server_default=text('1'))
     criado_em = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), server_default=text('now()'))
 
     # Relacionamentos
@@ -37,6 +38,7 @@ class MovimentacaoMembro(Base):
     def to_dict(self):
         return {
             'id': str(self.id),
+            'versao': self.versao,
             'membro_id': str(self.membro_id),
             'venda_id': str(self.venda_id) if self.venda_id else None,
             'tipo_movimentacao': self.tipo_movimentacao,

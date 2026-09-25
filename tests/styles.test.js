@@ -1,6 +1,7 @@
 /**
- * Snapshots das regras CSS ordenadas capturados antes da extração em módulos.
- * Normaliza CRLF, não a cascata; atualize hashes apenas após mudança visual intencional revisada.
+ * Snapshots das regras CSS ordenadas após extração em módulos e revisão de utilities Bootstrap.
+ * Normaliza CRLF, não a cascata; atualize hashes somente após conferir o efeito visual.
+ * A simplificação de 25/09/2026 está documentada em plans/utilities-bootstrap.md.
  */
 import { expect, test } from '@jest/globals';
 import { readFileSync } from 'node:fs';
@@ -23,11 +24,11 @@ function orderedRules(rules, media = []) {
 }
 
 test.each([
-    ['admin.css', '134d0a33c0879bb87776738c5d2efc62a6bb6b152fbe7dc56c7b670a5719c957'],
-    ['admin-mobile.css', '7e0bac97bb3f0f64e13798b457eb82fede2616d7f8c0c71d2173aaba8e9a7fc8'],
-    ['ponto_venda.css', 'fbbce4fe6b2044082277105d02489537770ccfe372550a7ee2c663fd88443852'],
-    ['ponto_venda-mobile.css', 'cf8a21e846cbdfdf95d215b1e1f246bfdec1c525a82855470f3e7d36f584f770'],
-])('%s mantém seletores, declarações, media queries e ordem anteriores à extração', (filename, expected) => {
+    ['admin.css', 'c467f0b62bd05b008f517c7d848e94c9215dd458e71703c2a1b9903fc27bb416'],
+    ['admin-mobile.css', '55d68f1cd3427b3ae15b8b1b2c6b66843f286d09405868be2fad7043665e7761'],
+    ['ponto_venda.css', 'b697cc95eae3f5010eed985a59c3f63b57bc79f648528db61ad99f6cff0c5ef6'],
+    ['ponto_venda-mobile.css', 'e7f3841352fdf5c5f12387dc3055894ae4e77303c462b9ecaff7002da14b25c2'],
+])('%s mantém seletores, declarações, media queries e ordem revisados', (filename, expected) => {
     const style = document.createElement('style');
     style.textContent = expandImports(resolve(root, filename));
     document.head.appendChild(style);

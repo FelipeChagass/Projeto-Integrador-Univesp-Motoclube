@@ -94,7 +94,7 @@ export const API = (function () {
             signal: controller.signal,
         };
 
-        if (body && (method === 'POST' || method === 'PUT')) {
+        if (body && (method === 'POST' || method === 'PUT' || method === 'DELETE')) {
             if (body instanceof FormData) {
                 delete headers['Content-Type'];
                 options.body = body;

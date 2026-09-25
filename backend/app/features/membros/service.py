@@ -73,8 +73,14 @@ def editar_membro(db: Session, membro_id: str, dados: dict) -> dict:
         return {'status': 'ok', 'mensagem': 'Membro atualizado.', 'membro': membro.to_dict()}
 
 
-def desativar_membro(db: Session, membro_id: str) -> dict:
-    return editar_membro(db, membro_id, {'ativo': False})
+def excluir_membro(db: Session, membro_id: str) -> dict:
+    from app.models.venda import Venda
+    with unit_of_work(db):
+        membro = _bloquear_membro(db, membro_id)
+        if membro.saldo_devedor or db.query(Venda.id).filter_by(membro_id=membro.id).first() or db.query(MovimentacaoMembro.id).filter_by(membro_id=membro.id).first():
+            raise ApiError('MEMBRO_COM_VINCULOS', 'Exclua as vendas e movimentações deste membro antes de excluir seu cadastro.', 409)
+        db.delete(membro)
+        return {'status': 'ok', 'mensagem': 'Membro excluído.'}
 
 
 def ajustar_saldo(db: Session, membro_id: str, valor, tipo: str,
@@ -122,7 +128,8 @@ def buscar_extrato_membro(db: Session, membro_id: str = None, nome_membro: str =
         'membro': membro.to_dict(),
         'itens': [{'id': str(m.id), 'data': m.criado_em.strftime('%d/%m/%Y %H:%M') if m.criado_em else '',
                    'tipo': m.tipo_movimentacao, 'origem': m.origem, 'descricao': m.descricao or '',
-                   'valor': float(m.valor)} for m in movimentos[:limite]],
+                   'valor': float(m.valor), 'versao': m.versao,
+                   'venda_id': str(m.venda_id) if m.venda_id else None} for m in movimentos[:limite]],
         'total': float(membro.saldo_devedor),
         'paginacao': {'limite': limite, 'offset': offset, 'tem_mais': tem_mais},
     }

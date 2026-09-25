@@ -62,9 +62,12 @@ def editar_produto(db: Session, dados: dict) -> dict:
 def deletar_produto(db: Session, produto_id: int) -> dict:
     with unit_of_work(db):
         produto = _bloquear_produto(db, produto_id)
-        produto.ativo = False
-        produto.atualizado_em = datetime.now(timezone.utc)
-        return {'status': 'ok', 'mensagem': f'Produto "{produto.nome}" desativado.'}
+        from app.models.venda import ItemVenda
+        if db.query(ItemVenda.id).filter_by(produto_id=produto.id).first():
+            raise ApiError('PRODUTO_COM_VENDAS', 'Exclua as vendas vinculadas antes de excluir este produto, para preservar a devolução ao estoque.', 409)
+        db.query(AjusteEstoque).filter_by(produto_id=produto.id).delete(synchronize_session=False)
+        db.delete(produto)
+        return {'status': 'ok', 'mensagem': f'Produto "{produto.nome}" excluído.'}
 
 
 def atualizar_estoque(db: Session, dados: dict) -> dict:

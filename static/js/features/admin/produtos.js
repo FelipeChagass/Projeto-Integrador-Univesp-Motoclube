@@ -1,3 +1,4 @@
+import { prepararEdicao } from './edicao-linha.js';
 /**
  * Cadastro, imagens e ajustes de estoque do painel; mantém o cache local de produtos.
  * Usa requests/API e ui; ajustes enviam o estoque esperado para detectar concorrência.
@@ -44,10 +45,9 @@ export function renderProdutos() {
             <td data-label="Ações"><div class="btn-group">
                 <button class="btn btn-save btn-sm" data-action="salvar-produto" data-id="${p.id}">Salvar</button>
                 <button class="btn btn-sm" data-action="ajuste-estoque" data-id="${p.id}">Estoque</button>
-                ${p.ativo
-                ? `<button class="btn btn-del btn-sm" data-action="desativar-produto" data-id="${p.id}" data-nome="${esc(p.nome)}">Desativar</button>`
-                : `<button class="btn btn-reativar btn-sm" data-action="reativar-produto" data-id="${p.id}">Reativar</button>`}
+                <button class="btn btn-del btn-sm" data-action="excluir-produto" data-id="${p.id}" data-nome="${esc(p.nome)}">Excluir</button> ${!p.ativo ? `<button class="btn btn-reativar btn-sm" data-action="reativar-produto" data-id="${p.id}">Reativar</button>` : ''}
             </div></td>`;
+        prepararEdicao(tr);
         tbody.appendChild(tr);
     });
 }
@@ -82,7 +82,7 @@ export async function criarNovoProduto() {
 }
 
 export async function deletarProduto(id, nome) {
-    UIModal.confirm(`Desativar "${nome}"?`, async function () {
+    UIModal.confirm(`Excluir definitivamente "${nome}"?`, async function () {
         const r = await authFetch(`${BASE}/api/admin/produtos/${id}`, { method: 'DELETE' });
         if (!r) return;
         const data = await r.json();

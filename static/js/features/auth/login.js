@@ -73,7 +73,7 @@ function realizarLogin() {
     if (!email || !senha) return showToast('Preencha e-mail e senha.');
 
     setLoading(true);
-    
+
     API.login(email, senha)
         .then(res => {
             if (res.status === 'ok') {

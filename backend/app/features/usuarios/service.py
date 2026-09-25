@@ -282,7 +282,7 @@ def criar_usuario_admin(db: Session, supabase_client, dados: dict) -> dict:
 
 
 def excluir_usuario_admin(db: Session, admin_client, operador_atual_id: str, user_id: str) -> dict:
-    """Realiza soft delete no Supabase Auth e mantém o registro local inativo."""
+    """Exclui o perfil e a identidade sem apagar registros financeiros por cascata."""
     uid = _parse_uuid(user_id)
     if not uid:
         raise ApiError('ID_USUARIO_INVALIDO', 'ID inválido.', 422)
@@ -295,23 +295,48 @@ def excluir_usuario_admin(db: Session, admin_client, operador_atual_id: str, use
     if not usuario:
         raise ApiError('USUARIO_NAO_ENCONTRADO', 'Usuário não encontrado.', 404)
 
+    from app.models import Caixa, Venda, MovimentacaoMembro, AjusteEstoque
+    from sqlalchemy import or_
+    if (db.query(Caixa.id).filter(or_(Caixa.usuario_abertura_id == uid, Caixa.usuario_fechamento_id == uid)).first()
+            or db.query(Venda.id).filter_by(usuario_id=uid).first()
+            or db.query(MovimentacaoMembro.id).filter_by(usuario_id=uid).first()
+            or db.query(AjusteEstoque.id).filter_by(usuario_id=uid).first()):
+        raise ApiError('USUARIO_COM_VINCULOS', 'Usuário vinculado a caixas ou registros operacionais. Sua exclusão exige reconciliar esses registros primeiro.', 409)
+    # Auth usa outra conexão ao mesmo PostgreSQL. Seu DELETE não pode aguardar
+    # nosso perfil ainda não confirmado (FK usuarios.id -> auth.users.id).
+    fotografia = {coluna.name: getattr(usuario, coluna.name) for coluna in Usuario.__table__.columns}
+    perfil_excluido = False
+
+    def restaurar_perfil():
+        db.rollback()
+        if perfil_excluido:
+            try:
+                db.add(Usuario(**fotografia))
+                db.commit()
+            except Exception:
+                db.rollback()
+                logger.error('Exclusão de usuário requer reconciliação entre Auth e perfil: %s', uid)
+
     try:
-        admin_client.auth.admin.delete_user(str(usuario.id), should_soft_delete=True)
-        usuario.ativo = False
-        db.commit()
-        db.refresh(usuario)
+        db.delete(usuario)
+        db.commit()  # Valida vínculos e libera a FK antes de chamar o Auth.
+        perfil_excluido = True
+        try:
+            admin_client.auth.admin.delete_user(str(uid), should_soft_delete=False)
+        except AuthApiError as error:
+            if str(getattr(error, 'status', '')) != '404':
+                raise
         return {
             'status': 'ok',
-            'mensagem': 'Usuário removido do Auth e mantido inativo localmente.',
-            'usuario': usuario.to_dict(),
+            'mensagem': 'Usuário excluído.',
         }
     except AuthApiError:
-        db.rollback()
+        restaurar_perfil()
         raise ApiError('AUTH_RECUSOU', _auth_error_message(), 400) from None
     except ApiError:
-        db.rollback()
+        restaurar_perfil()
         raise
     except Exception as error:
-        db.rollback()
+        restaurar_perfil()
         logger.error('Erro ao excluir usuário: tipo=%s', type(error).__name__)
         raise ApiError('USUARIO_NAO_EXCLUIDO', 'Não foi possível excluir o usuário. Confirme o estado antes de repetir.', 503) from None

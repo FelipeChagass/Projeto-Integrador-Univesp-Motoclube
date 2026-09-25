@@ -2,6 +2,7 @@
  * Carregado por static/css/admin-mobile.css; preserve a ordem da cascata no manifesto.
  */
 @media (max-width: 768px) {
+
     /* ── Layout ── */
     .container {
         margin: 0.6rem auto;
@@ -54,7 +55,7 @@
     .filter-input {
         width: 100%;
         padding: 10px;
-        font-size: 16px;
+        font-size: calc(16px * var(--escala-fonte, 1));
     }
 
     .stats-row {
@@ -85,7 +86,7 @@
     .form-group input,
     .form-group select,
     .form-group textarea {
-        font-size: 16px;
+        font-size: calc(16px * var(--escala-fonte, 1));
         padding: 0.75rem;
         display: block;
         width: 100%;
