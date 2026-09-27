@@ -57,11 +57,11 @@ export async function administrarVenda(id, acao) {
     if (venda.itens?.length) {
         campos += '<p class="span-2 mb-0">Use quantidade zero para remover um item.</p>';
         venda.itens.forEach((item, indice) => {
-            campos += `<fieldset class="span-2 border rounded p-3"><legend class="fs-6">${esc(item.nome_produto)}</legend><div class="form-grid p-0">`;
+            campos += `<section class="edicao-item-venda" aria-labelledby="edicao-item-venda-titulo-${indice}"><h4 class="edicao-item-venda-titulo" id="edicao-item-venda-titulo-${indice}">${esc(item.nome_produto)}</h4><div class="edicao-item-venda-campos">`;
             campos += campo('Quantidade', `<input type="number" name="qtd-${indice}" min="0" max="100000" step="1" required value="${item.quantidade}">`);
             campos += campo('Preço unitário (R$)', `<input type="number" name="preco-${indice}" min="0" step="0.01" required value="${dinheiro(item.preco_unitario)}">`);
             campos += campo('Observação do item', `<input name="obs-${indice}" maxlength="1000" value="${esc(item.observacoes || '')}">`);
-            campos += '</div></fieldset>';
+            campos += '</div></section>';
         });
     } else {
         campos += campo('Valor (R$)', `<input type="number" name="valor_total" min="0" step="0.01" required value="${dinheiro(venda.valor_total)}">`);

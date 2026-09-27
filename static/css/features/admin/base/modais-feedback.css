@@ -45,6 +45,32 @@
     gap: 1.2rem;
 }
 
+.edicao-item-venda {
+    grid-column: 1 / -1;
+    min-width: 0;
+    padding: 0.85rem 1rem;
+    border-left: 2px solid rgba(179, 0, 0, 0.8);
+    border-radius: 0 8px 8px 0;
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.edicao-item-venda-titulo {
+    margin: 0 0 0.75rem;
+    color: #f2f2f2;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.edicao-item-venda-campos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem 1rem;
+}
+
+.edicao-item-venda-campos > .form-group:last-child {
+    grid-column: 1 / -1;
+}
+
 .modal-content .form-actions {
     padding: 0 1.5rem 1.5rem 1.5rem;
     gap: 12px;

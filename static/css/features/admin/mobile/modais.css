@@ -68,6 +68,19 @@
         padding: 1rem;
     }
 
+    .edicao-item-venda {
+        padding: 0.8rem;
+    }
+
+    .edicao-item-venda-campos {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.7rem;
+    }
+
+    .edicao-item-venda-campos > .form-group:last-child {
+        grid-column: auto;
+    }
+
     .modal-content .form-actions {
         padding: 0 1rem calc(1rem + env(safe-area-inset-bottom));
     }

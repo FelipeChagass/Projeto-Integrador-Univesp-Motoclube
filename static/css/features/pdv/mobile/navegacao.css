@@ -26,9 +26,7 @@
     }
 
     .header-logo {
-        width: 55px;
-        height: 55px;
-        flex-shrink: 0;
+        display: none;
     }
 
     #barra-operador {

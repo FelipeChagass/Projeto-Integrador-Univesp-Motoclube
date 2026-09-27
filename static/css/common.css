@@ -374,3 +374,72 @@ body.modal-open {
 #area-impressao {
     display: none;
 }
+
+.acessibilidade-fonte {
+    gap: 0.45rem;
+}
+
+.acessibilidade-fonte-titulo {
+    color: #f2f2f2;
+    font-weight: 600;
+}
+
+.controle-fonte {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: fit-content;
+    padding: 0.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.18);
+}
+
+.controle-fonte-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 34px;
+    padding: 0 0.55rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    background: #303030;
+    color: #fff;
+    font: inherit;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.controle-fonte-btn:hover:not(:disabled) {
+    border-color: #e3262e;
+    background: #a9141b;
+}
+
+.controle-fonte-btn:focus-visible {
+    outline: 2px solid #ff6268;
+    outline-offset: 2px;
+}
+
+.controle-fonte-btn:disabled {
+    color: #c5c5c5;
+    background: #242424;
+    opacity: 0.62;
+    cursor: not-allowed;
+}
+
+.controle-fonte-valor {
+    min-width: 3.4rem;
+    color: #f2f2f2;
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+.acessibilidade-fonte-ajuda {
+    color: #aaa;
+    font-size: 0.8rem;
+}
