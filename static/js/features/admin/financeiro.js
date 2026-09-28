@@ -5,6 +5,7 @@ import { UIModal } from '../../shared/modals.js';
 
 let edicao = null;
 let voltarFoco = null;
+let requisicaoVenda = 0;
 const dinheiro = valor => Number(valor).toFixed(2);
 const campo = (rotulo, conteudo) => `<label class="form-group">${rotulo}${conteudo}</label>`;
 
@@ -16,26 +17,34 @@ async function atualizar() {
 }
 
 function fechar() {
+    requisicaoVenda++;
     fecharModalAdmin('modalEdicaoFinanceira');
     edicao = null;
+    document.getElementById('btn-salvar-edicao-financeira').disabled = false;
     voltarFoco?.focus();
 }
 
-function abrir(titulo, campos, registro) {
-    voltarFoco = document.activeElement;
-    fecharModalAdmin('modalExtrato');
+function preencher(titulo, campos, registro) {
     edicao = registro;
     const form = document.getElementById('form-edicao-financeira');
-    const vendaComItens = Boolean(registro.venda?.itens?.length);
+    const vendaComItens = Boolean(registro?.venda?.itens?.length);
     form.classList.toggle('edicao-venda', vendaComItens);
     const camposEdicao = document.getElementById('edicao-financeira-campos');
     camposEdicao.classList.toggle('form-grid', !vendaComItens);
     document.getElementById('edicao-financeira-titulo').textContent = titulo;
     camposEdicao.innerHTML = campos;
     if (vendaComItens) atualizarResumoVenda();
+}
+
+function abrir(titulo, campos, registro) {
+    voltarFoco = document.activeElement;
+    fecharModalAdmin('modalExtrato');
+    preencher(titulo, campos, registro);
     document.getElementById('modalEdicaoFinanceira').classList.remove('d-none');
     document.body.classList.add('modal-open');
-    document.querySelector('#edicao-financeira-campos input, #edicao-financeira-campos select')?.focus();
+    if (!window.matchMedia?.('(max-width: 768px)').matches) {
+        document.querySelector('#edicao-financeira-campos input, #edicao-financeira-campos select')?.focus();
+    }
 }
 
 function montarEditorItensVenda(venda) {
@@ -54,7 +63,7 @@ function montarEditorItensVenda(venda) {
                     <button type="button" data-quantidade-delta="1" aria-label="Aumentar quantidade">+</button>
                 </div>
                 <label class="edicao-item-preco">
-                    <span class="visually-hidden">Preço unitário de ${esc(item.nome_produto)}</span>
+                    <span class="edicao-item-preco-rotulo" aria-hidden="true">Preço unitário (R$)</span>
                     <input type="number" name="preco-${indice}" min="0" step="0.01" required
                         value="${dinheiro(item.preco_unitario)}" aria-label="Preço unitário (R$)">
                 </label>
@@ -122,7 +131,14 @@ function atualizarResumoVenda() {
 
 async function excluir(url, versao, descricao) {
     UIModal.confirm(`${descricao} Excluir definitivamente? Estoque e valores relacionados serão recalculados.`, async () => {
-        const r = await authFetch(url, { method: 'DELETE', body: JSON.stringify({ versao }) });
+        let versaoAtual = versao;
+        if (versaoAtual === undefined) {
+            const detalhe = await authFetch(url);
+            if (!detalhe) return;
+            versaoAtual = (await detalhe.json()).venda?.versao;
+            if (versaoAtual == null) return toast('Não foi possível carregar a versão da venda.', false);
+        }
+        const r = await authFetch(url, { method: 'DELETE', body: JSON.stringify({ versao: versaoAtual }) });
         if (!r) return;
         toast((await r.json()).mensagem, true);
         fecharModalAdmin('modalExtrato');
@@ -132,10 +148,31 @@ async function excluir(url, versao, descricao) {
 
 export async function administrarVenda(id, acao) {
     const url = `/api/admin/vendas/${id}`;
+    if (acao === 'excluir') return excluir(url, undefined, 'Venda selecionada.');
+
+    const requisicao = ++requisicaoVenda;
+    const botaoSalvar = document.getElementById('btn-salvar-edicao-financeira');
+    botaoSalvar.disabled = true;
+    abrir('Editar venda', '<p class="edicao-venda-carregando" role="status">Carregando dados da venda...</p>', null);
     const resposta = await authFetch(url);
-    if (!resposta) return;
-    const { venda } = await resposta.json();
-    if (acao === 'excluir') return excluir(url, venda.versao, `Venda de R$ ${dinheiro(venda.valor_total)} (${venda.nome_cliente || 'sem cliente'}).`);
+    const modal = document.getElementById('modalEdicaoFinanceira');
+    if (requisicao !== requisicaoVenda || modal.classList.contains('d-none') || modal.classList.contains('closing')) return;
+    if (!resposta) {
+        document.getElementById('edicao-financeira-campos').innerHTML = '<p role="alert">Não foi possível carregar a venda. Feche e tente novamente.</p>';
+        return;
+    }
+    let venda;
+    try {
+        ({ venda } = await resposta.json());
+        if (!venda) throw new Error('Venda indisponível.');
+    } catch (erro) {
+        if (requisicao === requisicaoVenda && !modal.classList.contains('d-none') && !modal.classList.contains('closing')) {
+            document.getElementById('edicao-financeira-campos').innerHTML = '<p role="alert">Não foi possível carregar a venda. Feche e tente novamente.</p>';
+            toast(erro.message || 'Resposta inválida da venda.', false);
+        }
+        return;
+    }
+    if (requisicao !== requisicaoVenda || modal.classList.contains('d-none') || modal.classList.contains('closing')) return;
     const metodos = venda.tipo_venda === 'fiado' ? [['fiado', 'Fiado']] : venda.tipo_venda === 'ajuste' ? [['ajuste', 'Ajuste']] : [
         ['dinheiro', 'Dinheiro'], ['pix', 'Pix'], ['cartao_credito', 'Cartão de crédito'], ['cartao_debito', 'Cartão de débito'],
     ];
@@ -161,7 +198,8 @@ export async function administrarVenda(id, acao) {
             + campo('Observações', `<textarea name="observacoes" maxlength="2000">${esc(venda.observacoes || '')}</textarea>`)
             + campo('Valor (R$)', `<input type="number" name="valor_total" min="0" step="0.01" required value="${dinheiro(venda.valor_total)}">`);
     }
-    abrir('Editar venda', campos, { url, venda, versao: venda.versao });
+    preencher('Editar venda', campos, { url, venda, versao: venda.versao });
+    botaoSalvar.disabled = false;
 }
 
 export function administrarMovimento(membroId, movimento, acao) {

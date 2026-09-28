@@ -20,14 +20,17 @@
     #tab-vendas .toolbar {
         order: 2;
         margin-bottom: 0;
+        align-items: stretch !important;
+        min-width: 0;
     }
 
     #tab-vendas .filter-group {
         display: flex;
         flex-direction: column;
-        align-items: stretch;
+        align-items: stretch !important;
         width: 100%;
-        gap: 6px;
+        min-width: 0;
+        gap: 8px;
     }
 
     #tab-vendas .filter-group label {
@@ -35,10 +38,28 @@
         text-align: left;
     }
 
+    #tab-vendas .filter-input {
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        height: auto;
+        min-height: 46px;
+        padding: 9px 12px;
+        line-height: 1.3;
+        font-size: max(16px, 0.9rem) !important;
+    }
+
     #tab-vendas .filter-group .btn {
-        align-self: flex-start;
-        width: auto;
-        margin-left: 0;
+        align-self: stretch;
+        width: 100%;
+        min-height: 46px;
+        margin: 0;
+        justify-content: center;
+    }
+
+    #tab-vendas #btn-filtrar-vendas {
+        margin-top: 6px;
     }
 
     #tab-vendas .table-wrapper {

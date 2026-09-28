@@ -352,6 +352,10 @@
     appearance: textfield;
 }
 
+.edicao-item-preco-rotulo {
+    display: none;
+}
+
 .edicao-item-quantidade input::-webkit-inner-spin-button,
 .edicao-item-quantidade input::-webkit-outer-spin-button {
     margin: 0;

@@ -18,14 +18,14 @@
         border-radius: 16px 16px 0 0 !important;
         padding: 20px 18px calc(20px + env(safe-area-inset-bottom)) !important;
         overflow-y: auto;
-        animation: adminModalSlideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        animation: adminModalSlideUp 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         margin: 0 !important;
         position: relative;
         touch-action: pan-y;
     }
 
     .modal-overlay.closing .modal-content {
-        animation: adminModalSlideDown 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        animation: adminModalSlideDown 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
 
     @keyframes adminModalSlideUp {
@@ -57,8 +57,10 @@
     }
 
     .modal-content.edicao-venda {
+        --edicao-venda-espaco: clamp(12px, 3.5vw, 18px);
         padding: 0 !important;
         max-height: 92vh !important;
+        max-height: 92dvh !important;
     }
 
     .edicao-venda .modal-header {
@@ -72,6 +74,10 @@
     .edicao-venda-layout {
         grid-template-columns: minmax(0, 1fr);
         gap: 10px;
+    }
+
+    .edicao-venda .edicao-venda-campo {
+        font-size: 0.85rem;
     }
 
     .edicao-itens-colunas {
@@ -90,10 +96,10 @@
     .edicao-item-linha {
         grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas:
-            "produto acoes"
-            "quantidade preco"
-            "subtotal subtotal";
-        gap: 8px;
+            "produto produto"
+            "quantidade acoes"
+            "preco subtotal";
+        gap: 10px 8px;
     }
 
     .edicao-item-arrastar {
@@ -104,19 +110,77 @@
         grid-area: produto;
     }
 
+    .edicao-venda .edicao-item-produto strong,
+    .edicao-venda .edicao-item-produto small {
+        overflow: visible;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        text-overflow: clip;
+    }
+
+    .edicao-venda .edicao-item-produto strong {
+        font-size: 0.9rem;
+        line-height: 1.35;
+    }
+
+    .edicao-venda .edicao-item-produto small {
+        font-size: 0.75rem;
+    }
+
     .edicao-item-quantidade {
         grid-area: quantidade;
         justify-content: flex-start;
+        min-width: 0;
+    }
+
+    .edicao-venda .edicao-item-quantidade input {
+        width: 54px;
+        flex: 0 0 54px;
+        padding: 0 4px;
+        text-align: center;
+    }
+
+    .edicao-venda .edicao-item-quantidade button,
+    .edicao-venda .edicao-item-acoes button {
+        width: 36px;
+        height: 38px;
     }
 
     .edicao-item-preco {
         grid-area: preco;
         width: 100%;
+        min-width: 0;
+        max-width: 160px;
+    }
+
+    .edicao-item-preco-rotulo {
+        display: block;
+        margin-bottom: 4px;
+        color: #aeb6c5;
+        font-size: 0.7rem;
+    }
+
+    .edicao-venda .edicao-item-preco input {
+        min-height: 40px;
+        font-size: max(16px, 0.85rem) !important;
     }
 
     .edicao-item-subtotal {
         grid-area: subtotal;
         text-align: right;
+        align-self: end;
+        overflow: visible;
+        white-space: normal;
+        font-size: 0.9rem;
+    }
+
+    .edicao-item-subtotal::before {
+        content: 'Subtotal (R$)';
+        display: block;
+        margin-bottom: 8px;
+        color: #aeb6c5;
+        font-size: 0.7rem;
+        font-weight: 400;
     }
 
     .edicao-item-acoes {
@@ -127,6 +191,10 @@
         padding: 8px 0 0;
     }
 
+    .edicao-venda .edicao-item-observacao textarea {
+        min-width: 0;
+    }
+
     .edicao-venda-inferior {
         grid-template-columns: minmax(0, 1fr);
     }
@@ -135,11 +203,19 @@
         flex-direction: row !important;
         justify-content: flex-end;
         padding: 0.875rem var(--edicao-venda-espaco) calc(0.875rem + env(safe-area-inset-bottom));
+        gap: 8px;
     }
 
     .edicao-venda .form-actions .btn {
         width: auto;
+        min-width: 0;
         min-height: 42px;
+        font-size: 0.85rem;
+        white-space: normal;
+    }
+
+    .edicao-venda .form-actions .btn-save {
+        flex: 1 1 auto;
     }
 
     .modal-header {
@@ -223,5 +299,15 @@
         right: 0.8rem;
         bottom: calc(0.8rem + env(safe-area-inset-bottom));
         text-align: center;
+    }
+}
+
+@media (max-width: 380px) {
+    .modal-content.edicao-venda .form-actions {
+        flex-direction: column-reverse !important;
+    }
+
+    .edicao-venda .form-actions .btn {
+        width: 100%;
     }
 }

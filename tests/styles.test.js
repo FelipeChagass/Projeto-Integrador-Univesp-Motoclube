@@ -24,10 +24,10 @@ function orderedRules(rules, media = []) {
 }
 
 test.each([
-    ['admin.css', 'c467f0b62bd05b008f517c7d848e94c9215dd458e71703c2a1b9903fc27bb416'],
-    ['admin-mobile.css', '55d68f1cd3427b3ae15b8b1b2c6b66843f286d09405868be2fad7043665e7761'],
-    ['ponto_venda.css', 'b697cc95eae3f5010eed985a59c3f63b57bc79f648528db61ad99f6cff0c5ef6'],
-    ['ponto_venda-mobile.css', 'e7f3841352fdf5c5f12387dc3055894ae4e77303c462b9ecaff7002da14b25c2'],
+    ['admin.css', 'ab5d40a5470930efe7a029f39f40bb078e5699470752b4c03e3bb2c0362b8da9'],
+    ['admin-mobile.css', 'be1ae83e22df9841ed7fc45a79f02ef6c2192f9dcd593b5b1bb754b8dcae8bd5'],
+    ['ponto_venda.css', 'cab2583ee26cc5d2b025249eadad5f23107430dcda1b26c8b0eef6413bd18d0a'],
+    ['ponto_venda-mobile.css', 'e99aa7f62e1c66e503af0a2148c4888a09104b99af1c0aea54f84cadf008902e'],
 ])('%s mantém seletores, declarações, media queries e ordem revisados', (filename, expected) => {
     const style = document.createElement('style');
     style.textContent = expandImports(resolve(root, filename));

@@ -6,7 +6,7 @@
 
 export function fecharModalAdmin(id) {
     const el = document.getElementById(id);
-    if (!el) return;
+    if (!el || el.classList.contains('d-none')) return;
     el.classList.add('closing');
     setTimeout(() => {
         el.classList.add('d-none');
