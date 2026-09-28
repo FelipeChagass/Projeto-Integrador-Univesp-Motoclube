@@ -82,7 +82,7 @@ function montarEditorItensVenda(venda) {
                     <span id="edicao-itens-titulo">Itens da venda</span>
                 </div>
             </header>
-            <div class="edicao-itens-tabela">
+            <div class="edicao-itens-tabela py-2">
                 <div class="edicao-itens-colunas" aria-hidden="true"><span></span><span>Produto</span><span>Quantidade</span><span>Preço unitário (R$)</span><span>Subtotal (R$)</span><span>Ações</span></div>
                 ${itens}
             </div>
