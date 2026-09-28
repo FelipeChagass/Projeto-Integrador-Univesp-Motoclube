@@ -56,6 +56,92 @@
         max-width: 100% !important;
     }
 
+    .modal-content.edicao-venda {
+        padding: 0 !important;
+        max-height: 92vh !important;
+    }
+
+    .edicao-venda .modal-header {
+        padding: 0.875rem var(--edicao-venda-espaco);
+    }
+
+    .edicao-venda #edicao-financeira-campos {
+        padding: var(--edicao-venda-espaco);
+    }
+
+    .edicao-venda-layout {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+    }
+
+    .edicao-itens-colunas {
+        display: none;
+    }
+
+    .edicao-venda .edicao-item-venda {
+        padding: 0.75rem;
+        border-top: 1px solid rgba(148, 163, 184, 0.09);
+    }
+
+    .edicao-item-venda + .edicao-item-venda {
+        margin-top: 7px;
+    }
+
+    .edicao-item-linha {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "produto acoes"
+            "quantidade preco"
+            "subtotal subtotal";
+        gap: 8px;
+    }
+
+    .edicao-item-arrastar {
+        display: none;
+    }
+
+    .edicao-item-produto {
+        grid-area: produto;
+    }
+
+    .edicao-item-quantidade {
+        grid-area: quantidade;
+        justify-content: flex-start;
+    }
+
+    .edicao-item-preco {
+        grid-area: preco;
+        width: 100%;
+    }
+
+    .edicao-item-subtotal {
+        grid-area: subtotal;
+        text-align: right;
+    }
+
+    .edicao-item-acoes {
+        grid-area: acoes;
+    }
+
+    .edicao-item-observacao {
+        padding: 8px 0 0;
+    }
+
+    .edicao-venda-inferior {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .modal-content.edicao-venda .form-actions {
+        flex-direction: row !important;
+        justify-content: flex-end;
+        padding: 0.875rem var(--edicao-venda-espaco) calc(0.875rem + env(safe-area-inset-bottom));
+    }
+
+    .edicao-venda .form-actions .btn {
+        width: auto;
+        min-height: 42px;
+    }
+
     .modal-header {
         padding: 1rem 1.2rem;
     }

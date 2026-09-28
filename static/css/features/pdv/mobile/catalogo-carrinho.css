@@ -136,21 +136,22 @@
 
     .carrinho-footer {
         padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+        gap: 10px;
     }
 
     .total-display {
         font-size: 1.8rem;
-        margin-bottom: 10px;
+        margin-bottom: 0;
     }
 
     .input-cliente {
         padding: 12px;
         font-size: calc(16px * var(--escala-fonte, 1));
-        margin-bottom: 10px;
+        margin-bottom: 0;
     }
 
     .grid-pagamento {
-        gap: 6px;
+        gap: 10px;
     }
 
     .btn-action {
