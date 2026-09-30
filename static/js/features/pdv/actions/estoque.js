@@ -1,8 +1,9 @@
 /**
  * Modo de estoque e envio de ajustes com valores esperados ao backend.
- * A interface verifica o perfil para orientar o usuário; a API aplica a autorização real.
+ * A senha é validada no backend e permanece apenas em memória enquanto o modo está ativo.
  */
 import { API } from '../../../shared/api.js';
+import { UIModal } from '../../../shared/modals.js';
 import { S, salvarDadosLocais } from '../state.js';
 import { showToast, fecharModal, renderizarCatalogo, sincronizarTextoModoEstoque } from '../ui.js';
 
@@ -11,6 +12,7 @@ import { showToast, fecharModal, renderizarCatalogo, sincronizarTextoModoEstoque
 export function alternarModoEstoque() {
     if (S.modoGerenciaEstoque) {
         S.modoGerenciaEstoque = false;
+        S.senhaEstoque = null;
         const btn = document.getElementById('btn-estoque');
         const carrinhoSec = document.getElementById('carrinho-section');
         const header = document.getElementById('app-header');
@@ -23,11 +25,24 @@ export function alternarModoEstoque() {
         renderizarCatalogo();
         return;
     }
-    ativarModoEstoque();
+    if (S.usuarioAtual?.perfil === 'admin') {
+        S.senhaEstoque = null;
+        ativarModoEstoque();
+        return;
+    }
+    UIModal.prompt('Digite a senha para gerenciar o estoque:', async (senha) => {
+        if (!senha) return showToast('Digite a senha do estoque.', 'err');
+        try {
+            await API.verificarSenhaEstoque(senha);
+            S.senhaEstoque = senha;
+            ativarModoEstoque();
+        } catch (error) {
+            showToast(error.message || 'Senha do estoque incorreta.', 'err');
+        }
+    });
 }
 
 function ativarModoEstoque() {
-    if (S.usuarioAtual?.perfil !== 'admin') return showToast('Ajustes de estoque exigem um administrador.');
     S.modoGerenciaEstoque = true;
     const btn = document.getElementById('btn-estoque');
     const carrinhoSec = document.getElementById('carrinho-section');
@@ -53,7 +68,7 @@ export async function salvarEdicaoEstoque() {
         novoEstDep -= diferenca;
     }
     try {
-        await API.salvarDadosProduto(S.produtoEdicao.id, novoEstBar, novoEstDep, Number(novoMinBar), Number(novoMinDep), S.estoqueOriginalBar, Number(S.produtoEdicao.estoque_deposito));
+        await API.salvarDadosProduto(S.produtoEdicao.id, novoEstBar, novoEstDep, Number(novoMinBar), Number(novoMinDep), S.estoqueOriginalBar, Number(S.produtoEdicao.estoque_deposito), S.senhaEstoque);
         S.produtoEdicao.estoque_bar = novoEstBar;
         S.produtoEdicao.estoque_deposito = novoEstDep;
         salvarDadosLocais();

@@ -49,9 +49,10 @@ def test_existing_admin_keeps_role_and_invalid_token_fails(seed, client):
 
 def test_stock_permission_stale_write_and_audit(pg, seed, client):
     data = {'produto_id': seed['product'], 'estoque_bar': 11, 'estoque_deposito': 19,
-            'estoque_bar_esperado': 10, 'estoque_deposito_esperado': 20}
-    assert client.put('/api/produtos/estoque', json=data, headers=headers(seed['users'][0])).status_code == 403
-    assert client.put('/api/produtos/estoque', json=data, headers=headers(seed['users'][2])).status_code == 200
+            'estoque_bar_esperado': 10, 'estoque_deposito_esperado': 20,
+            'senha_estoque': 'senha-teste'}
+    assert client.put('/api/produtos/estoque', json=data, headers=headers(seed['users'][0])).status_code == 200
+    assert client.put('/api/produtos/estoque', json=data | {'senha_estoque': 'errada'}, headers=headers(seed['users'][0])).status_code == 403
     assert client.put('/api/produtos/estoque', json=data, headers=headers(seed['users'][2])).status_code == 409
     with pg() as db:
         assert db.get(Produto, seed['product']).estoque_bar == 11

@@ -20,11 +20,13 @@ const mockedApi = {
     invalidateCache: jest.fn(),
     getDadosIniciais: jest.fn(() => Promise.resolve({ produtos: [], membros: [] })),
     getProdutos: jest.fn(() => Promise.resolve({ produtos: [] })),
+    verificarSenhaEstoque: jest.fn(() => Promise.resolve({ status: 'ok' })),
     gerarRelatorioCaixa: jest.fn(),
 };
 const mockedUiModal = {
     confirm: jest.fn((msg, cb) => cb()),
     alert: jest.fn(),
+    prompt: jest.fn((msg, cb) => cb('senha-teste')),
 };
 
 jest.unstable_mockModule('../../static/js/shared/api.js', () => ({
@@ -117,6 +119,7 @@ export async function loadModules() {
     S.caixaAberto = true;
     S.caixaId = 'cx-test';
     S.modoGerenciaEstoque = false;
+    S.senhaEstoque = null;
     S.filaVendas = [];
     S.enviandoVenda = false;
     S.config = { imprimir: false, largura: 'ticket-80mm', logo: '/static/img/motorhead.png' };

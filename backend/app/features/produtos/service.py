@@ -1,13 +1,14 @@
 """Cadastro e estoque; alterações serializadas na mesma linha do produto."""
+import hmac
 from datetime import datetime, timezone
 
+from flask import current_app
 from sqlalchemy.orm import Session
 
 from app.core.database import unit_of_work
 from app.core.errors import ApiError
 from app.models.ajuste_estoque import AjusteEstoque
 from app.models.produto import Produto
-from app.models.usuario import Usuario
 from app.features.produtos.schemas import EstoquePayload
 from app.features.produtos.schemas import ProdutoCriacaoPayload
 from app.features.produtos.schemas import ProdutoEdicaoPayload
@@ -30,6 +31,15 @@ def _bloquear_produto(db, produto_id):
     if not produto:
         raise ApiError('PRODUTO_NAO_ENCONTRADO', 'Produto não encontrado.', 404)
     return produto
+
+
+def validar_senha_estoque(senha: str | None) -> None:
+    esperada = current_app.config.get('SENHA_ESTOQUE', '')
+    informada = senha if isinstance(senha, str) else ''
+    if not esperada:
+        raise ApiError('SENHA_ESTOQUE_NAO_CONFIGURADA', 'A senha do estoque não está configurada.', 500)
+    if not hmac.compare_digest(informada, esperada):
+        raise ApiError('SENHA_ESTOQUE_INVALIDA', 'Senha do estoque incorreta.', 403)
 
 
 def criar_produto(db: Session, dados: dict) -> dict:
@@ -70,11 +80,11 @@ def deletar_produto(db: Session, produto_id: int) -> dict:
         return {'status': 'ok', 'mensagem': f'Produto "{produto.nome}" excluído.'}
 
 
-def atualizar_estoque(db: Session, dados: dict) -> dict:
+def atualizar_estoque(db: Session, dados: dict, *, exigir_senha: bool = True) -> dict:
     entrada = EstoquePayload.model_validate(dados)
+    if exigir_senha:
+        validar_senha_estoque(entrada.senha_estoque)
     with unit_of_work(db):
-        if not db.query(Usuario).filter_by(id=entrada.usuario_id, perfil='admin', ativo=True).first():
-            raise ApiError('ACESSO_NEGADO', 'Ajuste de estoque exige administrador.', 403)
         produto = _bloquear_produto(db, entrada.produto_id)
         if not produto.ativo:
             raise ApiError('PRODUTO_INATIVO', 'Produto inativo.', 409)

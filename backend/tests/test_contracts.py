@@ -57,6 +57,7 @@ def test_obsolete_routes_are_not_registered(http_app, path, method):
     ('/api/vendas', 'post'), ('/api/vendas/pagamento', 'post'),
     ('/api/caixa/abrir', 'post'), ('/api/caixa/fechar', 'post'),
     ('/api/produtos/estoque', 'put'), ('/api/admin/usuarios', 'get'),
+    ('/api/produtos/estoque/verificar-senha', 'post'),
     ('/api/auth/me', 'get'), ('/api/auth/sincronizar', 'post'),
 ])
 def test_protected_endpoints_require_token(http_app, path, method):

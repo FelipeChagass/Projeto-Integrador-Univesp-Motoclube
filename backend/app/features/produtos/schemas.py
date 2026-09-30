@@ -26,6 +26,7 @@ class ProdutoEdicaoPayload(BaseModel):
 class EstoquePayload(BaseModel):
     produto_id: int = Field(gt=0)
     usuario_id: UUID
+    senha_estoque: str | None = Field(default=None, min_length=1, max_length=256)
     estoque_bar: int | None = Field(default=None, ge=0, strict=True)
     estoque_deposito: int | None = Field(default=None, ge=0, strict=True)
     estoque_min_bar: int | None = Field(default=None, ge=0, strict=True)

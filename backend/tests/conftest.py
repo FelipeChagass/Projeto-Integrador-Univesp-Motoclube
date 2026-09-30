@@ -6,7 +6,7 @@ from pathlib import Path
 os.environ['DATABASE_URL'] = 'postgresql+psycopg2://127.0.0.1/pdv_test'
 os.environ.update(SUPABASE_URL='https://example.test', SUPABASE_ANON_KEY='synthetic-public-key',
                   SUPABASE_SERVICE_ROLE_KEY='synthetic-not-a-secret', SECRET_KEY='synthetic-test',
-                  FLASK_DEBUG='false', SQLALCHEMY_ECHO='false')
+                  FLASK_DEBUG='false', SQLALCHEMY_ECHO='false', SENHA_ESTOQUE='senha-teste')
 
 import pytest
 from alembic import command

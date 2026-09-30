@@ -185,6 +185,10 @@ export const API = (function () {
             return _request('GET', '/produtos');
         },
 
+        verificarSenhaEstoque: function (senha) {
+            return _request('POST', '/produtos/estoque/verificar-senha', { senha: senha });
+        },
+
         invalidateCache: function (endpoint) {
             _clearCache(endpoint || null);
         },
@@ -195,9 +199,10 @@ export const API = (function () {
             });
         },
 
-        salvarDadosProduto: function (produtoId, estBar, estDep, minBar, minDep, esperadoBar, esperadoDep) {
+        salvarDadosProduto: function (produtoId, estBar, estDep, minBar, minDep, esperadoBar, esperadoDep, senhaEstoque) {
             return _request('PUT', '/produtos/estoque', {
                 produto_id: produtoId,
+                senha_estoque: senhaEstoque,
                 estoque_bar: estBar,
                 estoque_deposito: estDep,
                 estoque_min_bar: minBar,

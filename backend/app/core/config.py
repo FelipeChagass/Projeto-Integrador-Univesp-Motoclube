@@ -25,6 +25,7 @@ class Config:
     SUPABASE_URL = os.getenv('SUPABASE_URL', '')
     SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY', '')
     SUPABASE_SERVICE_ROLE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY', '')
+    SENHA_ESTOQUE = os.getenv('SENHA_ESTOQUE', '')
 
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024
     STORAGE_BUCKET = os.getenv('STORAGE_BUCKET', 'produto-imagens')
@@ -37,7 +38,7 @@ class Config:
 def validate_config(config):
     if config.get('TESTING'):
         return
-    required = ('DATABASE_URL', 'SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY')
+    required = ('DATABASE_URL', 'SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'SENHA_ESTOQUE')
     missing = [name for name in required if not config.get(name)]
     if missing:
         raise RuntimeError('Configuração ausente: ' + ', '.join(missing))

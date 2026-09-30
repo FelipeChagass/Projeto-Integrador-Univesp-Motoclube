@@ -14,6 +14,7 @@ export const S = {
     dadosRelatorioAtual: null,
     contextoMembro: '',
     modoGerenciaEstoque: false,
+    senhaEstoque: null,
     estoqueOriginalBar: 0,
     operadorAtual: '',
     usuarioAtual: null,

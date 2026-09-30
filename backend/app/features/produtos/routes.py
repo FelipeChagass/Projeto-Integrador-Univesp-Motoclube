@@ -26,7 +26,7 @@ def listar():
 
 
 @bp.route('/estoque', methods=['PUT'])
-@requer_admin
+@requer_login
 def atualizar_estoque():
     """
     Atualiza estoque de um produto.
@@ -44,9 +44,19 @@ def atualizar_estoque():
         dados = json_object()
         dados['usuario_id'] = g.usuario_id
 
-        resultado = produto_service.atualizar_estoque(db, dados)
+        exigir_senha = g.usuario_dict.get('perfil') != 'admin'
+        resultado = produto_service.atualizar_estoque(db, dados, exigir_senha=exigir_senha)
         status_code = 200 if resultado['status'] == 'ok' else 400
         return jsonify(resultado), status_code
+
+
+@bp.route('/estoque/verificar-senha', methods=['POST'])
+@requer_login
+def verificar_senha_estoque():
+    dados = json_object()
+    if g.usuario_dict.get('perfil') != 'admin':
+        produto_service.validar_senha_estoque(dados.get('senha'))
+    return jsonify({'status': 'ok'})
 
 
 @bp.route('', methods=['POST'])

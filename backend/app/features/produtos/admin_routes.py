@@ -45,7 +45,7 @@ def ajustar_estoque(produto_id):
     dados = json_object()
     dados.update(produto_id=produto_id, usuario_id=g.usuario_id)
     with session_scope() as db:
-        return jsonify(produto_service.atualizar_estoque(db, dados))
+        return jsonify(produto_service.atualizar_estoque(db, dados, exigir_senha=False))
 
 
 @bp.route('/produtos/<int:produto_id>/imagem', methods=['POST'])
