@@ -9,14 +9,30 @@
 
     #catalogo-section {
         flex: 1 1 auto;
-        padding: 8px;
+        padding: 0;
         padding-bottom: 72px;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         height: auto;
     }
 
+    .filtro-catalogo {
+        padding: 6px var(--pdv-mobile-inline-gutter);
+        gap: 8px;
+    }
+
+    .filtro-catalogo p {
+        font-size: 1rem;
+        white-space: nowrap;
+    }
+
+    .btn-categoria {
+        padding: 8px 12px;
+        white-space: nowrap;
+    }
+
     .grid-produtos {
+        padding: 16px;
         grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
         gap: 6px;
     }
@@ -135,13 +151,23 @@
     }
 
     .carrinho-footer {
-        padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
-        gap: 10px;
+        padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+        gap: 18px;
+    }
+
+    .total-resumo {
+        gap: 8px;
     }
 
     .total-display {
-        font-size: 1.8rem;
+        font-size: clamp(1.25rem, 5.2vw, 2rem);
         margin-bottom: 0;
+    }
+
+    .total-label {
+        flex: 1;
+        font-size: clamp(1.25rem, 5.2vw, 2rem);
+        line-height: 1.1;
     }
 
     .input-cliente {
@@ -151,7 +177,24 @@
     }
 
     .grid-pagamento {
-        gap: 10px;
+        column-gap: 6px;
+        row-gap: 22px;
+    }
+
+    .btn-action-pedido {
+        min-height: 70px;
+        padding: 12px 20px;
+        gap: 12px;
+    }
+
+    .btn-action-pedido svg {
+        width: 30px;
+        height: 30px;
+    }
+
+    .btn-fechar-conta svg {
+        width: 24px;
+        height: 24px;
     }
 
     .btn-action {

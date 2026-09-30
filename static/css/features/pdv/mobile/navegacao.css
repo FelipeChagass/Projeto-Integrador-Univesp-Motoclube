@@ -2,6 +2,9 @@
  * Carregado por static/css/ponto_venda-mobile.css; preserve a ordem da cascata no manifesto.
  */
 @media (max-width: 768px) {
+    :root {
+        --pdv-mobile-inline-gutter: 10px;
+    }
 
     html,
     body {
@@ -13,7 +16,7 @@
     #app-header {
         flex-direction: row;
         flex-wrap: nowrap;
-        padding: 6px 10px;
+        padding: 6px var(--pdv-mobile-inline-gutter);
         gap: 8px;
         align-items: center;
     }

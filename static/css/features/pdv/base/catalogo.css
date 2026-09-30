@@ -12,13 +12,13 @@
 
 #catalogo-section {
     flex: 1;
-    padding: 15px;
     overflow-y: auto;
     background-color: transparent;
     height: 100%;
 }
 
 .grid-produtos {
+    padding: 16px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
     gap: 10px;
@@ -28,14 +28,23 @@
 .filtro-catalogo {
     position: sticky;
     top: 0;
-    z-index: 20;
-    padding: 8px 0 12px;
+    min-height: 56px;
+    padding: 4px 16px;
     margin-bottom: 4px;
-    background: var(--bg-color);
+    align-items: center;
+    background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.03);
+}
+
+.filtro-catalogo p {
+    margin: 0;
 }
 
 .btn-categoria {
-    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
     background: linear-gradient(145deg, #1c1c1c, #111);
@@ -54,7 +63,6 @@
 
 .btn-categoria.active {
     border-color: var(--accent);
-    background: rgba(179, 0, 0, 0.2);
     color: #fff;
 }
 

@@ -23,6 +23,7 @@
 }
 
 .carrinho-header {
+    min-height: 56px;
     padding: 16px;
     background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
     text-align: center;
@@ -124,14 +125,29 @@
     gap: 10px;
 }
 
-.total-display {
+.total-resumo {
     grid-column: 1 / -1;
-    font-size: 2.2rem;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+}
+
+.total-label {
+    color: #aaa;
+    font-size: 1.6rem;
+    font-weight: 900;
+}
+
+.total-display {
+    font-size: 1.6rem;
+    text-align: right;
     color: #b30000;
     margin: 0;
     font-weight: 900;
     text-shadow: 0 0 15px rgba(179, 0, 0, 0.3);
+    white-space: nowrap;
 }
 
 .input-cliente {
