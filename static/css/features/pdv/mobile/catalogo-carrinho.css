@@ -17,18 +17,48 @@
     }
 
     .filtro-catalogo {
+        flex-wrap: nowrap;
         padding: 6px var(--pdv-mobile-inline-gutter);
-        gap: 8px;
+        gap: 6px;
     }
 
     .filtro-catalogo p {
-        font-size: 1rem;
+        flex: 0 0 auto;
+        font-size: clamp(0.78rem, 3.7vw, 0.95rem);
         white-space: nowrap;
     }
 
     .btn-categoria {
-        padding: 8px 12px;
+        flex: 0 1 auto;
+        min-width: 0;
+        gap: 4px;
+        padding: 6px 8px;
+        font-size: clamp(0.65rem, 3vw, 0.78rem);
         white-space: nowrap;
+    }
+
+    .btn-categoria svg {
+        flex: 0 0 19px;
+        width: 19px;
+        height: 19px;
+    }
+
+    @media (max-width: 360px) {
+        .filtro-catalogo {
+            gap: 4px;
+        }
+
+        .btn-categoria {
+            gap: 3px;
+            padding: 5px;
+            font-size: 0.68rem;
+        }
+
+        .btn-categoria svg {
+            flex-basis: 17px;
+            width: 17px;
+            height: 17px;
+        }
     }
 
     .grid-produtos {

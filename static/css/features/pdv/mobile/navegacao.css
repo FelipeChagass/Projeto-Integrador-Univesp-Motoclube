@@ -16,7 +16,7 @@
     #app-header {
         flex-direction: row;
         flex-wrap: nowrap;
-        padding: 6px var(--pdv-mobile-inline-gutter);
+        padding: 6px 12px 6px 6px;
         gap: 8px;
         align-items: center;
     }
