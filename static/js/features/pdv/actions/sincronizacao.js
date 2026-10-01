@@ -10,7 +10,7 @@ import { listarOperacoes, registrarTentativa, confirmarOperacao, registrarFalha,
 
 /* ─── Queue ─── */
 
-export async function processarFilaVendas() {
+export async function processarFilaVendas({ notificarFalhas = false } = {}) {
     if (S.processandoFila || !S.usuarioAtual?.id || navigator.onLine === false) return;
     S.processandoFila = true;
     try {
@@ -25,7 +25,11 @@ export async function processarFilaVendas() {
                 showToast(`Operação confirmada: ${formatCurrency(ack.total_calculado)}`);
             } catch (error) {
                 await registrarFalha(registro.id_externo, error);
-                showToast(`Operação preservada: ${error.message}. Consulte Operações pendentes.`);
+                if (notificarFalhas) {
+                    showToast(`Operação preservada: ${error.message}. Consulte Operações pendentes.`);
+                } else {
+                    console.warn(`Falha ao sincronizar operação ${registro.id_externo}; registro preservado.`, error);
+                }
                 if ([401, 403].includes(error.status)) break;
             }
         }
@@ -51,7 +55,11 @@ export async function abrirReconciliacao() {
             row.className = 'pendencia-item';
             const details = document.createElement('p');
             details.className = 'pendencia-detalhes';
-            details.textContent = `${registro.id_externo} | ${registro.estado} | tentativas: ${registro.tentativas} | caixa: ${registro.payload.caixa_id || 'desconhecido'} | ${registro.ultimo_erro?.message || ''} `;
+            const erro = registro.ultimo_erro;
+            const diagnostico = erro
+                ? ` | erro: ${erro.code || 'DESCONHECIDO'}${erro.status ? ` (HTTP ${erro.status})` : ''} | ${erro.message || ''}${erro.request_id ? ` | request: ${erro.request_id}` : ''}${erro.ocorrido_em ? ` | em: ${new Date(erro.ocorrido_em).toLocaleString('pt-BR')}` : ''}`
+                : '';
+            details.textContent = `${registro.id_externo} | ${registro.estado} | tentativas: ${registro.tentativas} | caixa: ${registro.payload.caixa_id || 'desconhecido'}${diagnostico}`;
             row.appendChild(details);
             if (registro.payload.usuario_origem_id === S.usuarioAtual?.id) {
                 const btn = document.createElement('button');
@@ -59,7 +67,7 @@ export async function abrirReconciliacao() {
                 btn.textContent = 'Reenviar mesma operação';
                 btn.onclick = async () => {
                     btn.disabled = true;
-                    try { await reenviarOperacao(registro.id_externo, S.usuarioAtual.id); await processarFilaVendas(); await abrirReconciliacao(); }
+                    try { await reenviarOperacao(registro.id_externo, S.usuarioAtual.id); await processarFilaVendas({ notificarFalhas: true }); await abrirReconciliacao(); }
                     catch (error) { showToast(error.message); btn.disabled = false; }
                 };
                 row.appendChild(btn);

@@ -176,6 +176,30 @@ describe('actions.js — Fila Vendas', () => {
         expect(API.processarVenda).toHaveBeenCalledWith(payload);
         expect(await listarOperacoes()).toHaveLength(0);
     });
+
+    test('falha em tentativa automática não repete notificação na tela', async () => {
+        const payload = { id_externo: 'background-failure', usuario_origem_id: S.usuarioAtual.id, caixa_id: S.caixaId };
+        await persistirOperacao(payload);
+        API.processarVenda.mockRejectedValueOnce(Object.assign(new Error('Falha de conexão.'), { retryable: true }));
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        document.getElementById('toast').innerText = 'sem aviso';
+
+        await actions.processarFilaVendas();
+
+        expect(document.getElementById('toast').innerText).toBe('sem aviso');
+        expect(warn).toHaveBeenCalled();
+        warn.mockRestore();
+    });
+
+    test('falha iniciada pelo operador exibe uma única notificação', async () => {
+        const payload = { id_externo: 'foreground-failure', usuario_origem_id: S.usuarioAtual.id, caixa_id: S.caixaId };
+        await persistirOperacao(payload);
+        API.processarVenda.mockRejectedValueOnce(Object.assign(new Error('Falha de conexão.'), { retryable: true }));
+
+        await actions.processarFilaVendas({ notificarFalhas: true });
+
+        expect(document.getElementById('toast').innerText).toContain('Operação preservada: Falha de conexão.');
+    });
 });
 
 describe('actions.js — Membros', () => {

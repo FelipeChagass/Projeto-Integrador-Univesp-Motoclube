@@ -40,6 +40,19 @@ test.each([[401, 'autenticacao'], [403, 'autenticacao'], [409, 'conflito'], [422
     expect(record.proxima_tentativa).toBeGreaterThan(Date.now());
 });
 
+test('preserves failure diagnostics for reconciliation', async () => {
+    await queue.persistirOperacao(payload);
+    await queue.registrarFalha(payload.id_externo, {
+        code: 'SERVER_UNREACHABLE', message: 'Servidor inacessível.', retryable: true,
+        details: { endpoint: '/vendas' }, requestId: 'request-test'
+    });
+    const [record] = await queue.listarOperacoes();
+    expect(record.ultimo_erro).toMatchObject({
+        code: 'SERVER_UNREACHABLE', details: { endpoint: '/vendas' }, request_id: 'request-test'
+    });
+    expect(record.ultimo_erro.ocorrido_em).toBeTruthy();
+});
+
 test('bounded automatic retries and explicit same-owner reconciliation', async () => {
     await queue.persistirOperacao(payload);
     for (let i = 0; i < 8; i++) await queue.registrarTentativa(payload.id_externo);

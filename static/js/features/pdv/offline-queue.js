@@ -94,7 +94,11 @@ export function registrarTentativa(id) {
 
 export function registrarFalha(id, error) {
     return atualizar(id, registro => {
-        registro.ultimo_erro = { code: error.code || 'UNEXPECTED_ERROR', status: error.status || 0, message: error.message };
+        registro.ultimo_erro = {
+            code: error.code || 'UNEXPECTED_ERROR', status: error.status || 0,
+            message: error.message, details: error.details || null,
+            request_id: error.requestId || null, ocorrido_em: new Date().toISOString()
+        };
         registro.estado = [401, 403].includes(error.status) ? 'autenticacao' :
             error.status === 409 ? 'conflito' :
                 error.retryable && registro.tentativas < 8 ? 'aguardando_reenvio' : 'reconciliacao';

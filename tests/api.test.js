@@ -26,10 +26,17 @@ test.each([400, 401, 403, 404, 409, 422, 500, 503])('HTTP %s rejects preserving 
     expect(fetch).toHaveBeenCalledTimes(1);
 });
 
-test('network loss is retryable but never retries writes itself', async () => {
+test('transport failure identifies an unreachable server and never retries writes itself', async () => {
     fetch.mockRejectedValueOnce(new TypeError('failed'));
-    await expect(API.request('POST', '/vendas', {})).rejects.toMatchObject({ status: 0, code: 'NETWORK_ERROR', retryable: true });
+    const log = jest.spyOn(console, 'error').mockImplementation(() => {});
+    await expect(API.request('POST', '/vendas', {})).rejects.toMatchObject({
+        status: 0, code: 'SERVER_UNREACHABLE', retryable: true,
+        message: 'Não foi possível alcançar o servidor.',
+        details: { tipo: 'transporte', method: 'POST', endpoint: '/vendas', online: true, browser_error: 'TypeError' }
+    });
     expect(fetch).toHaveBeenCalledTimes(1);
+    expect(log).toHaveBeenCalled();
+    log.mockRestore();
 });
 
 test('HTML error body does not expose server internals', async () => {

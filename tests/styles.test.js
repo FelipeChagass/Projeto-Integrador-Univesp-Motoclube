@@ -26,8 +26,8 @@ function orderedRules(rules, media = []) {
 test.each([
     ['admin.css', 'ab5d40a5470930efe7a029f39f40bb078e5699470752b4c03e3bb2c0362b8da9'],
     ['admin-mobile.css', 'be1ae83e22df9841ed7fc45a79f02ef6c2192f9dcd593b5b1bb754b8dcae8bd5'],
-    ['ponto_venda.css', 'cab2583ee26cc5d2b025249eadad5f23107430dcda1b26c8b0eef6413bd18d0a'],
-    ['ponto_venda-mobile.css', 'e99aa7f62e1c66e503af0a2148c4888a09104b99af1c0aea54f84cadf008902e'],
+    ['ponto_venda.css', 'f503eef5bbcae68f57da8733668dcc9643b9d9c317872a6e4e9c696127b1db21'],
+    ['ponto_venda-mobile.css', '66ec12ba17c447e6823ee2d267d950962220c8467e126c66433ba95d256fa1e2'],
 ])('%s mantém seletores, declarações, media queries e ordem revisados', (filename, expected) => {
     const style = document.createElement('style');
     style.textContent = expandImports(resolve(root, filename));

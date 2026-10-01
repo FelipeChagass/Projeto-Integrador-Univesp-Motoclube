@@ -117,7 +117,7 @@ export async function registrarVendaOtimista(metodo, cliente, membroId = null) {
         renderizarCatalogo();
         atualizarUI();
         showToast('Venda salva neste dispositivo. Aguardando confirmação do servidor.');
-        await processarFilaVendas();
+        await processarFilaVendas({ notificarFalhas: true });
     } catch (e) {
         S.enviandoVenda = false;
         showToast(`Erro ao registrar venda: ${e.message}`);
@@ -150,7 +150,7 @@ export async function executarPagamentoFinal(metodoFinal) {
             };
             await persistirOperacao(pagamento);
             fecharModal('modal-fechar-conta');
-            await processarFilaVendas();
+            await processarFilaVendas({ notificarFalhas: true });
         } catch (error) { showToast(`Pagamento não confirmado: ${error.message}`); }
         finally { S.enviandoVenda = false; if (loadingEl) loadingEl.style.display = 'none'; }
     }

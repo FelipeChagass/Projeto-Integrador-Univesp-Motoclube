@@ -2,10 +2,10 @@
  * Cliente HTTP/autenticação compartilhado; ApiError preserva status e possibilidade de retry.
  */
 export class ApiError extends Error {
-    constructor(message, { status = 0, code = 'NETWORK_ERROR', details = null, retryable = false } = {}) {
+    constructor(message, { status = 0, code = 'NETWORK_ERROR', details = null, retryable = false, requestId = null } = {}) {
         super(message);
         this.name = 'ApiError';
-        Object.assign(this, { status, code, details, retryable });
+        Object.assign(this, { status, code, details, retryable, requestId });
     }
 }
 
@@ -114,7 +114,8 @@ export const API = (function () {
                 throw new ApiError(data?.message || 'Não foi possível concluir a operação.', {
                     status, code: data?.code || defaultCodes[status] || 'SERVER_ERROR',
                     details: data?.details || null,
-                    retryable: ![400, 401, 403, 404, 409, 422].includes(status) && (data?.retryable ?? (status >= 500 || status === 429))
+                    retryable: ![400, 401, 403, 404, 409, 422].includes(status) && (data?.retryable ?? (status >= 500 || status === 429)),
+                    requestId: data?.request_id || response.headers?.get?.('X-Request-ID') || null
                 });
             }
 
@@ -127,9 +128,16 @@ export const API = (function () {
 
             if (error instanceof ApiError) throw error;
             const timeout = error.name === 'AbortError';
+            const online = typeof navigator === 'undefined' || navigator.onLine !== false;
+            const details = {
+                tipo: 'transporte', method, endpoint, online,
+                browser_error: error?.name || 'Error'
+            };
+            console.error('API inacessível antes de receber resposta HTTP.', details, error);
             // A durable queue controls retries of financial operations with the same id.
-            throw new ApiError(timeout ? 'Tempo limite excedido.' : 'Falha de conexão.', {
-                code: timeout ? 'TIMEOUT' : 'NETWORK_ERROR', retryable: true
+            throw new ApiError(timeout ? 'O servidor excedeu o tempo limite.' :
+                (online ? 'Não foi possível alcançar o servidor.' : 'O dispositivo está sem conexão.'), {
+                code: timeout ? 'TIMEOUT' : 'SERVER_UNREACHABLE', details, retryable: true
             });
         }
     }
