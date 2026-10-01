@@ -31,6 +31,7 @@
     min-height: 56px;
     padding: 4px 16px;
     margin-bottom: 4px;
+    gap: 8px;
     align-items: center;
     background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
     border-bottom: 2px solid rgba(255, 255, 255, 0.03);
