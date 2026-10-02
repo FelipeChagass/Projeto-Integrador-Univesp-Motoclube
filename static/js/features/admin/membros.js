@@ -7,9 +7,19 @@ import { administrarMovimento } from './financeiro.js';
 import { UIModal } from '../../shared/modals.js';
 import { BASE, authFetch } from './requests.js';
 import { fecharModalAdmin, esc, toast, mostrarSkeleton } from './ui.js';
+import { criarConsultaExtrato } from '../../shared/extrato-membro.js';
+import { API } from '../../shared/api.js';
 
 export let membros = [];
 let ajusteMemberId = null;
+const consultas = new WeakMap();
+
+export function atualizarExtratoAberto() {
+    const modal = document.getElementById('modalExtrato');
+    if (modal && !modal.classList.contains('d-none') && !modal.classList.contains('closing')) {
+        return consultas.get(document.getElementById('extrato-body'))?.atualizar();
+    }
+}
 
 export async function carregarMembros() {
     mostrarSkeleton('tabelaMembros', 4);
@@ -90,32 +100,17 @@ export async function reativarMembro(id) {
 
 export async function verExtrato(id, nome) {
     document.getElementById('extrato-titulo').textContent = `Extrato — ${nome}`;
-    document.getElementById('extrato-body').innerHTML = '<p class="text-center text-white">Carregando...</p>';
     document.getElementById('modalExtrato').classList.remove('d-none');
+    document.getElementById('modalExtrato').classList.remove('closing');
     document.body.classList.add('modal-open');
-    const r = await authFetch(`${BASE}/api/admin/membros/${id}/extrato`);
-    if (!r) return;
-    const data = await r.json();
-    document.getElementById('extrato-saldo').innerHTML = `<span class="${data.total > 0 ? 'saldo-devedor' : 'saldo-ok'}">Saldo devedor: R$ ${(data.total || 0).toFixed(2)}</span>`;
-    if (!data.itens || data.itens.length === 0) {
-        document.getElementById('extrato-body').innerHTML = '<p class="admin-empty-text">Nenhuma movimentação encontrada.</p>';
-        return;
-    }
-    let html = '<table class="inner-table"><thead><tr><th>Data</th><th>Tipo</th><th>Origem</th><th>Descrição</th><th>Valor</th><th>Ações</th></tr></thead><tbody>';
-    data.itens.forEach(i => {
-        const tipoClass = i.tipo === 'debito' ? 'tipo-debito' : 'tipo-credito';
-        html += `<tr><td>${i.data}</td><td class="${tipoClass}">${i.tipo}</td><td>${i.origem}</td><td>${esc(i.descricao)}</td><td>R$ ${i.valor.toFixed(2)}</td>
-            <td><div class="btn-group"><button type="button" class="btn btn-sm" data-movimento="${i.id}" data-acao="editar">Editar</button>
-            <button type="button" class="btn btn-del btn-sm" data-movimento="${i.id}" data-acao="excluir">Excluir</button></div></td></tr>`;
-    });
-    html += '</tbody></table>';
-    document.getElementById('extrato-body').innerHTML = html;
-    document.querySelectorAll('#extrato-body [data-movimento]').forEach(botao => {
-        botao.addEventListener('click', () => {
-            const movimento = data.itens.find(item => item.id === botao.dataset.movimento);
-            administrarMovimento(id, movimento, botao.dataset.acao);
-        });
-    });
+    const root = document.getElementById('extrato-body');
+    if (!consultas.has(root)) consultas.set(root, criarConsultaExtrato(root, {
+        // A consulta trata o erro após validar a geração; evita toasts de requisições antigas.
+        buscar: (membroId, filtros) => API.request('GET', `/admin/membros/${encodeURIComponent(membroId)}/extrato?${new URLSearchParams(filtros)}`, undefined),
+        notificar: mensagem => toast(mensagem, false),
+        administrar: administrarMovimento,
+    }));
+    return consultas.get(root).selecionar(id);
 }
 
 export function abrirAjusteSaldo(id, nome) {

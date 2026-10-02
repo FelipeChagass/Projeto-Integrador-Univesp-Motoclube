@@ -1,0 +1,63 @@
+/* Consulta compartilhada. Layout usa Bootstrap; estas regras mantêm o tema e
+ * acomodam o extrato nos modais e bottom sheets existentes. */
+.modal-content.modal-extrato {
+    max-width: 960px;
+    max-height: 92vh;
+    color-scheme: dark;
+}
+
+.consulta-extrato {
+    /* Admin ainda não carrega common.css: fallbacks seguem os mesmos tokens. */
+    color: #e0e0e0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.consulta-extrato .form-control,
+.consulta-extrato .form-select {
+    min-width: 0;
+    min-height: 44px;
+    color: inherit;
+    color-scheme: dark;
+    background-color: var(--card-bg, #1a1a1a);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.consulta-extrato .form-control:focus,
+.consulta-extrato .form-select:focus {
+    border-color: var(--accent, #c70808);
+}
+
+.consulta-extrato input::-webkit-calendar-picker-indicator { filter: none; }
+
+.consulta-extrato .btn {
+    min-height: 44px;
+    white-space: normal;
+}
+
+.extrato-destaque,
+.extrato-resumo-card,
+.extrato-movimento {
+    background: var(--card-bg, #1a1a1a);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.extrato-destaque {
+    border-left: 3px solid var(--accent, #c70808);
+}
+
+.extrato-pago { color: var(--success, #4caf50); }
+.extrato-erro { color: var(--danger, #f44336); }
+
+.modal-extrato .modal-scroll-body { min-height: 0; }
+.modal-extrato .extrato-acoes {
+    background: var(--card-bg, #1a1a1a);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+@media (max-width: 768px) {
+    .extrato-titulo-desktop { display: none; }
+    .modal-extrato .extrato-acoes {
+        padding-bottom: calc(1rem + env(safe-area-inset-bottom)) !important;
+    }
+}

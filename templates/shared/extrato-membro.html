@@ -1,0 +1,43 @@
+{# Consulta somente leitura, reutilizada no PDV e na administração por shared/extrato-membro.js. #}
+<div class="consulta-extrato" data-bs-theme="dark">
+    <div class="extrato-destaque p-3 rounded mb-3" aria-live="polite">
+        <span class="d-block small">Dívida total acumulada atual</span>
+        <strong class="fs-4" data-total-atual>—</strong>
+    </div>
+    <form data-filtros class="row g-2 align-items-end mb-3" novalidate>
+        <div class="col-12 col-md-4">
+            <label class="w-100 small">Consultar
+                <select class="form-select mt-1" name="modo">
+                    <option value="todos">Todo o histórico</option>
+                    <option value="mes">Um mês</option>
+                    <option value="meses">Intervalo de meses</option>
+                    <option value="datas">Período personalizado</option>
+                </select>
+            </label>
+        </div>
+        <div class="col-12 col-md-4 d-none" data-campo="mes">
+            <label class="w-100 small">Mês <input class="form-control mt-1" type="month" name="mes"></label>
+        </div>
+        <div class="col-12 col-md-4 d-none" data-campo="inicio">
+            <label class="w-100 small">Início <input class="form-control mt-1" type="date" name="inicio"></label>
+        </div>
+        <div class="col-12 col-md-4 d-none" data-campo="fim">
+            <label class="w-100 small">Fim <input class="form-control mt-1" type="date" name="fim"></label>
+        </div>
+        <div class="col-12 d-flex flex-wrap gap-2">
+            <button type="submit" class="btn btn-outline-light flex-fill" data-aplicar>Aplicar filtro</button>
+            <button type="button" class="btn btn-outline-light flex-fill" data-limpar>Limpar filtro</button>
+        </div>
+    </form>
+    <p class="small mb-2" data-periodo>Todo o histórico</p>
+    <div class="row g-2 mb-3" data-resumo aria-live="polite"></div>
+    <p class="small mb-3">Quitação informativa (FIFO): os créditos abatem as dívidas mais antigas, inclusive com pagamentos posteriores ao período. Esta consulta não altera o saldo nem os registros.</p>
+    <p class="small extrato-erro d-none" data-aviso role="alert"></p>
+    <div data-estado role="status" aria-live="polite">Selecione um membro para consultar.</div>
+    <div data-itens></div>
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3" data-paginacao>
+        <button type="button" class="btn btn-outline-light" data-anterior disabled>Anterior</button>
+        <span class="small" data-pagina></span>
+        <button type="button" class="btn btn-outline-light" data-proxima disabled>Próxima</button>
+    </div>
+</div>

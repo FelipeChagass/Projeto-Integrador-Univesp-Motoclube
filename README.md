@@ -119,6 +119,46 @@ Em Linux, o entry point WSGI é `wsgi:application`. Nenhum deploy é executado p
 
 ## Testes isolados
 
+### Consulta de dívidas por período
+
+No PDV, selecione **Pendurar** e um membro. Na administração, use **Gestão de Membros → Extrato**.
+As duas telas oferecem mês, intervalo de meses, datas personalizadas e limpeza do filtro, com paginação de 20 lançamentos.
+O saldo acumulado atual permanece separado do resumo do período. Os filtros não fazem parte da venda ou do pagamento.
+
+Os GETs existentes `/api/membros/extrato` e `/api/admin/membros/<id>/extrato` aceitam
+`data_inicio` e `data_fim` juntos, no formato `AAAA-MM-DD`, além de `limite`/`offset`.
+As datas são inclusivas no fuso `America/Sao_Paulo`; sem datas, consulta-se todo o histórico.
+`total`, `membro`, `itens` e `paginacao` continuam disponíveis. Foram acrescentados `periodo`, `resumo`,
+`criterio_quitacao`, `aviso` e valores/situação de quitação dos itens.
+
+O backend calcula uma **distribuição FIFO informativa**, aplicando os créditos às dívidas mais antigas,
+sem gravar baixas. “Pago no período” considera os recebimentos daquele período; “Em aberto no período”
+considera quanto ainda resta hoje dos débitos originados naquele período, inclusive após créditos posteriores.
+Créditos de ajustes manuais são mostrados separadamente dos pagamentos. Se o histórico não corresponde
+ao saldo oficial, os valores de quitação ficam indisponíveis, com aviso para conferência administrativa.
+
+A verificação visual `node scripts/check_extrato_layout.mjs` usa Edge headless (ou `BROWSER_PATH`),
+o servidor sintético na porta 5055 e respostas financeiras simuladas. Confere os filtros em 360, 480,
+768, 900 e 1440 px, incluindo acesso à paginação e confirmação após rolagem. Capturas e medidas ficam
+em `.test-logs/extrato/`. O script usa Bootstrap 5.3.3 da CDN ou a cópia local opcional
+`.test-tools/bootstrap-5.3.3.min.css`.
+
+Arquivos desta implementação:
+
+| Área | Alterados | Criados |
+|---|---|---|
+| Backend (`backend/app/features/membros/`) | `routes.py`, `admin_routes.py`, `schemas.py`, `service.py` | `extrato.py` |
+| Cliente HTTP (`static/js/shared/`) | `api.js` | `extrato-membro.js` |
+| PDV (`static/js/features/pdv/actions/`) | `membros.js` | — |
+| Administração (`static/js/features/admin/`) | `membros.js`, `financeiro.js` | — |
+| Templates (`templates/`) | `ponto_venda.html`, `admin.html`, `pdv/modals/membros.html`, `admin/modals/membros.html` | `shared/extrato-membro.html` |
+| CSS (`static/css/`) | — | `shared/extrato-membro.css` |
+| Testes Python (`backend/tests/`) | `test_frontend_templates.py` | `test_extrato_membros.py` |
+| Testes JS (`tests/`) | `actions.test.js`, `admin.test.js`, `helpers/pdv.js` | `extrato-membro.test.js` |
+| Validação visual e documentação | `README.md` | `scripts/check_extrato_layout.mjs` |
+
+### Execução
+
 Nunca use Supabase ou banco operacional nos testes. `TEST_DATABASE_URL` aceita apenas loopback e nome começando com `pdv_test`. Cada teste cria um schema sintético exclusivo e aplica as migrações; os schemas são preservados para inspeção.
 
 Com PostgreSQL local de testes na porta 55432:

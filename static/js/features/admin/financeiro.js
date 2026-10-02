@@ -10,10 +10,11 @@ const dinheiro = valor => Number(valor).toFixed(2);
 const campo = (rotulo, conteudo) => `<label class="form-group">${rotulo}${conteudo}</label>`;
 
 async function atualizar() {
-    const [{ carregarVendas }, { carregarMembros }, { carregarProdutos }] = await Promise.all([
+    const [{ carregarVendas }, { carregarMembros, atualizarExtratoAberto }, { carregarProdutos }] = await Promise.all([
         import('./vendas.js'), import('./membros.js'), import('./produtos.js'),
     ]);
     await Promise.all([carregarVendas(), carregarMembros(), carregarProdutos()]);
+    await atualizarExtratoAberto();
 }
 
 function fechar() {

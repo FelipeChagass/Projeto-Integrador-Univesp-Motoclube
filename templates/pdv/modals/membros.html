@@ -1,18 +1,23 @@
 {# Seleção/extrato de membro; actions/membros.js e pagamentos.js.
    Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
     <div id="modal-selecionar-membro" class="modal-overlay">
-        <div class="modal-content">
+        <div class="modal-content modal-extrato">
             <div class="modal-drag-header">
                 <div class="drag-handle"></div>
                 <h3>Selecione o Membro</h3>
             </div>
             <div class="modal-scroll-body">
-                <select id="select-membro" class="lista-membros-scroll">
+                <h3 class="extrato-titulo-desktop">Selecione o membro</h3>
+                <label for="select-membro" class="mb-2">Membro da conta</label>
+                <select id="select-membro" class="lista-membros-scroll w-100 mb-3">
                     <option value="" disabled selected>Carregando...</option>
                 </select>
-                <div id="preview-divida" class="preview-divida"></div>
-                <button class="btn-action w-100 mt-2" id="btn-confirmar-membro">CONTINUAR</button>
-                <button class="btn-action" id="btn-cancelar-membro">CANCELAR</button>
+                <div id="preview-divida" class="visually-hidden"></div>
+                <div id="pdv-extrato-membro">{% include 'shared/extrato-membro.html' %}</div>
+            </div>
+            <div class="extrato-acoes p-3 flex-shrink-0 d-flex flex-wrap gap-2">
+                <button type="button" class="btn-action flex-fill w-auto m-0" id="btn-confirmar-membro">CONTINUAR</button>
+                <button type="button" class="btn-action flex-fill w-auto m-0" id="btn-cancelar-membro">CANCELAR</button>
             </div>
         </div>
     </div>

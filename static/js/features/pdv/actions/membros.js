@@ -7,36 +7,30 @@ import { S } from '../state.js';
 import { esc, formatCurrency } from '../../../shared/utils.js';
 import { showToast, fecharModal, abrirModal } from '../ui.js';
 import { registrarVendaOtimista } from './pagamentos.js';
+import { criarConsultaExtrato } from '../../../shared/extrato-membro.js';
+
+const consultas = new WeakMap();
+function consultaMembro() {
+    const root = document.getElementById('pdv-extrato-membro');
+    if (!root) return null;
+    if (!consultas.has(root)) consultas.set(root, criarConsultaExtrato(root, {
+        buscar: (id, filtros) => API.buscarExtratoMembro(id, filtros),
+        notificar: mensagem => showToast(mensagem),
+    }));
+    return consultas.get(root);
+}
 
 /* ─── Members ─── */
 
 export function verificarDividaSelecionada() {
-    const nome = document.getElementById('select-membro').value;
-    const preview = document.getElementById('preview-divida');
-    if (!nome) { preview.innerText = ''; return; }
-    preview.innerText = 'Verificando saldo...';
-    preview.style.color = '#aaa';
-    API.buscarExtratoMembro(nome)
-        .then(res => {
-            const total = res.total || 0;
-            if (total > 0) {
-                preview.innerText = `Dívida Atual: ${formatCurrency(total)}`;
-                preview.style.color = '#f44336';
-            } else {
-                preview.innerText = 'Nada consta (R$ 0,00)';
-                preview.style.color = '#4caf50';
-            }
-        })
-        .catch(() => {
-            preview.innerText = 'Erro ao verificar saldo.';
-            preview.style.color = 'orange';
-        });
+    return consultaMembro()?.selecionar(document.getElementById('select-membro').value);
 }
 
 export function abrirModalMembros(tipoContexto) {
     if (!S.operadorAtual) return showToast('Faça login primeiro.');
     if (tipoContexto === 'FIADO' && (!S.carrinho || S.carrinho.length === 0)) return showToast('Carrinho vazio!');
     S.contextoMembro = tipoContexto;
+    consultaMembro()?.selecionar(null);
     const preview = document.getElementById('preview-divida');
     if (preview) { preview.innerText = ''; preview.style.color = '#aaa'; }
     abrirModal('modal-selecionar-membro');
@@ -83,6 +77,7 @@ export function confirmarSelecaoMembro() {
         const membroId = document.getElementById('select-membro').value;
         const membro = S.membros.find(m => m.id === membroId);
         if (!membro) return showToast('Por favor, selecione um membro na lista.');
+        consultaMembro()?.selecionar(null);
         fecharModal('modal-selecionar-membro');
         const preview = document.getElementById('preview-divida');
         if (preview) preview.innerText = '';
@@ -93,6 +88,7 @@ export function confirmarSelecaoMembro() {
 }
 
 export function fecharModalSelecaoMembro() {
+    consultaMembro()?.selecionar(null);
     fecharModal('modal-selecionar-membro');
     const preview = document.getElementById('preview-divida');
     if (preview) preview.innerText = '';

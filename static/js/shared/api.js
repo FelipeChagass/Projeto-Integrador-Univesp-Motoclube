@@ -227,8 +227,9 @@ export const API = (function () {
             });
         },
 
-        buscarExtratoMembro: function (membroId) {
-            return _request('GET', '/membros/extrato?membro_id=' + encodeURIComponent(membroId));
+        buscarExtratoMembro: function (membroId, filtros = {}) {
+            const params = new URLSearchParams({ membro_id: membroId, ...filtros });
+            return _request('GET', '/membros/extrato?' + params);
         },
 
         quitarContaMembro: function (pagamento) {

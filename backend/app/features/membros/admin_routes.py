@@ -4,7 +4,7 @@ from app.features.admin.routes import bp
 from app.features.auth.middleware import requer_admin
 from app.core.database import session_scope
 from app.core.errors import json_object
-from app.core.schemas import Paginacao
+from app.features.membros.schemas import FiltroExtrato
 from app.features.membros import service as membro_service
 from app.features.vendas.admin_service import alterar_movimento
 
@@ -61,9 +61,9 @@ def excluir_membro(membro_id):
 def extrato_membro(membro_id):
     """Extrato completo de movimentações de um membro."""
     with session_scope() as db:
-        paginacao = Paginacao.model_validate(request.args.to_dict())
+        paginacao = FiltroExtrato.model_validate(request.args.to_dict())
         resultado = membro_service.buscar_extrato_membro(db, membro_id=membro_id,
-                                                       limite=paginacao.limite, offset=paginacao.offset)
+                                                       **paginacao.model_dump())
         return jsonify({'status': 'ok', **resultado})
 
 

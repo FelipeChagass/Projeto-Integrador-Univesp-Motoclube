@@ -205,6 +205,41 @@ describe('actions.js — Fila Vendas', () => {
 describe('actions.js — Membros', () => {
     beforeEach(loadModules);
 
+    test('Pendurar consulta mês anterior e confirma a mesma venda sem incorporar o filtro', async () => {
+        S.carrinho = [{ id: 1, nome: 'Cerveja', preco: 10, qtd: 1 }];
+        API.getListaMembros.mockResolvedValueOnce([{ id: 'membro-a', nome: 'Ana' }]);
+        actions.abrirModalMembros('FIADO');
+        await new Promise(resolve => setTimeout(resolve, 0));
+        expect(document.getElementById('modal-selecionar-membro').style.display).toBe('flex');
+        document.getElementById('select-membro').value = 'membro-a';
+        await actions.verificarDividaSelecionada();
+        const form = document.querySelector('#pdv-extrato-membro form');
+        form.elements.modo.value = 'mes';
+        form.elements.mes.value = '2026-02';
+        form.dispatchEvent(new Event('submit', { cancelable: true }));
+        await new Promise(resolve => setTimeout(resolve, 0));
+        expect(API.buscarExtratoMembro).toHaveBeenLastCalledWith('membro-a', expect.objectContaining({ data_inicio: '2026-02-01' }));
+        API.processarVenda.mockImplementationOnce(async payload => ({ status: 'ok', id_externo: payload.id_externo,
+            usuario_id: payload.usuario_origem_id, caixa_id: payload.caixa_id, venda_id: 'venda-fiado', total_calculado: 10 }));
+        actions.confirmarSelecaoMembro();
+        // IndexedDB performs multiple asynchronous transactions before sending the sale.
+        for (let i = 0; i < 100 && (S.enviandoVenda || S.processandoFila); i++) await new Promise(resolve => setTimeout(resolve, 5));
+        expect(API.processarVenda).toHaveBeenCalledTimes(1);
+        expect(API.processarVenda.mock.calls[0][0]).toMatchObject({ membro_id: 'membro-a', metodo: 'FIADO' });
+        expect(API.processarVenda.mock.calls[0][0]).not.toHaveProperty('data_inicio');
+        expect(S.carrinho).toHaveLength(0);
+    });
+
+    test('erro na consulta não impede confirmar membro para Pendurar', async () => {
+        S.membros = [{ id: 'membro-a', nome: 'Ana' }];
+        actions.popularSelectMembros('select-membro');
+        document.getElementById('select-membro').value = 'membro-a';
+        API.buscarExtratoMembro.mockRejectedValueOnce(new Error('Indisponível'));
+        await actions.verificarDividaSelecionada();
+        expect(document.querySelector('#pdv-extrato-membro [data-estado]').textContent).toContain('tentar novamente');
+        expect(document.getElementById('select-membro').value).toBe('membro-a');
+    });
+
     test('popularSelectMembros preenche o select', () => {
         S.membros = [{ id: 'a', nome: 'Ana' }, { id: 'b', nome: 'Bruno' }, { id: 'c', nome: 'Carlos' }];
         actions.popularSelectMembros('select-membro');

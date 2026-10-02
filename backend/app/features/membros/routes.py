@@ -7,7 +7,7 @@ GET  /api/membros/extrato  → Busca extrato de pendências de um membro (requer
 from flask import Blueprint, request, jsonify
 from app.core.database import session_scope
 from app.core.errors import ApiError
-from app.core.schemas import Paginacao
+from app.features.membros.schemas import FiltroExtrato
 from app.features.membros import service as membro_service
 from app.features.auth.middleware import requer_login
 
@@ -37,11 +37,15 @@ def buscar_extrato():
         if not membro_id and not nome:
             raise ApiError('MEMBRO_OBRIGATORIO', 'Informe membro_id ou nome.', 400)
 
-        paginacao = Paginacao.model_validate(request.args.to_dict())
+        parametros = request.args.to_dict()
+        parametros.pop('membro_id', None)
+        parametros.pop('nome', None)
+        paginacao = FiltroExtrato.model_validate(parametros)
         resultado = membro_service.buscar_extrato_membro(
             db,
             membro_id=membro_id,
             nome_membro=nome,
             limite=paginacao.limite, offset=paginacao.offset,
+            data_inicio=paginacao.data_inicio, data_fim=paginacao.data_fim,
         )
         return jsonify(resultado)

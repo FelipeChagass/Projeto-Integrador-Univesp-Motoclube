@@ -3,6 +3,7 @@
  * Cobre delegação, IDs, valores esperados, navegação e interrupção em falhas HTTP.
  */
 import { beforeEach, expect, jest, test } from '@jest/globals';
+import { readFileSync } from 'node:fs';
 
 const request = jest.fn();
 jest.unstable_mockModule('../static/js/shared/api.js', () => ({
@@ -101,6 +102,22 @@ test('membros: evento conserva UUID e atualização de nome', async () => {
     document.querySelector('[data-action="salvar-membro"]').click();
     await settleEvents();
     expect(request).toHaveBeenCalledWith('PUT', '/admin/membros/member-uuid', { nome: 'Nome atualizado' });
+});
+
+test('extrato administrativo mantém membro ao filtrar, limpar e mostrar período vazio', async () => {
+    const partial = readFileSync('templates/shared/extrato-membro.html', 'utf8').replace(/\{#[\s\S]*?#\}/g, '');
+    document.body.insertAdjacentHTML('beforeend', `<div id="modalExtrato" class="d-none"><h3 id="extrato-titulo"></h3><div id="extrato-body">${partial}</div></div>`);
+    request.mockResolvedValue({ total: 350, itens: [], resumo: { total_periodo: 0, total_pago_periodo: 0, total_aberto_periodo: 0 }, paginacao: { total: 0, tem_mais: false } });
+    await membros.verExtrato('membro-a', 'Ana');
+    const form = document.querySelector('#extrato-body form');
+    form.elements.modo.value = 'mes'; form.elements.mes.value = '2026-02';
+    form.dispatchEvent(new Event('submit', { cancelable: true })); await settleEvents();
+    expect(request).toHaveBeenLastCalledWith('GET', '/admin/membros/membro-a/extrato?data_inicio=2026-02-01&data_fim=2026-02-28&limite=20&offset=0', undefined);
+    expect(document.getElementById('extrato-titulo').textContent).toBe('Extrato — Ana');
+    expect(document.getElementById('extrato-body').textContent).toContain('Nenhum lançamento encontrado para o período selecionado.');
+    expect(document.querySelector('[data-total-atual]').textContent).toBe('R$ 350.00');
+    document.querySelector('[data-limpar]').click(); await settleEvents();
+    expect(request).toHaveBeenLastCalledWith('GET', '/admin/membros/membro-a/extrato?limite=20&offset=0', undefined);
 });
 
 test('usuários: evento conserva UUID e booleano de ativação', async () => {

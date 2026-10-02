@@ -6,6 +6,7 @@
 import { jest } from '@jest/globals';
 import { S } from '../../static/js/features/pdv/state.js';
 import { IDBFactory } from 'fake-indexeddb';
+import { readFileSync } from 'node:fs';
 
 /* ── Mockup: API module + globals (alinha com imports ESM) ── */
 const mockedApi = {
@@ -87,6 +88,7 @@ function setupDOM() {
         <div id="modal-selecionar-membro" style="display:none"></div>
         <select id="select-membro"></select>
         <div id="preview-divida"></div>
+        <div id="pdv-extrato-membro">${readFileSync('templates/shared/extrato-membro.html', 'utf8').replace(/\{#[\s\S]*?#\}/g, '')}</div>
         <div id="modal-fechar-conta" style="display:none"></div>
         <p id="nome-fechar-conta"></p>
         <div id="lista-fechamento"></div>

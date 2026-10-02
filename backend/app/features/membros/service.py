@@ -12,6 +12,8 @@ from app.models.usuario import Usuario
 from app.features.membros.schemas import MembroCriacaoPayload
 from app.features.membros.schemas import MembroEdicaoPayload
 from app.features.membros.schemas import AjusteSaldoPayload
+from app.features.membros.schemas import FiltroExtrato
+from app.features.membros.extrato import consultar_extrato
 
 
 def listar_membros(db: Session) -> list:
@@ -108,9 +110,9 @@ def ajustar_saldo(db: Session, membro_id: str, valor, tipo: str,
 
 
 def buscar_extrato_membro(db: Session, membro_id: str = None, nome_membro: str = None,
-                         limite: int = 100, offset: int = 0) -> dict:
-    if not 1 <= limite <= 500 or offset < 0:
-        raise ApiError('PAGINACAO_INVALIDA', 'Paginação inválida.', 422)
+                         limite: int = 100, offset: int = 0,
+                         data_inicio=None, data_fim=None) -> dict:
+    filtro = FiltroExtrato(limite=limite, offset=offset, data_inicio=data_inicio, data_fim=data_fim)
     membro = buscar_membro_por_id(db, membro_id) if membro_id else None
     if not membro_id and nome_membro:
         # Compatibilidade somente para leitura; mutações financeiras sempre exigem UUID.
@@ -121,15 +123,7 @@ def buscar_extrato_membro(db: Session, membro_id: str = None, nome_membro: str =
         membro = encontrados[0] if encontrados else None
     if not membro:
         raise ApiError('MEMBRO_NAO_ENCONTRADO', 'Membro não encontrado.', 404)
-    movimentos = db.query(MovimentacaoMembro).filter_by(membro_id=membro.id).order_by(
-        MovimentacaoMembro.criado_em.desc(), MovimentacaoMembro.id.desc()).offset(offset).limit(limite + 1).all()
-    tem_mais = len(movimentos) > limite
-    return {
-        'membro': membro.to_dict(),
-        'itens': [{'id': str(m.id), 'data': m.criado_em.strftime('%d/%m/%Y %H:%M') if m.criado_em else '',
-                   'tipo': m.tipo_movimentacao, 'origem': m.origem, 'descricao': m.descricao or '',
-                   'valor': float(m.valor), 'versao': m.versao,
-                   'venda_id': str(m.venda_id) if m.venda_id else None} for m in movimentos[:limite]],
-        'total': float(membro.saldo_devedor),
-        'paginacao': {'limite': limite, 'offset': offset, 'tem_mais': tem_mais},
-    }
+    # Um lock compartilhado mantém saldo, totais e página consistentes com as mutações
+    # financeiras, que já bloqueiam este mesmo membro antes de alterar o histórico.
+    membro = db.query(Membro).filter_by(id=membro.id).populate_existing().with_for_update(read=True).one()
+    return consultar_extrato(db, membro, filtro)
