@@ -131,7 +131,7 @@ As datas são inclusivas no fuso `America/Sao_Paulo`; sem datas, consulta-se tod
 `total`, `membro`, `itens` e `paginacao` continuam disponíveis. Foram acrescentados `periodo`, `resumo`,
 `criterio_quitacao`, `aviso` e valores/situação de quitação dos itens.
 
-O backend calcula uma **distribuição FIFO informativa**, aplicando os créditos às dívidas mais antigas,
+O backend considera que os pagamentos abatem primeiro as dívidas mais antigas, apenas para esta consulta,
 sem gravar baixas. “Pago no período” considera os recebimentos daquele período; “Em aberto no período”
 considera quanto ainda resta hoje dos débitos originados naquele período, inclusive após créditos posteriores.
 Créditos de ajustes manuais são mostrados separadamente dos pagamentos. Se o histórico não corresponde

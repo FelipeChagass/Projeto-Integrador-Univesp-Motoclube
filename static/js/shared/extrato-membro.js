@@ -28,7 +28,7 @@ export function periodoExtrato({ modo, mes, inicio, fim }) {
     return { data_inicio: inicio, data_fim: fim };
 }
 
-const situacoes = { quitado: 'Quitado (FIFO)', parcial: 'Parcialmente quitado (FIFO)', em_aberto: 'Em aberto (FIFO)',
+const situacoes = { quitado: 'Quitado', parcial: 'Parcialmente pago', em_aberto: 'Em aberto',
     pagamento: 'Pagamento recebido', credito: 'Crédito de ajuste', nao_identificado: 'Quitação não identificada' };
 const origens = { venda_fiado: 'Venda pendurada', pagamento: 'Pagamento', ajuste_manual: 'Ajuste manual' };
 
