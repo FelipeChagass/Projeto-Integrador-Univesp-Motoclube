@@ -12,21 +12,21 @@
 }
 
 .badge-active {
-    background: rgba(46, 204, 113, 0.15);
-    color: #2ecc71;
-    border: 1px solid rgba(46, 204, 113, 0.2);
+    background: color-mix(in srgb, var(--success) 15%, transparent);
+    color: var(--success);
+    border: 1px solid color-mix(in srgb, var(--success) 25%, transparent);
 }
 
 .badge-inactive {
-    background: rgba(231, 76, 60, 0.15);
-    color: #e74c3c;
-    border: 1px solid rgba(231, 76, 60, 0.2);
+    background: color-mix(in srgb, var(--danger) 15%, transparent);
+    color: var(--danger);
+    border: 1px solid color-mix(in srgb, var(--danger) 25%, transparent);
 }
 
 .badge-warn {
-    background: rgba(243, 156, 18, 0.15);
-    color: #f39c12;
-    border: 1px solid rgba(243, 156, 18, 0.2);
+    background: var(--warning-bg);
+    color: var(--warning-border);
+    border: 1px solid color-mix(in srgb, var(--warning-border) 25%, transparent);
 }
 
 .badge-info {
@@ -39,7 +39,7 @@
     height: 40px;
     box-sizing: border-box;
     padding: 0 1.2rem;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--border-color);
     background: transparent;
     border-radius: 8px;
     cursor: pointer;
@@ -55,8 +55,8 @@
 }
 
 header.header-admin {
-    background: linear-gradient(180deg, #2a2a2a 0%, #222 100%);
-    border-bottom: 1px solid rgba(255, 152, 0, 0.25);
+    background: var(--surface-bg);
+    border-bottom: 1px solid var(--header-border);
 }
 
 .btn:hover {
@@ -70,13 +70,18 @@ header.header-admin {
     transform: translateY(0);
 }
 
+.btn:focus-visible {
+    outline: 2px solid var(--accent-readable);
+    outline-offset: 2px;
+}
+
 .btn-add,
 .btn-save,
 .btn-sm,
 .btn-info,
 .btn-warn,
 .btn-cancel {
-    background: linear-gradient(145deg, #1c1c1c, #111) !important;
+    background: linear-gradient(145deg, var(--control-bg), var(--surface-bg)) !important;
     color: #fff !important;
     border: 1px solid rgba(255, 255, 255, 0.15) !important;
     font-size: 0.85rem;
@@ -89,13 +94,13 @@ header.header-admin {
 .btn-info:hover,
 .btn-warn:hover,
 .btn-cancel:hover {
-    background: #222 !important;
+    background: var(--surface-hover) !important;
     border-color: rgba(255, 255, 255, 0.3) !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .btn-del {
-    background: linear-gradient(145deg, #1c1c1c, #111) !important;
+    background: linear-gradient(145deg, var(--control-bg), var(--surface-bg)) !important;
     color: #fff !important;
     border: 1px solid rgba(255, 255, 255, 0.15) !important;
     font-size: 0.85rem;
@@ -103,10 +108,18 @@ header.header-admin {
 }
 
 .btn-del:hover {
-    background: #222 !important;
-    border-color: rgba(255, 107, 107, 0.8) !important;
-    color: #ff6b6b !important;
+    background: var(--surface-hover) !important;
+    border-color: var(--accent-readable) !important;
+    color: var(--accent-readable) !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.btn:disabled {
+    color: var(--text-muted) !important;
+    background: var(--surface-bg) !important;
+    border-color: var(--border-subtle) !important;
+    box-shadow: none;
+    transform: none;
 }
 
 .btn-group {

@@ -32,15 +32,15 @@
     tr {
         display: flex;
         flex-direction: column;
-        background: linear-gradient(160deg, #1e1e1e, #171717);
-        border: 1px solid rgba(255, 255, 255, 0.07);
+        background: var(--card-bg);
+        border: 1px solid var(--border-subtle);
         border-radius: 14px;
         overflow: hidden;
         transition: border-color 0.2s;
     }
 
     tr:hover {
-        border-color: rgba(179, 0, 0, 0.25);
+        border-color: var(--accent);
     }
 
     tr.row-inactive {
@@ -69,7 +69,7 @@
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.7px;
-        color: #aaa;
+        color: var(--text-secondary);
         line-height: 1;
     }
 
@@ -81,8 +81,8 @@
         width: 100%;
         max-width: none;
         text-align: left;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.09);
+        background: var(--input-bg);
+        border: 1px solid var(--input-border);
         border-radius: 8px;
         color: #fff;
         display: block;

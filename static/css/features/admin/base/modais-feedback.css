@@ -13,8 +13,8 @@
 }
 
 .modal-content {
-    background: linear-gradient(145deg, #222, #1a1a1a);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--card-bg);
+    border: 1px solid var(--border-subtle);
     border-radius: 16px;
     width: 90%;
     max-width: 500px;
@@ -29,13 +29,13 @@
 
 .modal-header {
     padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--divider-color);
 }
 
 .modal-header h3 {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #b30000;
+    color: var(--accent-readable);
     margin: 0;
     line-height: 1;
 }
@@ -49,14 +49,14 @@
     grid-column: 1 / -1;
     min-width: 0;
     padding: 0.85rem 1rem;
-    border-left: 2px solid rgba(179, 0, 0, 0.8);
+    border-left: 2px solid var(--accent);
     border-radius: 0 8px 8px 0;
     background: rgba(255, 255, 255, 0.035);
 }
 
 .edicao-item-venda-titulo {
     margin: 0 0 0.75rem;
-    color: #f2f2f2;
+    color: var(--text-primary);
     font-size: 0.9rem;
     font-weight: 600;
 }
@@ -118,7 +118,7 @@
     min-width: 0;
     flex-direction: column;
     gap: 5px;
-    color: #aeb6c5;
+    color: var(--text-secondary);
     font-size: 0.72rem;
     font-weight: 600;
 }
@@ -145,10 +145,10 @@
     box-sizing: border-box;
     width: 100%;
     min-width: 0;
-    border: 1px solid rgba(148, 163, 184, 0.2);
+    border: 1px solid var(--input-border);
     border-radius: 7px;
-    background: rgba(8, 11, 15, 0.68);
-    color: #edf1f7;
+    background: var(--input-bg);
+    color: var(--text-primary);
     font: inherit;
 }
 
@@ -175,11 +175,11 @@
 .edicao-item-venda input:focus,
 .edicao-item-observacao textarea:focus {
     outline: none;
-    border-color: #ed1b24;
+    border-color: var(--accent);
 }
 
 .edicao-venda .edicao-venda-campo:first-child input {
-    border-color: #ed1b24;
+    border-color: var(--accent);
 }
 
 .edicao-venda-observacoes,
@@ -191,7 +191,7 @@
 .edicao-contador {
     align-self: flex-end;
     margin-top: -5px;
-    color: #798293;
+    color: var(--text-muted);
     font-size: 0.65rem;
     font-weight: 400;
 }
@@ -218,8 +218,8 @@
     margin: 0;
     padding: var(--edicao-venda-gap);
     border: 0;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
-    background: rgba(148, 163, 184, 0.05);
+    border-bottom: 1px solid var(--divider-color);
+    background: var(--surface-bg);
 }
 
 .edicao-itens-identificacao {
@@ -233,13 +233,13 @@
     width: 22px;
     height: 22px;
     flex: 0 0 auto;
-    color: #e5eaf2;
+    color: var(--text-primary);
 }
 
 .edicao-itens-identificacao > span,
 .edicao-resumo-venda h4,
 .edicao-alerta-venda h4 {
-    color: #e9edf4;
+    color: var(--text-primary);
     font-size: 0.78rem;
     font-weight: 700;
 }
@@ -260,17 +260,17 @@
     min-height: 32px;
     padding: 0 7px;
     border-radius: 6px 6px 0 0;
-    background: rgba(148, 163, 184, 0.09);
-    color: #b8c0ce;
+    background: var(--surface-bg);
+    color: var(--text-secondary);
     font-size: 0.62rem;
 }
 
 .edicao-item-venda {
     min-width: 0;
     padding: 6px 7px;
-    border: 1px solid rgba(148, 163, 184, 0.09);
+    border: 1px solid var(--divider-color);
     border-top: 0;
-    background: rgba(10, 13, 18, 0.5);
+    background: var(--card-bg);
 }
 
 .edicao-item-venda:last-child {
@@ -278,12 +278,12 @@
 }
 
 .edicao-item-venda.removido .edicao-item-produto strong {
-    color: #89909d;
+    color: var(--text-muted);
     text-decoration: line-through;
 }
 
 .edicao-item-arrastar {
-    color: #8490a2;
+    color: var(--text-muted);
     font-size: 1.1rem;
     text-align: center;
 }
@@ -298,7 +298,7 @@
 .edicao-item-produto strong,
 .edicao-item-subtotal {
     overflow: hidden;
-    color: #f0f2f6;
+    color: var(--text-primary);
     font-size: 0.68rem;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -306,7 +306,7 @@
 
 .edicao-item-produto small {
     overflow: hidden;
-    color: #9099a8;
+    color: var(--text-muted);
     font-size: 0.58rem;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -328,10 +328,10 @@
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(148, 163, 184, 0.14);
+    border: 1px solid var(--border-color);
     border-radius: 7px;
-    background: rgba(148, 163, 184, 0.08);
-    color: #dce2eb;
+    background: var(--control-bg);
+    color: var(--text-primary);
     cursor: pointer;
 }
 
@@ -372,9 +372,9 @@
 }
 
 .edicao-item-acoes .edicao-item-remover {
-    border-color: rgba(237, 27, 36, 0.28);
-    background: rgba(237, 27, 36, 0.12);
-    color: #fa4c55;
+    border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+    background: color-mix(in srgb, var(--danger) 12%, transparent);
+    color: var(--danger);
 }
 
 .edicao-item-observacao {
@@ -382,7 +382,7 @@
     flex-direction: column;
     gap: 5px;
     padding: 8px 31px 2px;
-    color: #aeb6c5;
+    color: var(--text-secondary);
     font-size: 0.68rem;
 }
 
@@ -400,7 +400,7 @@
 .edicao-alerta-venda {
     min-width: 0;
     padding: var(--edicao-venda-gap);
-    border: 1px solid rgba(148, 163, 184, 0.12);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.025);
 }
@@ -420,7 +420,7 @@
     display: grid;
     gap: 4px;
     margin: 7px 0 0;
-    color: #b6bfcd;
+    color: var(--text-secondary);
     font-size: 0.65rem;
 }
 
@@ -436,22 +436,22 @@
 }
 
 .edicao-resumo-venda dd {
-    color: #e6eaf0;
+    color: var(--text-primary);
     font-weight: 700;
 }
 
 .edicao-resumo-venda .edicao-resumo-total dd {
-    color: #ff242d;
+    color: var(--accent-readable);
 }
 
 .edicao-alerta-venda {
-    border-color: rgba(237, 27, 36, 0.35);
-    background: rgba(237, 27, 36, 0.1);
+    border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+    background: color-mix(in srgb, var(--danger) 10%, transparent);
 }
 
 .edicao-alerta-venda h4,
 .edicao-alerta-venda h4 span {
-    color: #ff737a;
+    color: var(--danger);
 }
 
 .edicao-alerta-venda h4 span {
@@ -460,7 +460,7 @@
 
 .edicao-alerta-venda p {
     margin: 8px 0 0 24px;
-    color: #c1a6aa;
+    color: var(--text-secondary);
     font-size: 0.64rem;
     line-height: 1.4;
 }
@@ -468,18 +468,18 @@
 .edicao-venda .form-actions {
     flex: 0 0 auto;
     padding: 1rem var(--edicao-venda-espaco);
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid var(--divider-color);
 }
 
 .edicao-venda .form-actions .btn-save {
-    border-color: #ed1b24 !important;
-    background: #ed1b24 !important;
+    border-color: var(--accent) !important;
+    background: var(--accent) !important;
     color: #fff !important;
 }
 
-.edicao-venda .form-actions .btn-save:hover {
-    border-color: #ff343c !important;
-    background: #ff343c !important;
+.edicao-venda .form-actions .btn-save:hover:not(:disabled) {
+    border-color: var(--accent-hover) !important;
+    background: var(--accent-hover) !important;
 }
 
 .edicao-venda .form-actions .btn svg {
@@ -514,9 +514,9 @@
 }
 
 .toast.ok {
-    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    background: color-mix(in srgb, var(--success) 55%, #000);
 }
 
 .toast.err {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    background: color-mix(in srgb, var(--danger) 65%, #000);
 }

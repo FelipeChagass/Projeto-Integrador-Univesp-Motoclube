@@ -122,7 +122,7 @@ Em Linux, o entry point WSGI é `wsgi:application`. Nenhum deploy é executado p
 ### Consulta de dívidas por período
 
 No PDV, selecione **Pendurar** e um membro. Na administração, use **Gestão de Membros → Extrato**.
-As duas telas oferecem mês, intervalo de meses, datas personalizadas e limpeza do filtro, com paginação de 20 lançamentos.
+As duas telas permitem consultar todo o histórico ou escolher um período com datas de início e fim; também oferecem limpeza do filtro e paginação de 20 lançamentos.
 O saldo acumulado atual permanece separado do resumo do período. Os filtros não fazem parte da venda ou do pagamento.
 
 Os GETs existentes `/api/membros/extrato` e `/api/admin/membros/<id>/extrato` aceitam

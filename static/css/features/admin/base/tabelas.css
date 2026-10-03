@@ -4,7 +4,7 @@
 .table-wrapper {
     border-radius: 14px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-subtle);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     overflow-x: auto;
 }
@@ -12,7 +12,7 @@
 table {
     width: 100%;
     border-collapse: collapse;
-    background: linear-gradient(145deg, #1c1c1c, #111);
+    background: var(--card-bg);
 }
 
 th,
@@ -24,13 +24,13 @@ td {
 }
 
 th {
-    background: rgba(0, 0, 0, 0.3);
-    color: #f10101;
+    background: var(--surface-bg);
+    color: var(--accent-readable);
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.85rem;
     letter-spacing: 0.5px;
-    border-bottom: 1px solid rgba(179, 0, 0, 0.3);
+    border-bottom: 1px solid var(--divider-color);
     white-space: nowrap;
     vertical-align: middle;
 }
@@ -41,7 +41,7 @@ tr {
 }
 
 tr:hover {
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--surface-hover);
 }
 
 tr.row-inactive {
@@ -64,7 +64,7 @@ td select {
 td input:focus,
 td select:focus {
     outline: none;
-    border-color: #b30000;
+    border-color: var(--accent);
 }
 
 td input[type="number"] {
@@ -97,7 +97,7 @@ td input[type="number"] {
     height: 40px;
     object-fit: cover;
     border-radius: 6px;
-    background: #1a1a1a;
+    background: var(--card-bg);
     border: 1px solid rgba(255, 255, 255, 0.08);
     vertical-align: middle;
 }
@@ -111,7 +111,7 @@ td input[type="number"] {
     background: rgba(0, 0, 0, 0.3);
     border: 1px dashed rgba(255, 255, 255, 0.1);
     border-radius: 6px;
-    color: #888;
+    color: var(--text-muted);
     cursor: pointer;
     font-size: 0.8rem;
 }
@@ -130,8 +130,8 @@ td input[type="number"] {
 }
 
 .btn-upload-sm:hover {
-    border-color: #b30000;
-    color: #b30000;
+    border-color: var(--accent);
+    color: var(--accent-readable);
 }
 
 .inner-table {
@@ -153,22 +153,22 @@ td input[type="number"] {
 }
 
 .tipo-debito {
-    color: #e74c3c;
+    color: var(--danger);
     font-weight: 600;
 }
 
 .tipo-credito {
-    color: #2ecc71;
+    color: var(--success);
     font-weight: 600;
 }
 
 .saldo-devedor {
-    color: #e74c3c;
+    color: var(--danger);
     font-weight: 700;
 }
 
 .saldo-ok {
-    color: #2ecc71;
+    color: var(--success);
     font-weight: 600;
 }
 

@@ -10,20 +10,10 @@ function dataValida(valor) {
     return Number.isFinite(data.getTime()) && data.toISOString().slice(0, 10) === valor && valor >= '0001-01-01';
 }
 
-function limiteMes(valor, fim = false) {
-    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(valor) || valor.startsWith('0000')) throw new Error('Informe um mês válido.');
-    const [ano, mes] = valor.split('-').map(Number);
-    const bissexto = ano % 4 === 0 && (ano % 100 !== 0 || ano % 400 === 0);
-    const dias = [31, bissexto ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    return `${valor}-${fim ? dias[mes - 1] : '01'}`;
-}
-
-export function periodoExtrato({ modo, mes, inicio, fim }) {
+export function periodoExtrato({ modo, inicio, fim }) {
     if (modo === 'todos') return {};
-    if (modo === 'mes') { inicio = limiteMes(mes); fim = limiteMes(mes, true); }
-    else if (modo === 'meses') { inicio = limiteMes(inicio); fim = limiteMes(fim, true); }
-    else if (modo !== 'datas') throw new Error('Selecione um período válido.');
-    if (!dataValida(inicio) || !dataValida(fim) || fim === '9999-12-31') throw new Error('Informe início e fim válidos.');
+    if (modo !== 'datas') throw new Error('Selecione um período válido.');
+    if (!dataValida(inicio) || !dataValida(fim)) throw new Error('Informe início e fim válidos.');
     if (inicio > fim) throw new Error('O início do período deve ser anterior ou igual ao fim.');
     return { data_inicio: inicio, data_fim: fim };
 }
@@ -41,12 +31,7 @@ export function criarConsultaExtrato(root, { buscar, notificar, administrar, aoC
 
     function controles() {
         const modo = campo('modo').value;
-        const intervalo = ['meses', 'datas'].includes(modo);
-        el('[data-campo="mes"]').classList.toggle('d-none', modo !== 'mes');
-        for (const nome of ['inicio', 'fim']) {
-            el(`[data-campo="${nome}"]`).classList.toggle('d-none', !intervalo);
-            campo(nome).type = modo === 'meses' ? 'month' : 'date';
-        }
+        for (const nome of ['inicio', 'fim']) el(`[data-campo="${nome}"]`).classList.toggle('d-none', modo !== 'datas');
     }
 
     function paginar(carregando = false) {

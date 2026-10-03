@@ -24,10 +24,10 @@ function orderedRules(rules, media = []) {
 }
 
 test.each([
-    ['admin.css', 'ab5d40a5470930efe7a029f39f40bb078e5699470752b4c03e3bb2c0362b8da9'],
-    ['admin-mobile.css', 'be1ae83e22df9841ed7fc45a79f02ef6c2192f9dcd593b5b1bb754b8dcae8bd5'],
-    ['ponto_venda.css', 'f503eef5bbcae68f57da8733668dcc9643b9d9c317872a6e4e9c696127b1db21'],
-    ['ponto_venda-mobile.css', '66ec12ba17c447e6823ee2d267d950962220c8467e126c66433ba95d256fa1e2'],
+    ['admin.css', '4bf57c18b141f78d22e0724c92c4c97f34af8ee3bb33b71d5f9da656da92d192'],
+    ['admin-mobile.css', 'ac4379a74c2be7fa54b80780db7e57c24f431084616c982d821938f7ab6167a9'],
+    ['ponto_venda.css', 'c72233688c8b6b2a010a3e4001dec28f71168639dc22d5d48a209306e556fd5d'],
+    ['ponto_venda-mobile.css', 'cd8a8a964690203679b9aaa8664d1955c3d942919b5a22f8f280c2896634c1fc'],
 ])('%s mantém seletores, declarações, media queries e ordem revisados', (filename, expected) => {
     const style = document.createElement('style');
     style.textContent = expandImports(resolve(root, filename));
@@ -37,5 +37,21 @@ test.each([
         expect(rules.length).toBeGreaterThan(10);
         const digest = createHash('sha256').update(JSON.stringify(rules)).digest('hex');
         expect(digest).toBe(expected);
+    } finally { style.remove(); }
+});
+test('paleta preserva a borda dourada e os ícones vermelhos dos headers', () => {
+    const style = document.createElement('style');
+    style.textContent = readFileSync(resolve(root, 'tokens.css'), 'utf8');
+    document.head.appendChild(style);
+    try {
+        const tokens = style.sheet.cssRules[0].style;
+        expect(tokens.getPropertyValue('--header-border').trim()).toBe('#5F451F');
+        expect(tokens.getPropertyValue('--accent-text').trim()).toBe('#B30707');
+        const pdv = expandImports(resolve(root, 'ponto_venda.css'));
+        const admin = expandImports(resolve(root, 'admin.css'));
+        for (const css of [pdv, admin]) {
+            expect(css).toContain('border-bottom: 1px solid var(--header-border)');
+            expect(css).toContain('color: var(--accent-text)');
+        }
     } finally { style.remove(); }
 });

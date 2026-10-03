@@ -86,7 +86,7 @@
 
     .edicao-venda .edicao-item-venda {
         padding: 0.75rem;
-        border-top: 1px solid rgba(148, 163, 184, 0.09);
+        border-top: 1px solid var(--divider-color);
     }
 
     .edicao-item-venda + .edicao-item-venda {
@@ -156,7 +156,7 @@
     .edicao-item-preco-rotulo {
         display: block;
         margin-bottom: 4px;
-        color: #aeb6c5;
+        color: var(--text-secondary);
         font-size: 0.7rem;
     }
 
@@ -178,7 +178,7 @@
         content: 'Subtotal (R$)';
         display: block;
         margin-bottom: 8px;
-        color: #aeb6c5;
+        color: var(--text-secondary);
         font-size: 0.7rem;
         font-weight: 400;
     }

@@ -89,7 +89,7 @@ try {
         })()`);
         for (const width of [360, 480, 768, 900, 1440]) {
             await cdp('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: false });
-            for (const modo of ['mes', 'meses', 'datas']) {
+            for (const modo of ['todos', 'datas']) {
                 const metrics = await evaluate(`(() => {
                     const modal = document.getElementById(${JSON.stringify(page === 'pdv' ? 'modal-selecionar-membro' : 'modalExtrato')});
                     modal.classList.add('sheet-open');

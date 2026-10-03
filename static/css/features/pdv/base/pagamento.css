@@ -6,8 +6,8 @@
     align-items: center;
     justify-content: flex-start;
     gap: 12px;
-    background: linear-gradient(145deg, #1c1c1c, #111);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(145deg, var(--control-bg), var(--surface-bg));
+    border: 1px solid var(--border-subtle);
     border-radius: 12px;
     color: #eee;
     font-weight: 600;
@@ -21,7 +21,7 @@
 }
 
 .btn-action:hover {
-    background: #222 !important;
+    background: var(--surface-hover) !important;
     border-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -36,8 +36,8 @@
     align-items: center;
     justify-content: flex-start;
     gap: 12px;
-    background: linear-gradient(145deg, #1c1c1c, #111);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(145deg, var(--control-bg), var(--surface-bg));
+    border: 1px solid var(--border-subtle);
     border-radius: 12px;
     color: #eee;
     font-weight: 600;
@@ -51,7 +51,7 @@
 }
 
 .btn-action-pedido:hover {
-    background: #222 !important;
+    background: var(--surface-hover) !important;
     border-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -62,11 +62,11 @@
 }
 
 .btn-dinheiro svg {
-    color: #4caf50;
+    color: var(--success);
 }
 
 .btn-dinheiro:hover {
-    border-color: rgb(76, 175, 80) !important;
+    border-color: var(--success) !important;
     box-shadow: 0 0 15px #046132 !important;
 }
 
@@ -93,18 +93,18 @@
 }
 
 .btn-fiado svg {
-    color: #f44336;
+    color: var(--danger);
 }
 
 .btn-fiado:hover {
-    border-color: #f44336 !important;
+    border-color: var(--danger) !important;
     box-shadow: 0 0 15px rgba(244, 67, 54, 0.3) !important;
 }
 
 .btn-fechar-conta svg {
     width: 16px;
     height: 16px;
-    color: #4caf50;
+    color: var(--success);
     flex-shrink: 0;
 }
 
@@ -114,8 +114,21 @@
 }
 
 .btn-fechar-conta:hover {
-    background: #222 !important;
+    background: var(--surface-hover) !important;
     color: #eee !important;
     border-color: rgba(7, 94, 33, 0.733) !important;
     box-shadow: none !important;
+}
+
+/* No carrinho, o hover dos métodos de pagamento usa um tratamento neutro comum;
+ * as cores semânticas permanecem nos ícones. */
+#carrinho-section .btn-dinheiro:hover,
+#carrinho-section .btn-pix:hover,
+#carrinho-section .btn-cartao:hover,
+#carrinho-section .btn-fiado:hover,
+#carrinho-section .btn-fechar-conta:hover {
+    background: var(--surface-hover) !important;
+    color: #eee !important;
+    border-color: rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }

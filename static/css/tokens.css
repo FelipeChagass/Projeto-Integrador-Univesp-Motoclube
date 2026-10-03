@@ -1,0 +1,34 @@
+/* Paleta compartilhada entre PDV, administração e login. */
+:root {
+    /* Fundos e superfícies */
+    --bg-color: #0D0B0B;
+    --surface-bg: #111111;
+    --card-bg: #191919;
+    --control-bg: #1c1c1c;
+    --surface-hover: #222222;
+    --input-bg: #0D0D0D;
+
+    /* Textos */
+    --text-primary: #e0e0e0;
+    --text-secondary: #aaa;
+    --text-muted: #999;
+
+    /* Bordas */
+    --divider-color: #1F1F1F;
+    --border-color: rgba(255, 255, 255, 0.12);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --input-border: #393939;
+    --header-border: #5F451F;
+
+    /* Marca e estados */
+    --accent: #c70808;
+    --accent-hover: #da0101;
+    --accent-text: #B30707;
+    /* Vermelho vivo para textos pequenos; os ícones mantêm o vermelho de marca. */
+    --accent-readable: #ff3333;
+    --success: #4caf50;
+    --danger: #f44336;
+    --edit-mode-color: #B30000;
+    --warning-bg: rgba(255, 152, 0, 0.15);
+    --warning-border: #ff9800;
+}

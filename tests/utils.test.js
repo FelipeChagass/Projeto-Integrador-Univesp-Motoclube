@@ -57,8 +57,8 @@ describe('utils.js — sanitizeUrl()', () => {
     });
 
     test('aceita caminhos relativos (resolve com location.origin)', () => {
-        const result = sanitizeUrl('/static/img/motorhead.png');
-        expect(result).toBe('/static/img/motorhead.png');
+        const result = sanitizeUrl('/static/img/motorhead.svg');
+        expect(result).toBe('/static/img/motorhead.svg');
     });
 });
 

@@ -164,7 +164,7 @@ export function renderizarCatalogo() {
     });
     if (!S.produtos || !Array.isArray(S.produtos) || S.produtos.length === 0) {
         gridContainer.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align:center; padding: 40px; color:#aaa;">
+            <div style="grid-column: 1 / -1; text-align:center; padding: 40px; color:var(--text-secondary);">
                 <h3>Nenhum produto encontrado.</h3>
                 <p>Cadastre itens no banco de dados ou verifique a conexão.</p>
             </div>`;

@@ -148,7 +148,7 @@
         right: 16px;
         top: 50%;
         transform: translateY(-50%);
-        background: #b30000;
+        background: var(--accent);
         color: #fff;
         border-radius: 999px;
         min-width: 22px;

@@ -205,7 +205,7 @@ describe('actions.js — Fila Vendas', () => {
 describe('actions.js — Membros', () => {
     beforeEach(loadModules);
 
-    test('Pendurar consulta mês anterior e confirma a mesma venda sem incorporar o filtro', async () => {
+    test('Pendurar consulta um período de datas e confirma a mesma venda sem incorporar o filtro', async () => {
         S.carrinho = [{ id: 1, nome: 'Cerveja', preco: 10, qtd: 1 }];
         API.getListaMembros.mockResolvedValueOnce([{ id: 'membro-a', nome: 'Ana' }]);
         actions.abrirModalMembros('FIADO');
@@ -214,8 +214,9 @@ describe('actions.js — Membros', () => {
         document.getElementById('select-membro').value = 'membro-a';
         await actions.verificarDividaSelecionada();
         const form = document.querySelector('#pdv-extrato-membro form');
-        form.elements.modo.value = 'mes';
-        form.elements.mes.value = '2026-02';
+        form.elements.modo.value = 'datas';
+        form.elements.inicio.value = '2026-02-01';
+        form.elements.fim.value = '2026-02-28';
         form.dispatchEvent(new Event('submit', { cancelable: true }));
         await new Promise(resolve => setTimeout(resolve, 0));
         expect(API.buscarExtratoMembro).toHaveBeenLastCalledWith('membro-a', expect.objectContaining({ data_inicio: '2026-02-01' }));

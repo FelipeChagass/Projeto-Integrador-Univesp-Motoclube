@@ -15,8 +15,8 @@ export const UIModal = {
 
         const modalDiv = document.createElement('div');
         Object.assign(modalDiv.style, {
-            background: 'linear-gradient(145deg, #222, #1a1a1a)',
-            border: '1px solid rgba(255,255,255,0.08)',
+            background: 'var(--card-bg)',
+            border: '1px solid var(--border-subtle)',
             padding: '0',
             borderRadius: '14px',
             width: '90%',
@@ -31,8 +31,8 @@ export const UIModal = {
         // Header strip
         const headerEl = document.createElement('div');
         Object.assign(headerEl.style, {
-            background: 'rgba(0,0,0,0.25)',
-            borderBottom: '1px solid rgba(255,255,255,0.06)',
+            background: 'var(--surface-bg)',
+            borderBottom: '1px solid var(--divider-color)',
             padding: '1rem 1.5rem'
         });
         const titleEl = document.createElement('h3');
@@ -40,7 +40,7 @@ export const UIModal = {
             margin: '0',
             fontSize: '1rem',
             fontWeight: '600',
-            color: '#b30000',
+            color: 'var(--accent-readable)',
             letterSpacing: '0.5px',
             textTransform: 'uppercase'
         });
@@ -55,7 +55,7 @@ export const UIModal = {
         Object.assign(msgEl.style, {
             margin: '0 0 1.25rem 0',
             fontSize: '0.95rem',
-            color: '#ccc',
+            color: 'var(--text-primary)',
             lineHeight: '1.5'
         });
         msgEl.textContent = msg;
@@ -68,8 +68,8 @@ export const UIModal = {
             inputEl.id = 'ui-prompt-input';
             Object.assign(inputEl.style, {
                 width: '100%', padding: '10px 14px', marginBottom: '1rem',
-                borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)',
-                background: 'rgba(0,0,0,0.3)', color: '#fff',
+                borderRadius: '8px', border: '1px solid var(--input-border)',
+                background: 'var(--input-bg)', color: 'var(--text-primary)',
                 fontSize: '0.9rem', boxSizing: 'border-box'
             });
             bodyEl.appendChild(inputEl);
@@ -82,9 +82,9 @@ export const UIModal = {
         okBtn.textContent = isConfirm ? 'CONFIRMAR' : 'OK';
         Object.assign(okBtn.style, {
             flex: '1', padding: '11px 16px',
-            border: '1px solid rgba(179,0,0,0.5)',
+            border: '1px solid var(--accent)',
             borderRadius: '10px',
-            background: 'linear-gradient(145deg, #8a0000, #b30000)',
+            background: 'linear-gradient(145deg, var(--accent), #8a0000)',
             color: '#fff', cursor: 'pointer',
             fontWeight: '700', fontSize: '0.82rem',
             letterSpacing: '0.5px'
@@ -100,10 +100,10 @@ export const UIModal = {
             cancelBtn.textContent = 'CANCELAR';
             Object.assign(cancelBtn.style, {
                 flex: '1', padding: '11px 16px',
-                border: '1px solid rgba(255,255,255,0.1)',
+                border: '1px solid var(--border-color)',
                 borderRadius: '10px',
-                background: 'linear-gradient(145deg, #1c1c1c, #111)',
-                color: '#aaa', cursor: 'pointer',
+                background: 'linear-gradient(145deg, var(--control-bg), var(--surface-bg))',
+                color: 'var(--text-primary)', cursor: 'pointer',
                 fontWeight: '600', fontSize: '0.82rem'
             });
             cancelBtn.onclick = () => {

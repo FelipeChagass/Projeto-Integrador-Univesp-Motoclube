@@ -124,7 +124,7 @@ export async function loadModules() {
     S.senhaEstoque = null;
     S.filaVendas = [];
     S.enviandoVenda = false;
-    S.config = { imprimir: false, largura: 'ticket-80mm', logo: '/static/img/motorhead.png' };
+    S.config = { imprimir: false, largura: 'ticket-80mm', logo: '/static/img/motorhead.svg' };
     ui = await import('../../static/js/features/pdv/ui.js');
     actions = await import('../../static/js/features/pdv/actions.js');
     reports = await import('../../static/js/features/pdv/reports.js');

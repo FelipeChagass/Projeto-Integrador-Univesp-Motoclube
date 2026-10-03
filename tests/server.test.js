@@ -148,9 +148,22 @@ describe('Servidor — Segurança', () => {
         expect(status).toBe(200);
     });
 
-    test('imagens estáticas são servidas', async () => {
-        const { status } = await fetchText(`${BASE}/static/img/motorhead.png`);
+    test('logo SVG é servido com o tipo correto', async () => {
+        const { status, headers, body } = await fetchText(`${BASE}/static/img/motorhead.svg`);
         expect(status).toBe(200);
+        expect(headers.get('content-type')).toContain('image/svg+xml');
+        expect(body).toContain('<svg');
+    });
+
+    test('paleta global é servida para as três telas', async () => {
+        const { status, body } = await fetchText(`${BASE}/static/css/tokens.css`);
+        expect(status).toBe(200);
+        expect(body).toContain('--header-border: #5F451F');
+        expect(body).toContain('--accent-text: #B30707');
+        const common = await fetchText(`${BASE}/static/css/common.css`);
+        expect(common.body).toContain("@import url('tokens.css')");
+        const admin = await fetchText(`${BASE}/admin`);
+        expect(admin.body).toContain('/static/css/tokens.css');
     });
 
     test('caminhos inexistentes retornam 404', async () => {

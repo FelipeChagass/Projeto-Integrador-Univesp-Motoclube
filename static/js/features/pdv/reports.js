@@ -195,7 +195,7 @@ export function montarImpressao(itens, metodo, cliente) {
     const area = document.getElementById('area-impressao');
     let html = '';
     const data = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    const imgTag = '<div style="text-align:center; margin-bottom:10px"><img src="/static/img/motorhead.png" style="width:70px; height:70px; "></div>';
+    const imgTag = '<div style="text-align:center; margin-bottom:10px"><img src="/static/img/motorhead.svg" style="width:70px; height:70px; "></div>';
     const clienteEsc = esc(cliente.toUpperCase());
 
     itens.forEach(item => {
@@ -279,7 +279,7 @@ export function imprimirRelatorioAtual() {
 export function montarImpressaoFechamento(dados) {
     const area = document.getElementById('area-impressao');
     const data = new Date().toLocaleTimeString('pt-BR');
-    const imgTag = '<div style="text-align:center; margin-bottom:10px"><img src="/static/img/motorhead.png" style="width:70px; height:70px; "></div>';
+    const imgTag = '<div style="text-align:center; margin-bottom:10px"><img src="/static/img/motorhead.svg" style="width:70px; height:70px; "></div>';
     let itensHtml = '';
     dados.itens.forEach(i => {
         itensHtml += `<div class="extrato-print-item"><span>${i.qtd}x ${esc(i.produto)}</span><span>${i.valor.toFixed(2)}</span></div>`;

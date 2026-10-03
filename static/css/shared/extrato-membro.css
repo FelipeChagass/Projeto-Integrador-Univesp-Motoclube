@@ -7,8 +7,7 @@
 }
 
 .consulta-extrato {
-    /* Admin ainda não carrega common.css: fallbacks seguem os mesmos tokens. */
-    color: #e0e0e0;
+    color: var(--text-primary);
     min-width: 0;
     overflow-wrap: anywhere;
 }
@@ -19,13 +18,14 @@
     min-height: 44px;
     color: inherit;
     color-scheme: dark;
-    background-color: var(--card-bg, #1a1a1a);
-    border-color: rgba(255, 255, 255, 0.15);
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
 }
 
 .consulta-extrato .form-control:focus,
 .consulta-extrato .form-select:focus {
-    border-color: var(--accent, #c70808);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .consulta-extrato input::-webkit-calendar-picker-indicator { filter: none; }
@@ -35,24 +35,70 @@
     white-space: normal;
 }
 
+.consulta-extrato .btn-consulta-aplicar,
+.consulta-extrato .btn-consulta-limpar,
+.consulta-extrato .btn-consulta-paginacao {
+    color: var(--text-primary);
+    background: linear-gradient(145deg, var(--control-bg), var(--surface-bg));
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    font-weight: 600;
+    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.28);
+    transition: background-color 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.consulta-extrato .btn-consulta-aplicar {
+    background: linear-gradient(145deg, var(--accent), #8f0707);
+    border-color: var(--border-color);
+}
+
+.consulta-extrato .btn-consulta-aplicar:hover:not(:disabled) {
+    color: #fff;
+    background: linear-gradient(145deg, var(--accent-hover), var(--accent));
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.consulta-extrato .btn-consulta-limpar:hover:not(:disabled),
+.consulta-extrato .btn-consulta-paginacao:hover:not(:disabled) {
+    color: #fff;
+    background: var(--surface-hover);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.consulta-extrato .btn-consulta-paginacao { min-width: 104px; }
+
+.consulta-extrato .btn-consulta-aplicar:focus-visible,
+.consulta-extrato .btn-consulta-limpar:focus-visible,
+.consulta-extrato .btn-consulta-paginacao:focus-visible {
+    outline: 2px solid var(--accent-readable);
+    outline-offset: 2px;
+}
+
+.consulta-extrato .btn-consulta-aplicar:disabled,
+.consulta-extrato .btn-consulta-limpar:disabled,
+.consulta-extrato .btn-consulta-paginacao:disabled {
+    color: rgba(255, 255, 255, 0.5);
+    background: var(--surface-bg);
+    border-color: var(--border-subtle);
+    box-shadow: none;
+    opacity: 0.72;
+}
+
 .extrato-destaque,
 .extrato-resumo-card,
 .extrato-movimento {
-    background: var(--card-bg, #1a1a1a);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
 }
 
-.extrato-destaque {
-    border-left: 3px solid var(--accent, #c70808);
-}
 
-.extrato-pago { color: var(--success, #4caf50); }
-.extrato-erro { color: var(--danger, #f44336); }
+.extrato-pago { color: var(--success); }
+.extrato-erro { color: var(--danger); }
 
 .modal-extrato .modal-scroll-body { min-height: 0; }
 .modal-extrato .extrato-acoes {
-    background: var(--card-bg, #1a1a1a);
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    background: var(--card-bg);
+    border-top: 1px solid var(--border-color);
 }
 
 @media (max-width: 768px) {

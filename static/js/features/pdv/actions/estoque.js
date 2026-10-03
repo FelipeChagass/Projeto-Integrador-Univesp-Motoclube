@@ -19,7 +19,7 @@ export function alternarModoEstoque() {
         if (btn) btn.classList.remove('active');
         if (carrinhoSec) carrinhoSec.classList.remove('minimizado');
         document.body.style.border = 'none';
-        if (header) header.style.borderBottom = '1px solid rgba(255, 152, 0, 0.25)';
+        if (header) header.style.borderBottom = '';
         sincronizarTextoModoEstoque();
         showToast('MODO ESTOQUE DESATIVADO');
         renderizarCatalogo();
@@ -49,8 +49,8 @@ function ativarModoEstoque() {
     const header = document.getElementById('app-header');
     if (btn) btn.classList.add('active');
     if (carrinhoSec) carrinhoSec.classList.add('minimizado');
-    document.body.style.border = '3px solid #b30000';
-    if (header) header.style.borderBottom = '3px solid #b30000';
+    document.body.style.border = '3px solid var(--accent)';
+    if (header) header.style.borderBottom = '3px solid var(--accent)';
     sincronizarTextoModoEstoque();
     showToast('MODO ESTOQUE ATIVADO');
     renderizarCatalogo();

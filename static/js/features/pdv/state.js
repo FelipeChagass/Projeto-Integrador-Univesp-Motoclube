@@ -1,7 +1,7 @@
 import { LocalDB } from '../../shared/utils.js';
 
 export const S = {
-    logoUrl: '/static/img/motorhead.png',
+    logoUrl: '/static/img/motorhead.svg',
     produtos: [],
     categoriaCatalogo: 'bebida',
     membros: [],
@@ -9,7 +9,7 @@ export const S = {
     filaVendas: [],
     produtoPendente: null,
     produtoEdicao: null,
-    config: { imprimir: true, largura: 'ticket-80mm', logo: '/static/img/motorhead.png' },
+    config: { imprimir: true, largura: 'ticket-80mm', logo: '/static/img/motorhead.svg' },
     dadosFechamentoAtual: null,
     dadosRelatorioAtual: null,
     contextoMembro: '',

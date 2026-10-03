@@ -68,14 +68,14 @@ input[type="number"] {
 select {
     appearance: none;
     -webkit-appearance: none;
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: var(--input-bg);
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23b30000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 10px center;
     background-size: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--input-border);
     border-radius: 8px;
-    color: #e0e0e0;
+    color: var(--text-primary);
     height: 40px;
     box-sizing: border-box;
     padding: 0 2rem 0 0.9rem;
@@ -87,13 +87,13 @@ select {
 
 select:focus {
     outline: none;
-    border-color: #b30000;
-    box-shadow: 0 0 0 2px rgba(179, 0, 0, 0.2);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
 select option {
-    background: #1a1a1a;
-    color: #e0e0e0;
+    background: var(--card-bg);
+    color: var(--text-primary);
 }
 
 /* White calendar icon for date inputs */

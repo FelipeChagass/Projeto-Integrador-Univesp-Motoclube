@@ -1,0 +1,53 @@
+/* Aparência consistente das checkboxes do sistema, independente do navegador. */
+input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-grid;
+    place-content: center;
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+    background: var(--input-bg);
+    vertical-align: middle;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+input[type="checkbox"]::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    clip-path: polygon(14% 44%, 0 59%, 38% 100%, 100% 16%, 84% 0%, 36% 62%);
+    transform: scale(0);
+    transition: transform 0.12s ease-in-out;
+}
+
+input[type="checkbox"]:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+input[type="checkbox"]:checked::before {
+    transform: scale(1);
+}
+
+input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--accent-readable);
+    outline-offset: 2px;
+}
+
+input[type="checkbox"]:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    input[type="checkbox"],
+    input[type="checkbox"]::before {
+        transition: none;
+    }
+}

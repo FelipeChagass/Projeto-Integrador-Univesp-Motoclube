@@ -110,7 +110,7 @@ test('extrato administrativo mantém membro ao filtrar, limpar e mostrar períod
     request.mockResolvedValue({ total: 350, itens: [], resumo: { total_periodo: 0, total_pago_periodo: 0, total_aberto_periodo: 0 }, paginacao: { total: 0, tem_mais: false } });
     await membros.verExtrato('membro-a', 'Ana');
     const form = document.querySelector('#extrato-body form');
-    form.elements.modo.value = 'mes'; form.elements.mes.value = '2026-02';
+    form.elements.modo.value = 'datas'; form.elements.inicio.value = '2026-02-01'; form.elements.fim.value = '2026-02-28';
     form.dispatchEvent(new Event('submit', { cancelable: true })); await settleEvents();
     expect(request).toHaveBeenLastCalledWith('GET', '/admin/membros/membro-a/extrato?data_inicio=2026-02-01&data_fim=2026-02-28&limite=20&offset=0', undefined);
     expect(document.getElementById('extrato-titulo').textContent).toBe('Extrato — Ana');

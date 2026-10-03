@@ -34,11 +34,6 @@
 }
 
 .config-check {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-    accent-color: var(--accent, #ff9800);
-    cursor: pointer;
     padding: 0;
     border: none;
 }
@@ -48,9 +43,9 @@
     width: 100%;
     padding: 0 10px;
     height: 48px;
-    background: #222;
+    background: var(--input-bg);
     color: white;
-    border: 1px solid #555;
+    border: 1px solid var(--input-border);
     box-sizing: border-box;
     font-size: 1.1rem;
     border-radius: 4px;
@@ -69,15 +64,32 @@
     cursor: pointer;
 }
 
+.config-select:focus,
+.config-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
 .section-header {
-    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--accent-readable);
     font-weight: bold;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.8px;
+    line-height: 1.4;
     padding-bottom: 2px;
     margin: 22px 0 8px 0;
-    opacity: 0.8;
+}
+
+.section-header-icon {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 auto;
+    color: var(--accent);
 }
 
 .extrato-lista {
@@ -85,7 +97,7 @@
     overflow-y: auto;
     margin: 10px 0;
     padding: 5px;
-    background: #222;
+    background: var(--input-bg);
     border-radius: 5px;
 }
 
@@ -93,7 +105,7 @@
     display: flex;
     justify-content: space-between;
     padding: 4px 0;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--border-subtle);
     font-size: 0.9rem;
 }
 
@@ -109,7 +121,7 @@
     text-align: center;
     font-size: 1.3rem;
     font-weight: bold;
-    color: var(--accent);
+    color: var(--accent-readable);
     margin-bottom: 10px;
 }
 
@@ -118,7 +130,7 @@
 }
 
 .reconciliacao-description {
-    color: #aaa;
+    color: var(--text-secondary);
     line-height: 1.5;
     margin: 0 0 18px;
 }
@@ -189,7 +201,7 @@
     color: var(--success);
     margin: 10px 0;
     padding: 10px;
-    background: #222;
+    background: var(--input-bg);
     border-radius: 5px;
 }
 

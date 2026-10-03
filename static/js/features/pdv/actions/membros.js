@@ -32,7 +32,7 @@ export function abrirModalMembros(tipoContexto) {
     S.contextoMembro = tipoContexto;
     consultaMembro()?.selecionar(null);
     const preview = document.getElementById('preview-divida');
-    if (preview) { preview.innerText = ''; preview.style.color = '#aaa'; }
+    if (preview) { preview.innerText = ''; preview.style.color = 'var(--text-secondary)'; }
     abrirModal('modal-selecionar-membro');
     buscarMembrosFrescos('select-membro');
 }

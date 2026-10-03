@@ -33,8 +33,8 @@
     margin-bottom: 4px;
     gap: 8px;
     align-items: center;
-    background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
-    border-bottom: 2px solid rgba(255, 255, 255, 0.03);
+    background: var(--surface-bg);
+    border-bottom: 2px solid var(--divider-color);
 }
 
 .filtro-catalogo p {
@@ -46,9 +46,10 @@
     align-items: center;
     gap: 6px;
     padding: 6px 14px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    width: 160px;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
-    background: linear-gradient(145deg, #1c1c1c, #111);
+    background: linear-gradient(145deg, var(--control-bg), var(--surface-bg));
     color: #eee;
     font: inherit;
     font-size: 0.82rem;
@@ -58,7 +59,7 @@
 
 .btn-categoria:hover,
 .btn-categoria:focus-visible {
-    background: #222;
+    background: var(--surface-hover);
     border-color: var(--accent);
 }
 
@@ -70,7 +71,7 @@
 .catalogo-vazio {
     grid-column: 1 / -1;
     padding: 40px;
-    color: #aaa;
+    color: var(--text-secondary);
     text-align: center;
 }
 

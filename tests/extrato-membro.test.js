@@ -23,22 +23,23 @@ function aplicar(modo, valores) {
     root.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
 }
 
-test('meses, anos bissextos e períodos inválidos', () => {
-    expect(periodoExtrato({ modo: 'mes', mes: '2024-02' })).toEqual({ data_inicio: '2024-02-01', data_fim: '2024-02-29' });
-    expect(periodoExtrato({ modo: 'meses', inicio: '2025-12', fim: '2026-02' })).toEqual({ data_inicio: '2025-12-01', data_fim: '2026-02-28' });
-    for (const filtro of [{ modo: 'mes', mes: '' }, { modo: 'datas', inicio: '2026-02-30', fim: '2026-03-01' },
-        { modo: 'meses', inicio: '2026-03', fim: '2026-02' }, { modo: 'datas', inicio: '2026-01-01', fim: '' }]) {
+test('consulta todo o histórico ou intervalo de datas; bloqueia períodos inválidos', () => {
+    expect(periodoExtrato({ modo: 'todos' })).toEqual({});
+    expect(periodoExtrato({ modo: 'datas', inicio: '2026-02-01', fim: '2026-02-28' })).toEqual({ data_inicio: '2026-02-01', data_fim: '2026-02-28' });
+    for (const filtro of [{ modo: 'desconhecido' }, { modo: 'datas', inicio: '2026-02-30', fim: '2026-03-01' },
+        { modo: 'datas', inicio: '2026-03-01', fim: '2026-02-01' }, { modo: 'datas', inicio: '2026-01-01', fim: '' }]) {
         expect(() => periodoExtrato(filtro)).toThrow();
     }
+    expect([...campo('modo').options].map(option => option.value)).toEqual(['todos', 'datas']);
 });
 
 test('aplicar e limpar filtros preserva membro e saldo total; repetir estado não consulta novamente', async () => {
     await consulta.selecionar('a');
-    aplicar('mes', { mes: '2026-02' }); await tick();
+    aplicar('datas', { inicio: '2026-02-01', fim: '2026-02-28' }); await tick();
     expect(buscar).toHaveBeenLastCalledWith('a', { data_inicio: '2026-02-01', data_fim: '2026-02-28', limite: 20, offset: 0 });
     expect(root.querySelector('[data-total-atual]').textContent).toBe('R$ 350.00');
     expect(root.querySelector('[data-resumo]').textContent).toContain('R$ 200.00');
-    aplicar('mes', { mes: '2026-02' }); await tick();
+    aplicar('datas', { inicio: '2026-02-01', fim: '2026-02-28' }); await tick();
     expect(buscar).toHaveBeenCalledTimes(2);
     root.querySelector('[data-limpar]').click(); await tick();
     expect(buscar).toHaveBeenLastCalledWith('a', { limite: 20, offset: 0 });
@@ -50,9 +51,9 @@ test('invalidez bloqueia consulta e erro permite tentar novamente', async () => 
     aplicar('datas', { inicio: '2026-03-01', fim: '2026-02-01' });
     expect(buscar).toHaveBeenCalledTimes(1); expect(notificar).toHaveBeenCalled();
     buscar.mockRejectedValueOnce(new Error('Indisponível'));
-    aplicar('mes', { mes: '2026-02' }); await tick();
+    aplicar('datas', { inicio: '2026-02-01', fim: '2026-02-28' }); await tick();
     expect(root.querySelector('[data-estado]').textContent).toContain('tentar novamente');
-    aplicar('mes', { mes: '2026-02' }); await tick();
+    aplicar('datas', { inicio: '2026-02-01', fim: '2026-02-28' }); await tick();
     expect(root.getAttribute('aria-busy')).toBe('false');
     expect(root.querySelector('[data-total-atual]').textContent).toBe('R$ 350.00');
 });
@@ -71,9 +72,9 @@ test('troca rápida de período descarta resposta atrasada e paginação mantém
     await consulta.selecionar('a');
     let resolver;
     buscar.mockImplementationOnce(() => new Promise(resolve => { resolver = resolve; }));
-    aplicar('mes', { mes: '2026-01' });
+    aplicar('datas', { inicio: '2026-01-01', fim: '2026-01-31' });
     buscar.mockResolvedValueOnce({ ...dados(350, [{ id: '1', tipo: 'debito', valor: 200, situacao: 'em_aberto' }]), paginacao: { tem_mais: true, total: 21 } });
-    aplicar('mes', { mes: '2026-02' }); await tick();
+    aplicar('datas', { inicio: '2026-02-01', fim: '2026-02-28' }); await tick();
     resolver(dados(999)); await tick();
     expect(root.querySelector('[data-total-atual]').textContent).toBe('R$ 350.00');
     root.querySelector('[data-proxima]').click(); await tick();
@@ -84,7 +85,7 @@ test('voltar ao filtro anterior durante uma requisição não aceita dados do fi
     await consulta.selecionar('a');
     let resolver;
     buscar.mockImplementationOnce(() => new Promise(resolve => { resolver = resolve; }));
-    aplicar('mes', { mes: '2026-01' });
+    aplicar('datas', { inicio: '2026-01-01', fim: '2026-01-31' });
     root.querySelector('[data-limpar]').click(); await tick();
     resolver(dados(999)); await tick();
     expect(buscar).toHaveBeenCalledTimes(3);
