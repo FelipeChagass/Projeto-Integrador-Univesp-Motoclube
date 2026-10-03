@@ -158,7 +158,7 @@
         padding: 10px 12px;
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 8px;
     }
 
     .sidebar-item {
@@ -167,7 +167,7 @@
         gap: 14px;
         padding: 14px 16px;
         background: rgba(255, 255, 255, 0.03);
-        border-bottom: 2px solid var(--divider-color);
+        border: 1px solid transparent;
         border-radius: 10px;
         color: var(--text-primary);
         font-size: 0.88rem;
@@ -183,12 +183,12 @@
 
     .sidebar-item:hover {
         background: rgba(255, 255, 255, 0.07);
-        border-color: rgba(255, 255, 255, 0.12);
+        border-color: transparent;
     }
 
     .sidebar-item:active {
         background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.18);
+        border-color: transparent;
     }
 
     .sidebar-item svg {
