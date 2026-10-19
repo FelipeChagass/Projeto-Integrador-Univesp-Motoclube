@@ -15,6 +15,7 @@ from app.features.vendas.admin_service import alterar_venda
 from app.features.vendas.service import processar_venda, registrar_pagamento_divida
 from app.models import Caixa, ItemVenda, Membro, MovimentacaoMembro, Produto, Venda
 from test_admin_finance_postgres import criar, edicao
+from test_extrato_membros import historico  # noqa: F401 (fixture)
 from test_finance_postgres import payment, sale
 
 pytestmark = pytest.mark.postgres
@@ -367,3 +368,62 @@ def test_relatorio_erros_e_precedencia(pg, seed, tipo, filtro, esperado):
     dados = {k: str(seed['users'][0]) if v == OPERADOR else v for k, v in filtro.items()}
     with pg() as db:
         assert erro(gerar_relatorio, db, tipo, dados) == esperado
+
+
+# ─── Etapa 17: consultar_extrato ───
+
+AVISO_EXTRATO = ('O histórico não corresponde ao saldo atual. Não é possível atribuir quitação aos lançamentos; '
+                 'confira os registros com o administrador.')
+
+
+def _linha(data, descricao, tipo, origem, valor, aberto, situacao):
+    return {'data': data, 'tipo': tipo, 'origem': origem, 'descricao': descricao, 'valor': valor, 'versao': 1,
+            'venda_id': None, 'valor_aberto': aberto,
+            'valor_abatido': valor - aberto if aberto is not None else None, 'situacao': situacao}
+
+
+def test_extrato_completo_com_fifo(pg, historico):
+    from app.features.membros.service import buscar_extrato_membro
+    with pg() as db:
+        resultado = buscar_extrato_membro(db, str(historico))
+        membro = db.get(Membro, historico).to_dict()
+    for item in resultado['itens']:
+        UUID(item.pop('id'))
+    assert resultado == {
+        'membro': membro, 'total': 150.0,
+        'itens': [
+            _linha('11/03/2026 12:00', '2026-03-11T12:00', 'credito', 'ajuste_manual', 20.0, None, 'credito'),
+            _linha('10/03/2026 12:00', '2026-03-10T12:00', 'credito', 'pagamento', 180.0, None, 'pagamento'),
+            _linha('01/03/2026 00:00', '2026-03-01T00:00', 'debito', 'venda_fiado', 50.0, 50.0, 'em_aberto'),
+            _linha('01/02/2026 00:00', '2026-02-01T00:00', 'debito', 'venda_fiado', 200.0, 100.0, 'parcial'),
+            _linha('15/01/2026 12:00', '2026-01-15T12:00', 'debito', 'venda_fiado', 100.0, 0.0, 'quitado'),
+        ],
+        'periodo': {'inicio': None, 'fim': None},
+        'resumo': {'total_periodo': 350.0, 'total_pago_periodo': 180.0, 'total_creditos_ajuste_periodo': 20.0,
+                   'total_aberto_periodo': 150.0, 'total_abatido_periodo': 200.0, 'divida_total_atual': 150.0},
+        'criterio_quitacao': 'fifo_informativo', 'aviso': None,
+        'paginacao': {'limite': 100, 'offset': 0, 'tem_mais': False, 'total': 5},
+    }
+
+
+def test_extrato_com_movimento_sem_direcao_nao_atribui_quitacao(pg, historico):
+    from datetime import datetime
+    from app.core.tempo import FUSO
+    from app.features.membros.service import buscar_extrato_membro
+    with pg.begin() as db:
+        db.add(MovimentacaoMembro(membro_id=historico, tipo_movimentacao='ajuste', origem='ajuste_manual',
+                                  valor=Decimal('5'), descricao='legado',
+                                  criado_em=datetime(2026, 3, 12, 9, 30, tzinfo=FUSO)))
+    with pg() as db:
+        resultado = buscar_extrato_membro(db, str(historico), data_inicio='2026-03-01', data_fim='2026-03-31', limite=2)
+    assert [(i['tipo'], i['situacao'], i['valor_aberto'], i['valor_abatido']) for i in resultado['itens']] == [
+        ('ajuste', 'nao_identificado', None, None), ('credito', 'credito', None, None)]
+    assert resultado['aviso'] == AVISO_EXTRATO
+    assert resultado['periodo'] == {'inicio': '2026-03-01', 'fim': '2026-03-31'}
+    assert resultado['resumo'] == {
+        'total_periodo': 50.0, 'total_pago_periodo': 180.0, 'total_creditos_ajuste_periodo': 20.0,
+        'total_aberto_periodo': None, 'total_abatido_periodo': None, 'divida_total_atual': 150.0}
+    assert resultado['paginacao'] == {'limite': 2, 'offset': 0, 'tem_mais': True, 'total': 4}
+    with pg() as db:
+        debitos = buscar_extrato_membro(db, str(historico), data_inicio='2026-01-01', data_fim='2026-02-28')
+    assert [i['situacao'] for i in debitos['itens']] == ['nao_identificado', 'nao_identificado']
