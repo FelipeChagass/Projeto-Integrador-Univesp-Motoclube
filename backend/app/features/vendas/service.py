@@ -7,11 +7,11 @@ import hashlib
 import json
 from decimal import Decimal, ROUND_HALF_UP
 
-from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.database import unit_of_work
 from app.core.errors import ApiError
+from app.core.locks import bloquear_id_externo
 from app.models.membro import Membro
 from app.models.movimentacao_membro import MovimentacaoMembro
 from app.models.produto import Produto
@@ -55,9 +55,7 @@ def _confirmacao(venda: Venda, status='ok') -> dict:
 
 
 def _operacao_existente(db, dados, assinatura):
-    # Lock no servidor, compartilhado entre workers. Colisões somente serializam.
-    chave = int.from_bytes(hashlib.sha256(dados.id_externo.encode()).digest()[:8], 'big', signed=True)
-    db.execute(text('SELECT pg_advisory_xact_lock(:chave)'), {'chave': chave})
+    bloquear_id_externo(db, dados.id_externo)
     if db.get(OperacaoExcluida, dados.id_externo):
         raise ApiError('OPERACAO_EXCLUIDA', 'Operação excluída pelo administrador; não pode ser reenviada.', 409)
     existente = db.query(Venda).filter_by(id_externo=dados.id_externo).first()

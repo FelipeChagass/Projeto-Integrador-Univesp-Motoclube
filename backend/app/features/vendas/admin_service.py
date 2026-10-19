@@ -3,16 +3,16 @@
 A chave externa é bloqueada antes dessas linhas, como no registro original.
 Valores contados no fechamento são preservados; fechamentos calculados são refeitos.
 """
-import hashlib
 from decimal import Decimal
 from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import func, text
+from sqlalchemy import func
 
 from app.core.database import unit_of_work
 from app.core.errors import ApiError
+from app.core.locks import bloquear_id_externo
 from app.core.schemas import Dinheiro
 from app.models import Caixa, Membro, MovimentacaoMembro, Produto, Venda
 from app.models.venda import OperacaoExcluida
@@ -70,8 +70,7 @@ def alterar_venda(db, venda_id, dados, excluir=False):
         if not original:
             raise ApiError('VENDA_NAO_ENCONTRADA', 'Venda não encontrada.', 404)
         if original.id_externo:
-            chave = int.from_bytes(hashlib.sha256(original.id_externo.encode()).digest()[:8], 'big', signed=True)
-            db.execute(text('SELECT pg_advisory_xact_lock(:chave)'), {'chave': chave})
+            bloquear_id_externo(db, original.id_externo)
         caixa = db.query(Caixa).filter_by(id=original.caixa_id).populate_existing().with_for_update().first() if original.caixa_id else None
         venda = db.query(Venda).filter_by(id=venda_id).populate_existing().with_for_update().first()
         if not venda:

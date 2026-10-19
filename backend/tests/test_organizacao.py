@@ -2,12 +2,16 @@
 import importlib
 import runpy
 from pathlib import Path
+from uuid import UUID
 
 import pytest
 from flask import Flask
+from sqlalchemy import text
 
+from app.core.locks import bloquear_id_externo, chave_id_externo
 from app.core.servidor import BANNER
 from test_auth_postgres import client, headers  # noqa: F401 (fixture)
+from test_finance_postgres import sale
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -91,3 +95,35 @@ def test_estrutura_antiga_por_camada_nao_existe(pasta):
 
 def test_gitignore_cobre_bytecode():
     assert '__pycache__' in (ROOT / '.gitignore').read_text(encoding='utf-8').split()
+
+
+def test_chave_do_advisory_lock_permanece_estavel():
+    # Valor fixado: mudar a derivação quebraria a serialização com workers em versão anterior.
+    assert chave_id_externo('pdv-op-1') == 2861193959473896925
+
+
+@pytest.mark.postgres
+def test_lock_do_id_externo_bloqueia_outra_transacao(pg):
+    with pg() as db, pg() as outra:
+        bloquear_id_externo(db, 'pdv-op-1')
+        livre = outra.execute(text('SELECT pg_try_advisory_xact_lock(:c)'),
+                              {'c': chave_id_externo('pdv-op-1')}).scalar()
+        assert livre is False
+        db.rollback()
+        assert outra.execute(text('SELECT pg_try_advisory_xact_lock(:c)'),
+                             {'c': chave_id_externo('pdv-op-1')}).scalar() is True
+
+
+@pytest.mark.postgres
+def test_venda_e_edicao_usam_o_lock_compartilhado(pg, seed, monkeypatch):
+    import app.features.vendas.admin_service as admin_service
+    import app.features.vendas.service as venda_service
+    chamadas = []
+    for modulo in (venda_service, admin_service):
+        monkeypatch.setattr(modulo, 'bloquear_id_externo',
+                            lambda db, id_externo: (chamadas.append(id_externo), bloquear_id_externo(db, id_externo)))
+    payload = sale(seed)
+    with pg() as db:
+        venda_id = venda_service.processar_venda(db, payload)['venda_id']
+        admin_service.alterar_venda(db, UUID(venda_id), {'versao': 1}, excluir=True)
+    assert chamadas == [payload.id_externo, payload.id_externo]
