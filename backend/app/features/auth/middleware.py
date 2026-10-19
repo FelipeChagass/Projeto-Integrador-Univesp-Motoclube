@@ -3,18 +3,16 @@ import hashlib
 import threading
 import time
 import uuid
-from functools import lru_cache, wraps
+from functools import wraps
 
 import jwt
 from cachetools import TTLCache
 from flask import g, request
-from supabase import Client, create_client
-from supabase.lib.client_options import SyncClientOptions
 from supabase_auth.errors import AuthApiError
 
-from app.core.config import Config
 from app.core.database import session_scope
 from app.core.errors import ApiError
+from app.features.auth.admin_client import get_supabase_admin_client as _get_supabase_client
 from app.models.usuario import Usuario
 
 TOKEN_CACHE_TTL = 120
@@ -27,14 +25,6 @@ PERMISSOES = {
     'admin': frozenset({'vendas:criar', 'caixa:proprio', 'membros:consultar',
                         'estoque:ajustar', 'caixa:outros', 'admin:gerenciar'}),
 }
-
-
-@lru_cache(maxsize=1)
-def _get_supabase_client() -> Client:
-    return create_client(
-        Config.SUPABASE_URL, Config.SUPABASE_SERVICE_ROLE_KEY,
-        options=SyncClientOptions(auto_refresh_token=False, persist_session=False),
-    )
 
 
 def _extrair_token():

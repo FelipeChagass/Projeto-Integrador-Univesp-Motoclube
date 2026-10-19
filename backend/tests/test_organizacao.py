@@ -9,6 +9,7 @@ import pytest
 from flask import Flask
 from sqlalchemy import text
 
+from app.core.errors import ApiError
 from app.core.locks import bloquear_id_externo, chave_id_externo
 from app.core.servidor import BANNER
 from app.core.tempo import FUSO
@@ -160,3 +161,32 @@ def test_fechamento_calculado_soma_abertura_e_recebimentos_em_dinheiro(pg, seed)
         fechado = fechar_caixa(db, {'usuario_id': seed['users'][0], 'caixa_id': seed['boxes'][0]})
         assert fechado['caixa']['valor_fechamento'] == 120
         assert db.get(Caixa, seed['boxes'][0]).fechamento_calculado is True
+
+
+@pytest.fixture
+def client_supabase_limpo():
+    from app.features.auth.admin_client import get_supabase_admin_client
+    get_supabase_admin_client.cache_clear()
+    yield
+    get_supabase_admin_client.cache_clear()
+
+
+def test_middleware_e_admin_compartilham_um_unico_client_supabase(client_supabase_limpo, monkeypatch):
+    import app.features.auth.admin_client as admin_client
+    import app.features.auth.middleware as auth
+    criados = []
+    monkeypatch.setattr(admin_client, 'create_client',
+                        lambda url, key, options: criados.append((url, key, options)) or object())
+    assert auth._get_supabase_client() is admin_client.get_supabase_admin_client()
+    url, key, options = criados[0]
+    assert len(criados) == 1 and (url, key) == ('https://example.test', 'synthetic-not-a-secret')
+    assert options.auto_refresh_token is False and options.persist_session is False
+
+
+def test_falta_de_configuracao_do_supabase_continua_resultando_em_503(client_supabase_limpo, monkeypatch):
+    import app.features.auth.admin_client as admin_client
+    import app.features.auth.middleware as auth
+    monkeypatch.setattr(admin_client.Config, 'SUPABASE_SERVICE_ROLE_KEY', '')
+    with pytest.raises(ApiError) as erro:
+        auth._validar_token('token-sem-cache-' + str(UUID(int=1)))
+    assert (erro.value.code, erro.value.status_code) == ('AUTH_INDISPONIVEL', 503)
