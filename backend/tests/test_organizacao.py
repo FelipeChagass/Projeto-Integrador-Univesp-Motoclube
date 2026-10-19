@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 from flask import Flask
 
+from app.core.servidor import BANNER
 from test_auth_postgres import client, headers  # noqa: F401 (fixture)
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -18,7 +19,7 @@ def test_pontos_de_entrada_iniciam_servidor_com_debug_da_config(script, monkeypa
     runpy.run_path(str(ROOT / script), run_name='__main__')
     app, kwargs = chamadas[0]
     assert kwargs == {'host': '0.0.0.0', 'port': 5000, 'debug': app.config['DEBUG']}
-    assert 'Health:    http://localhost:5000/api/health' in capsys.readouterr().out
+    assert capsys.readouterr().out == BANNER + '\n'
 
 
 @pytest.mark.parametrize(('modulo', 'nome'), [
