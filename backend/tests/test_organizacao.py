@@ -190,3 +190,25 @@ def test_falta_de_configuracao_do_supabase_continua_resultando_em_503(client_sup
     with pytest.raises(ApiError) as erro:
         auth._validar_token('token-sem-cache-' + str(UUID(int=1)))
     assert (erro.value.code, erro.value.status_code) == ('AUTH_INDISPONIVEL', 503)
+
+
+@pytest.mark.postgres
+def test_bloqueios_de_membro_divergem_quanto_a_membro_inativo(pg, seed):
+    """Etapa 10 não extraída: as versões diferem em regra de negócio (pendente de decisão)."""
+    from app.features.membros import service as membros
+    from app.features.vendas import service as vendas
+    from app.models import Membro
+    with pg() as db:
+        db.get(Membro, seed['member']).ativo = False
+        db.flush()
+        assert membros._bloquear_membro(db, str(seed['member'])).id == seed['member']
+        with pytest.raises(ApiError) as erro:
+            vendas._bloquear_membro(db, seed['member'])
+        assert (erro.value.code, erro.value.status_code) == ('MEMBRO_INATIVO', 409)
+        with pytest.raises(ApiError) as erro:
+            membros._bloquear_membro(db, 'nao-e-uuid')
+        assert (erro.value.code, erro.value.status_code) == ('MEMBRO_INVALIDO', 422)
+        for bloquear in (membros._bloquear_membro, vendas._bloquear_membro):
+            with pytest.raises(ApiError) as erro:
+                bloquear(db, UUID(int=0))
+            assert (erro.value.code, erro.value.status_code) == ('MEMBRO_NAO_ENCONTRADO', 404)
