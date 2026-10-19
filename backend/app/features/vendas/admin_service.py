@@ -120,6 +120,40 @@ def _aplicar_itens(venda, itens, novos, entrada):
     return total
 
 
+def _aplicar_saldo_membro(db, venda, membro, movimentos, total, excluir):
+    """Substitui o efeito antigo da venda no saldo pelo novo e atualiza as movimentações vinculadas."""
+    if membro:
+        anterior = sum((efeito_no_saldo(m) for m in movimentos), Decimal('0'))
+        novo_efeito = Decimal('0') if excluir else total * (1 if venda.tipo_venda == 'fiado' else -1)
+        aplicar_delta_saldo(membro, novo_efeito - anterior)
+    for movimento in movimentos:
+        if excluir:
+            db.delete(movimento)
+        else:
+            movimento.valor = total
+            movimento.versao += 1
+
+
+def _gravar_venda(db, venda, entrada, total, excluir):
+    if excluir:
+        if venda.id_externo:
+            db.add(OperacaoExcluida(id_externo=venda.id_externo))
+        db.delete(venda)
+    else:
+        venda.valor_total = total
+        venda.metodo_pagamento = entrada.metodo_pagamento
+        venda.nome_cliente = entrada.nome_cliente
+        venda.observacoes = entrada.observacoes
+        venda.versao += 1
+        venda.payload_hash = None  # Reenvio antigo recebe conflito, nunca ACK de conteúdo alterado.
+
+
+def _refazer_fechamento_caixa(db, caixa):
+    """Fechamento contado pelo operador é preservado; o calculado é refeito."""
+    if caixa and caixa.status == 'fechado' and caixa.fechamento_calculado:
+        caixa.valor_fechamento = calcular_fechamento(db, caixa)
+
+
 def alterar_venda(db, venda_id, dados, excluir=False):
     entrada = (VersaoPayload if excluir else VendaEdicao).model_validate(dados)
     with unit_of_work(db):
@@ -131,28 +165,8 @@ def alterar_venda(db, venda_id, dados, excluir=False):
             _validar_edicao(venda, itens, novos, entrada)
         _aplicar_estoque(itens, novos, produtos)
         total = Decimal('0') if excluir else _aplicar_itens(venda, itens, novos, entrada)
-        if membro:
-            anterior = sum((efeito_no_saldo(m) for m in movimentos), Decimal('0'))
-            novo_efeito = Decimal('0') if excluir else total * (1 if venda.tipo_venda == 'fiado' else -1)
-            aplicar_delta_saldo(membro, novo_efeito - anterior)
-        for movimento in movimentos:
-            if excluir:
-                db.delete(movimento)
-            else:
-                movimento.valor = total
-                movimento.versao += 1
-        if excluir:
-            if venda.id_externo:
-                db.add(OperacaoExcluida(id_externo=venda.id_externo))
-            db.delete(venda)
-        else:
-            venda.valor_total = total
-            venda.metodo_pagamento = entrada.metodo_pagamento
-            venda.nome_cliente = entrada.nome_cliente
-            venda.observacoes = entrada.observacoes
-            venda.versao += 1
-            venda.payload_hash = None  # Reenvio antigo recebe conflito, nunca ACK de conteúdo alterado.
+        _aplicar_saldo_membro(db, venda, membro, movimentos, total, excluir)
+        _gravar_venda(db, venda, entrada, total, excluir)
         db.flush()
-        if caixa and caixa.status == 'fechado' and caixa.fechamento_calculado:
-            caixa.valor_fechamento = calcular_fechamento(db, caixa)
+        _refazer_fechamento_caixa(db, caixa)
         return {'status': 'ok', 'mensagem': 'Venda excluída.' if excluir else 'Venda atualizada; estoque e valores recalculados.'}
