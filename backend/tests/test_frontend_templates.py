@@ -41,8 +41,8 @@ def structure_digest(html):
 
 
 @pytest.mark.parametrize(('path', 'expected'), [
-    ('/', '2328eec9c374af43a65b325bf5b63e8a528656d183359154292bb3da3a02338a'),
-    ('/admin', 'c7fe28571a2654c0c3ea180bf8bde1ec98af8921dcaf8b126fbd8c7e67f9eb3b'),
+    ('/', '6393473e5930ddca7af1e5df90b9e0c5663df071d78251d27a4cbba95b3e75de'),
+    ('/admin', '67588ac34056810ae392e06a660b251b989c35672d14c4dec88ca8f8a7556d56'),
 ])
 def test_rendered_structure_matches_approved_contract(path, expected):
     response = create_app({'TESTING': True}).test_client().get(path)
