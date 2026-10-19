@@ -31,8 +31,7 @@ def criar_membro():
     dados = json_object()
     with session_scope() as db:
         resultado = membro_service.criar_membro(db, dados)
-        status_code = 201 if resultado.get('status') == 'ok' else 400
-        return jsonify(resultado), status_code
+        return jsonify(resultado), 201
 
 
 @bp.route('/membros/<membro_id>', methods=['PUT'])
@@ -42,8 +41,7 @@ def editar_membro(membro_id):
     dados = json_object()
     with session_scope() as db:
         resultado = membro_service.editar_membro(db, membro_id, dados)
-        status_code = 200 if resultado.get('status') == 'ok' else 400
-        return jsonify(resultado), status_code
+        return jsonify(resultado)
 
 
 @bp.route('/membros/<membro_id>', methods=['DELETE'])
@@ -52,8 +50,7 @@ def excluir_membro(membro_id):
     """Exclui membro sem pendências financeiras."""
     with session_scope() as db:
         resultado = membro_service.excluir_membro(db, membro_id)
-        status_code = 200 if resultado.get('status') == 'ok' else 400
-        return jsonify(resultado), status_code
+        return jsonify(resultado)
 
 
 @bp.route('/membros/<membro_id>/extrato', methods=['GET'])
@@ -84,6 +81,5 @@ def ajustar_saldo_membro(membro_id):
             db, membro_id, valor, tipo, descricao,
             usuario_id=str(g.usuario_id)
         )
-        status_code = 200 if resultado.get('status') == 'ok' else 400
-        return jsonify(resultado), status_code
+        return jsonify(resultado)
 

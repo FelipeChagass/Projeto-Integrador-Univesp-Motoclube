@@ -46,8 +46,7 @@ def atualizar_estoque():
 
         exigir_senha = g.usuario_dict.get('perfil') != 'admin'
         resultado = produto_service.atualizar_estoque(db, dados, exigir_senha=exigir_senha)
-        status_code = 200 if resultado['status'] == 'ok' else 400
-        return jsonify(resultado), status_code
+        return jsonify(resultado)
 
 
 @bp.route('/estoque/verificar-senha', methods=['POST'])
@@ -80,8 +79,7 @@ def criar():
     with session_scope() as db:
         dados = json_object()
         resultado = produto_service.criar_produto(db, dados)
-        status_code = 201 if resultado['status'] == 'ok' else 400
-        return jsonify(resultado), status_code
+        return jsonify(resultado), 201
 
 
 @bp.route('/<int:produto_id>', methods=['PUT'])
@@ -95,8 +93,7 @@ def editar(produto_id):
         dados = json_object()
         dados['produto_id'] = produto_id
         resultado = produto_service.editar_produto(db, dados)
-        status_code = 200 if resultado['status'] == 'ok' else 400
-        return jsonify(resultado), status_code
+        return jsonify(resultado)
 
 
 @bp.route('/<int:produto_id>', methods=['DELETE'])
@@ -107,5 +104,4 @@ def deletar(produto_id):
     """
     with session_scope() as db:
         resultado = produto_service.deletar_produto(db, produto_id)
-        status_code = 200 if resultado['status'] == 'ok' else 400
-        return jsonify(resultado), status_code
+        return jsonify(resultado)
