@@ -259,3 +259,111 @@ def test_editar_usuario_falha_local_reverte_o_auth(pg, seed, monkeypatch):
     assert auth.auth.admin.update_user_by_id.call_args_list[1].args == (alvo, {
         'email': original['email'], 'user_metadata': {'nome': 'Operador 0'}, 'ban_duration': 'none'})
     assert _usuarios(pg, seed)[0] == original
+
+
+# ─── Etapa 16: gerar_relatorio ───
+
+def _movimento_do_turno(db, seed):
+    """Operador 0 (caixa 0): uma venda por método, um fiado e um recebimento; operador 1: uma venda."""
+    for metodo in ('dinheiro', 'pix', 'cartao_credito', 'cartao_debito'):
+        processar_venda(db, sale(seed, metodo=metodo))
+    processar_venda(db, sale(seed, metodo='fiado', membro_id=seed['member'], itens=[{'id': seed['product'], 'qtd': 2}]))
+    registrar_pagamento_divida(db, payment(seed, metodo='dinheiro', saldo_esperado='20', valor='5'))
+    processar_venda(db, sale(seed, 1, metodo='pix'))
+
+
+def _historico(db, filtros):
+    from app.core.tempo import FUSO
+    vendas = db.query(Venda).filter(*filtros).order_by(Venda.criado_em, Venda.id).all()
+    return [(str(v.id), v.criado_em.astimezone(FUSO).strftime('%d/%m %H:%M')) for v in vendas]
+
+
+def test_relatorio_de_turno_completo(pg, seed):
+    from app.features.relatorios.service import gerar_relatorio
+    with pg() as db:
+        _movimento_do_turno(db, seed)
+        resultado = gerar_relatorio(db, 'TURNO', {'operador_id': str(seed['users'][0]), 'caixa_id': str(seed['boxes'][0])})
+        ids = _historico(db, [Venda.caixa_id == seed['boxes'][0]])
+    linhas = [('1x Água', 10.0, 'DINHEIRO', 'VENDA'), ('1x Água', 10.0, 'PIX', 'VENDA'),
+              ('1x Água', 10.0, 'CARTAO_CREDITO', 'VENDA'), ('1x Água', 10.0, 'CARTAO_DEBITO', 'VENDA'),
+              ('2x Água', 20.0, 'FIADO', 'FIADO'),
+              ('RECEBIMENTO CONTA - Membro sintético', 5.0, 'DINHEIRO', 'RECEBIMENTO')]
+    assert resultado == {
+        'status': 'ok', 'dinheiro': 15.0, 'pix': 10.0, 'cartao': 20.0, 'vendasFiado': 20.0,
+        'recebimentoDivida': 5.0, 'totalEntradas': 45.0, 'abertura': 100.0, 'totalGeral': 145.0,
+        'periodo': f"Turno: {seed['boxes'][0]}", 'produtosVendidos': {'Água': 6},
+        'historico': [{'id': id, 'hora': hora, 'descricao': d, 'valor': v, 'metodo': m, 'tipo': t}
+                      for (id, hora), (d, v, m, t) in zip(ids, linhas)],
+        'historico_truncado': False, 'paginacao': {'limite': 500, 'offset': 0, 'tem_mais': False},
+    }
+
+
+def test_relatorio_pagina_o_historico_sem_afetar_totais(pg, seed):
+    from app.features.relatorios.service import gerar_relatorio
+    with pg() as db:
+        _movimento_do_turno(db, seed)
+        filtro = {'operador_id': str(seed['users'][0]), 'caixa_id': str(seed['boxes'][0])}
+        pagina = gerar_relatorio(db, 'TURNO', {**filtro, 'limite': '2', 'offset': '4'})
+        primeira = gerar_relatorio(db, 'TURNO', {**filtro, 'limite': '2'})
+        ids = [id for id, _ in _historico(db, [Venda.caixa_id == seed['boxes'][0]])]
+    assert [h['id'] for h in pagina['historico']] == ids[4:6]
+    assert (pagina['historico_truncado'], pagina['paginacao']) == (True, {'limite': 2, 'offset': 4, 'tem_mais': False})
+    assert (primeira['historico_truncado'], primeira['paginacao']) == (True, {'limite': 2, 'offset': 0, 'tem_mais': True})
+    assert (pagina['totalGeral'], pagina['produtosVendidos']) == (145.0, {'Água': 6})
+
+
+@pytest.mark.parametrize('tipo', ['DIA', 'PERIODO'])
+def test_relatorio_por_data_filtra_operador_e_abertura(pg, seed, tipo):
+    from datetime import datetime
+    from app.core.tempo import FUSO
+    from app.features.relatorios.service import gerar_relatorio
+    hoje = datetime.now(FUSO).date()
+    filtro = {'inicio': hoje.isoformat(), 'fim': hoje.isoformat()} if tipo == 'PERIODO' else {}
+    with pg() as db:
+        _movimento_do_turno(db, seed)
+        operador = gerar_relatorio(db, tipo, {**filtro, 'operador_id': str(seed['users'][1])})
+        admin = gerar_relatorio(db, tipo, {**filtro, 'operador_id': str(seed['users'][2]), 'perfil': 'admin'})
+    assert (operador['pix'], operador['totalEntradas'], operador['abertura'], operador['totalGeral']) == (10.0, 10.0, 100.0, 110.0)
+    assert [h['metodo'] for h in operador['historico']] == ['PIX']
+    assert (admin['pix'], admin['totalEntradas'], admin['abertura'], admin['totalGeral']) == (20.0, 55.0, 200.0, 255.0)
+    assert admin['produtosVendidos'] == {'Água': 7} and len(admin['historico']) == 7
+    if tipo == 'PERIODO':
+        assert admin['periodo'] == f'Período: {hoje:%d/%m/%Y} até {hoje:%d/%m/%Y}'
+    else:
+        assert admin['periodo'].startswith('Dia (Operação): ')
+
+
+def test_relatorio_de_turno_respeita_dono_do_caixa(pg, seed):
+    from app.features.relatorios.service import gerar_relatorio
+    with pg() as db:
+        filtro = {'operador_id': str(seed['users'][1]), 'caixa_id': str(seed['boxes'][0])}
+        assert erro(gerar_relatorio, db, 'TURNO', filtro) == ('CAIXA_NAO_AUTORIZADO', 403, 'Caixa pertence a outro operador.')
+        assert gerar_relatorio(db, 'TURNO', {**filtro, 'perfil': 'admin'})['abertura'] == 100.0
+
+
+OPERADOR = 'operador-do-seed'
+
+
+@pytest.mark.parametrize(('tipo', 'filtro', 'esperado'), [
+    ('DIA', {}, ('OPERADOR_INVALIDO', 422, 'Operador não identificado.')),
+    ('DIA', {'operador_id': 'x'}, ('OPERADOR_INVALIDO', 422, 'Operador não identificado.')),
+    ('TURNO', {'operador_id': 'x', 'caixa_id': 'x'}, ('OPERADOR_INVALIDO', 422, 'Operador não identificado.')),
+    ('TURNO', {'operador_id': OPERADOR}, ('CAIXA_OBRIGATORIO', 422, 'Informe o caixa do turno.')),
+    ('TURNO', {'operador_id': OPERADOR, 'caixa_id': 'x', 'limite': 0}, ('CAIXA_INVALIDO', 422, 'Identificador de caixa inválido.')),
+    ('TURNO', {'operador_id': OPERADOR, 'caixa_id': str(UUID(int=1))}, ('CAIXA_NAO_ENCONTRADO', 404, 'Caixa não encontrado.')),
+    ('PERIODO', {'operador_id': OPERADOR, 'inicio': '2025-01-01'}, ('PERIODO_INVALIDO', 422, 'Informe datas no formato AAAA-MM-DD.')),
+    ('PERIODO', {'operador_id': OPERADOR, 'inicio': '01/01/2025', 'fim': '2025-01-02'}, ('PERIODO_INVALIDO', 422, 'Informe datas no formato AAAA-MM-DD.')),
+    ('PERIODO', {'operador_id': OPERADOR, 'inicio': '2025-01-02', 'fim': '2025-01-01'}, ('PERIODO_INVALIDO', 422, 'Use um período ordenado de até 367 dias.')),
+    ('PERIODO', {'operador_id': OPERADOR, 'inicio': '2024-01-01', 'fim': '2025-01-02'}, ('PERIODO_INVALIDO', 422, 'Use um período ordenado de até 367 dias.')),
+    ('PERIODO', {'operador_id': OPERADOR, 'inicio': 'x', 'limite': 0}, ('PERIODO_INVALIDO', 422, 'Informe datas no formato AAAA-MM-DD.')),
+    ('SEMANA', {'operador_id': OPERADOR, 'limite': 0}, ('TIPO_INVALIDO', 422, 'Tipo de relatório inválido.')),
+    ('DIA', {'operador_id': OPERADOR, 'limite': 'x'}, ('PAGINACAO_INVALIDA', 422, 'Paginação inválida.')),
+    ('DIA', {'operador_id': OPERADOR, 'limite': 0}, ('PAGINACAO_INVALIDA', 422, 'Paginação inválida.')),
+    ('DIA', {'operador_id': OPERADOR, 'limite': 501}, ('PAGINACAO_INVALIDA', 422, 'Paginação inválida.')),
+    ('DIA', {'operador_id': OPERADOR, 'offset': -1}, ('PAGINACAO_INVALIDA', 422, 'Paginação inválida.')),
+])
+def test_relatorio_erros_e_precedencia(pg, seed, tipo, filtro, esperado):
+    from app.features.relatorios.service import gerar_relatorio
+    dados = {k: str(seed['users'][0]) if v == OPERADOR else v for k, v in filtro.items()}
+    with pg() as db:
+        assert erro(gerar_relatorio, db, tipo, dados) == esperado
