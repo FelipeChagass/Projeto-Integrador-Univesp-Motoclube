@@ -267,8 +267,8 @@ def editar_usuario(db: Session, admin_client, operador_atual_id: str, user_id: s
         logger.error('Erro ao editar usuário: tipo=%s', type(error).__name__)
         raise ApiError('USUARIO_NAO_ATUALIZADO', 'Não foi possível atualizar o usuário. Confirme o estado antes de repetir.', 503) from None
 
-def criar_usuario_admin(db: Session, supabase_client, dados: dict) -> dict:
-    """Cria user no Supabase Auth e Banco Local simultaneamente."""
+def _validar_novo_usuario(dados: dict) -> tuple[str, str, str, str]:
+    """Devolve (email, senha, nome, perfil) normalizados; nada é enviado ao Auth antes disso."""
     email = _normalize_email(dados.get('email'))
     senha = (dados.get('senha') or '').strip()
     nome = (dados.get('nome') or '').strip()
@@ -280,30 +280,42 @@ def criar_usuario_admin(db: Session, supabase_client, dados: dict) -> dict:
         raise ApiError('SENHA_INVALIDA', 'A senha deve ter pelo menos 6 caracteres.', 422)
     if perfil not in ('admin', 'operador'):
         raise ApiError('PERFIL_INVALIDO', 'Perfil inválido.', 422)
+    return email, senha, nome, perfil
 
+
+def _criar_identidade_auth(supabase_client, email: str, senha: str, nome: str) -> str:
+    # Usa admin API para não precisar de email de verificação
+    res = supabase_client.auth.admin.create_user({
+        "email": email,
+        "password": senha,
+        "email_confirm": True,
+        "user_metadata": {"nome": nome}
+    })
+    if not res or not res.user:
+        raise ApiError('AUTH_SEM_USUARIO', 'O serviço de autenticação não criou o usuário.', 503, retryable=True)
+    return str(res.user.id)
+
+
+def _remover_identidade_auth(supabase_client, user_id: str) -> None:
+    try:
+        supabase_client.auth.admin.delete_user(user_id)
+    except Exception:
+        logger.error('Falha ao reverter criação do Auth; reconciliação necessária: usuário=%s', user_id)
+
+
+def criar_usuario_admin(db: Session, supabase_client, dados: dict) -> dict:
+    """Cria user no Supabase Auth e Banco Local simultaneamente."""
+    email, senha, nome, perfil = _validar_novo_usuario(dados)
     user_id = None
     try:
-        # Usa admin API para não precisar de email de verificação
-        res = supabase_client.auth.admin.create_user({
-            "email": email,
-            "password": senha,
-            "email_confirm": True,
-            "user_metadata": {"nome": nome}
-        })
-        if not res or not res.user:
-            raise ApiError('AUTH_SEM_USUARIO', 'O serviço de autenticação não criou o usuário.', 503, retryable=True)
-
-        user_id = str(res.user.id)
+        user_id = _criar_identidade_auth(supabase_client, email, senha, nome)
         return sincronizar_perfil(db, user_id=user_id, email=email, nome=nome, perfil=perfil)
     except AuthApiError:
         raise ApiError('AUTH_RECUSOU', _auth_error_message(), 400) from None
     except Exception as error:
         db.rollback()
         if user_id:
-            try:
-                supabase_client.auth.admin.delete_user(user_id)
-            except Exception:
-                logger.error('Falha ao reverter criação do Auth; reconciliação necessária: usuário=%s', user_id)
+            _remover_identidade_auth(supabase_client, user_id)
         if isinstance(error, ApiError):
             raise
         raise ApiError('USUARIO_NAO_CRIADO', 'Não foi possível criar o usuário. Confirme o estado antes de repetir.', 503) from None
