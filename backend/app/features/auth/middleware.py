@@ -32,37 +32,61 @@ def _extrair_token():
     return parts[1] if len(parts) == 2 and parts[0].lower() == 'bearer' else None
 
 
-def _validar_token(token):
-    key = hashlib.sha256(token.encode()).hexdigest()
-    now = time.time()
+def _usuario_em_cache(key, now):
     with _token_cache_lock:
         cached = _token_cache.get(key)
         if cached and now < cached['exp']:
             return cached['user']
         _token_cache.pop(key, None)
+    return None
 
+
+def _consultar_auth(token):
+    """Resposta do Supabase; None se o token foi recusado; 503 se o serviço falhou."""
     try:
-        response = _get_supabase_client().auth.get_user(token)
+        return _get_supabase_client().auth.get_user(token)
     except AuthApiError as error:
         if str(getattr(error, 'status', '')) in ('400', '401', '403', '404', '422'):
             return None
         raise ApiError('AUTH_INDISPONIVEL', 'Autenticação temporariamente indisponível.', 503, retryable=True) from None
     except Exception:
         raise ApiError('AUTH_INDISPONIVEL', 'Autenticação temporariamente indisponível.', 503, retryable=True) from None
+
+
+def _usuario_da_resposta(response):
     if not response or not response.user:
         return None
     try:
         user_id = str(uuid.UUID(str(response.user.id)))
     except (ValueError, TypeError, AttributeError):
         return None
-    user = {
+    return {
         'id': user_id, 'email': response.user.email or '',
         'metadata': response.user.user_metadata or {},
     }
-    # get_user é a autoridade. Decodificação local apenas encurta a duração do cache.
+
+
+def _expiracao(token):
+    """`exp` do JWT sem verificar assinatura (get_user já é a autoridade); None se ausente."""
     try:
-        expiry = float(jwt.decode(token, options={'verify_signature': False})['exp'])
+        return float(jwt.decode(token, options={'verify_signature': False})['exp'])
     except (jwt.PyJWTError, KeyError, ValueError, TypeError):
+        return None
+
+
+def _validar_token(token):
+    key = hashlib.sha256(token.encode()).hexdigest()
+    now = time.time()
+    cached = _usuario_em_cache(key, now)
+    if cached:
+        return cached
+
+    user = _usuario_da_resposta(_consultar_auth(token))
+    if not user:
+        return None
+    # get_user é a autoridade. Decodificação local apenas encurta a duração do cache.
+    expiry = _expiracao(token)
+    if expiry is None:
         return user  # Sem exp confiável não manter cache.
     if expiry <= now:
         return None
