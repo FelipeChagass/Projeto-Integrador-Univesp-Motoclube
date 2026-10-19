@@ -72,6 +72,31 @@ def _bloquear_produtos(db, venda):
     return itens, produtos
 
 
+def _validar_edicao(venda, itens, novos, entrada):
+    if len(novos) != len(entrada.itens) or set(novos) != {i.id for i in itens}:
+        raise ApiError('ITENS_INVALIDOS', 'Envie cada item da venda uma vez; quantidade zero remove o item.', 422)
+    metodos = ('fiado',) if venda.tipo_venda == 'fiado' else ('ajuste',) if venda.tipo_venda == 'ajuste' else ('dinheiro', 'pix', 'cartao_credito', 'cartao_debito')
+    if entrada.metodo_pagamento not in metodos:
+        raise ApiError('METODO_INVALIDO', 'Método incompatível com o tipo da venda.', 422)
+
+
+def _aplicar_estoque(itens, novos, produtos):
+    """Devolve ao bar a diferença líquida por produto; item ausente em novos volta inteiro."""
+    deltas = {}
+    for item in itens:
+        novo = novos.get(item.id)
+        delta = item.quantidade - (novo.quantidade if novo else 0)
+        if delta and item.produto_id not in produtos:
+            raise ApiError('PRODUTO_AUSENTE', 'Produto histórico ausente; não é possível reconciliar seu estoque.', 409)
+        if item.produto_id in produtos:
+            deltas[item.produto_id] = deltas.get(item.produto_id, 0) + delta
+    for produto_id, delta in deltas.items():
+        produto = produtos[produto_id]
+        if produto.estoque_bar + delta < 0:
+            raise ApiError('ESTOQUE_INSUFICIENTE', 'Estoque insuficiente para aumentar a quantidade.', 409)
+        produto.estoque_bar += delta
+
+
 def alterar_venda(db, venda_id, dados, excluir=False):
     entrada = (VersaoPayload if excluir else VendaEdicao).model_validate(dados)
     with unit_of_work(db):
@@ -80,24 +105,8 @@ def alterar_venda(db, venda_id, dados, excluir=False):
         itens, produtos = _bloquear_produtos(db, venda)
         novos = {} if excluir else {i.id: i for i in entrada.itens}
         if not excluir:
-            if len(novos) != len(entrada.itens) or set(novos) != {i.id for i in itens}:
-                raise ApiError('ITENS_INVALIDOS', 'Envie cada item da venda uma vez; quantidade zero remove o item.', 422)
-            metodos = ('fiado',) if venda.tipo_venda == 'fiado' else ('ajuste',) if venda.tipo_venda == 'ajuste' else ('dinheiro', 'pix', 'cartao_credito', 'cartao_debito')
-            if entrada.metodo_pagamento not in metodos:
-                raise ApiError('METODO_INVALIDO', 'Método incompatível com o tipo da venda.', 422)
-        deltas = {}
-        for item in itens:
-            novo = novos.get(item.id)
-            delta = item.quantidade - (novo.quantidade if novo else 0)
-            if delta and item.produto_id not in produtos:
-                raise ApiError('PRODUTO_AUSENTE', 'Produto histórico ausente; não é possível reconciliar seu estoque.', 409)
-            if item.produto_id in produtos:
-                deltas[item.produto_id] = deltas.get(item.produto_id, 0) + delta
-        for produto_id, delta in deltas.items():
-            produto = produtos[produto_id]
-            if produto.estoque_bar + delta < 0:
-                raise ApiError('ESTOQUE_INSUFICIENTE', 'Estoque insuficiente para aumentar a quantidade.', 409)
-            produto.estoque_bar += delta
+            _validar_edicao(venda, itens, novos, entrada)
+        _aplicar_estoque(itens, novos, produtos)
         total = Decimal('0')
         for item in itens:
             novo = novos.get(item.id)
