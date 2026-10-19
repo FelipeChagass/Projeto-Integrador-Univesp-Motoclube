@@ -127,6 +127,71 @@ def listar_todos(db: Session) -> list:
     return [u.to_dict() for u in usuarios]
 
 
+def _alterar_perfil(dados: dict, autoalteracao: bool, locais: dict) -> None:
+    if 'perfil' in dados:
+        novo_perfil = dados['perfil']
+        if novo_perfil not in ('admin', 'operador'):
+            raise ApiError('PERFIL_INVALIDO', 'Perfil deve ser "admin" ou "operador".', 422)
+        if autoalteracao and novo_perfil != 'admin':
+            raise ApiError('AUTOALTERACAO_NEGADA', 'Um administrador não pode remover o próprio perfil admin.', 409)
+        locais['perfil'] = novo_perfil
+
+
+def _alterar_ativo(dados: dict, autoalteracao: bool, locais: dict, auth: dict) -> None:
+    if 'ativo' in dados:
+        novo_ativo = bool(dados['ativo'])
+        if autoalteracao and not novo_ativo:
+            raise ApiError('AUTOALTERACAO_NEGADA', 'Um administrador não pode desativar a própria conta.', 409)
+        locais['ativo'] = novo_ativo
+        auth['ban_duration'] = _ban_duration_for_status(novo_ativo)
+
+
+def _alterar_nome(dados: dict, locais: dict, auth: dict) -> None:
+    if 'nome' in dados:
+        novo_nome = (dados['nome'] or '').strip()
+        if not novo_nome:
+            raise ApiError('NOME_OBRIGATORIO', 'Nome é obrigatório.', 422)
+        locais['nome'] = novo_nome
+        auth['user_metadata'] = {'nome': novo_nome}
+
+
+def _alterar_email(db: Session, uid: uuid.UUID, dados: dict, locais: dict, auth: dict) -> None:
+    if 'email' in dados:
+        novo_email = _normalize_email(dados.get('email'))
+        if not novo_email:
+            raise ApiError('EMAIL_OBRIGATORIO', 'Email é obrigatório.', 422)
+
+        existente = db.query(Usuario).filter(
+            Usuario.email == novo_email,
+            Usuario.id != uid,
+        ).first()
+        if existente:
+            raise ApiError('EMAIL_EM_USO', 'Já existe outro usuário com este email.', 409)
+
+        locais['email'] = novo_email
+        auth['email'] = novo_email
+
+
+def _alterar_senha(dados: dict, auth: dict) -> None:
+    if 'senha' in dados:
+        nova_senha = (dados.get('senha') or '').strip()
+        if nova_senha:
+            if len(nova_senha) < 6:
+                raise ApiError('SENHA_INVALIDA', 'A senha deve ter pelo menos 6 caracteres.', 422)
+            auth['password'] = nova_senha
+
+
+def _coletar_alteracoes(db: Session, uid: uuid.UUID, autoalteracao: bool, dados: dict) -> tuple[dict, dict]:
+    """Valida os campos na ordem perfil → ativo → nome → email → senha; devolve (locais, auth)."""
+    locais, auth = {}, {}
+    _alterar_perfil(dados, autoalteracao, locais)
+    _alterar_ativo(dados, autoalteracao, locais, auth)
+    _alterar_nome(dados, locais, auth)
+    _alterar_email(db, uid, dados, locais, auth)
+    _alterar_senha(dados, auth)
+    return locais, auth
+
+
 def editar_usuario(db: Session, admin_client, operador_atual_id: str, user_id: str, dados: dict) -> dict:
     """
     Edita dados locais e do Supabase Auth de um usuário.
@@ -142,54 +207,11 @@ def editar_usuario(db: Session, admin_client, operador_atual_id: str, user_id: s
     if not usuario:
         raise ApiError('USUARIO_NAO_ENCONTRADO', 'Usuário não encontrado.', 404)
 
-    atualizacoes_locais = {}
     atualizacoes_auth = {}
     rollback_auth = {}
 
     try:
-        if 'perfil' in dados:
-            novo_perfil = dados['perfil']
-            if novo_perfil not in ('admin', 'operador'):
-                raise ApiError('PERFIL_INVALIDO', 'Perfil deve ser "admin" ou "operador".', 422)
-            if operador_uid == uid and novo_perfil != 'admin':
-                raise ApiError('AUTOALTERACAO_NEGADA', 'Um administrador não pode remover o próprio perfil admin.', 409)
-            atualizacoes_locais['perfil'] = novo_perfil
-
-        if 'ativo' in dados:
-            novo_ativo = bool(dados['ativo'])
-            if operador_uid == uid and not novo_ativo:
-                raise ApiError('AUTOALTERACAO_NEGADA', 'Um administrador não pode desativar a própria conta.', 409)
-            atualizacoes_locais['ativo'] = novo_ativo
-            atualizacoes_auth['ban_duration'] = _ban_duration_for_status(novo_ativo)
-
-        if 'nome' in dados:
-            novo_nome = (dados['nome'] or '').strip()
-            if not novo_nome:
-                raise ApiError('NOME_OBRIGATORIO', 'Nome é obrigatório.', 422)
-            atualizacoes_locais['nome'] = novo_nome
-            atualizacoes_auth['user_metadata'] = {'nome': novo_nome}
-
-        if 'email' in dados:
-            novo_email = _normalize_email(dados.get('email'))
-            if not novo_email:
-                raise ApiError('EMAIL_OBRIGATORIO', 'Email é obrigatório.', 422)
-
-            existente = db.query(Usuario).filter(
-                Usuario.email == novo_email,
-                Usuario.id != uid,
-            ).first()
-            if existente:
-                raise ApiError('EMAIL_EM_USO', 'Já existe outro usuário com este email.', 409)
-
-            atualizacoes_locais['email'] = novo_email
-            atualizacoes_auth['email'] = novo_email
-
-        if 'senha' in dados:
-            nova_senha = (dados.get('senha') or '').strip()
-            if nova_senha:
-                if len(nova_senha) < 6:
-                    raise ApiError('SENHA_INVALIDA', 'A senha deve ter pelo menos 6 caracteres.', 422)
-                atualizacoes_auth['password'] = nova_senha
+        atualizacoes_locais, atualizacoes_auth = _coletar_alteracoes(db, uid, operador_uid == uid, dados)
 
         if not atualizacoes_locais and not atualizacoes_auth:
             return {'status': 'ok', 'mensagem': 'Nenhuma alteração enviada.', 'usuario': usuario.to_dict()}
