@@ -427,3 +427,107 @@ def test_extrato_com_movimento_sem_direcao_nao_atribui_quitacao(pg, historico):
     with pg() as db:
         debitos = buscar_extrato_membro(db, str(historico), data_inicio='2026-01-01', data_fim='2026-02-28')
     assert [i['situacao'] for i in debitos['itens']] == ['nao_identificado', 'nao_identificado']
+
+
+# ─── Etapa 18: _criar_venda ───
+
+def test_criar_venda_fiada_grava_registros_e_respeita_ordem_de_locks(pg, seed):
+    tabelas = {modelo: modelo.__tablename__ for modelo in (Caixa, Membro, Produto)}
+    with pg() as db:
+        segundo = Produto(nome='Cerveja', preco_atual='7.005', estoque_bar=5, estoque_deposito=0)
+        db.add(segundo)
+        db.commit()
+        payload = sale(seed, metodo='fiado', membro_id=seed['member'], cliente='Ignorado', itens=[
+            {'id': segundo.id, 'qtd': 2, 'obs': 'gelada', 'nome': 'nome do cliente'},
+            {'id': seed['product'], 'qtd': 1},
+            {'id': segundo.id, 'qtd': 1}])
+        with Locks(pg) as locks:
+            resultado = processar_venda(db, payload)
+        assert locks.ordem == ['advisory', tabelas[Caixa], tabelas[Membro], tabelas[Produto]]
+        venda = db.get(Venda, UUID(resultado['venda_id']))
+        assert resultado == {
+            'status': 'ok', 'id_externo': payload.id_externo, 'venda_id': str(venda.id),
+            'caixa_id': str(seed['boxes'][0]), 'usuario_id': str(seed['users'][0]),
+            'total_calculado': 31.03, 'mensagem': 'Operação confirmada.'}
+        assert (venda.tipo_venda, venda.metodo_pagamento, venda.nome_cliente, venda.membro_id, venda.valor_total) == (
+            'fiado', 'fiado', 'Membro sintético', seed['member'], Decimal('31.03'))
+        itens = sorted((i.nome_produto, i.quantidade, i.preco_unitario, i.preco_total, i.observacoes) for i in venda.itens)
+        assert itens == [('Cerveja', 1, Decimal('7.01'), Decimal('7.01'), ''),
+                         ('Cerveja', 2, Decimal('7.01'), Decimal('14.02'), 'gelada'),
+                         ('Água', 1, Decimal('10.00'), Decimal('10.00'), '')]
+        assert (db.get(Produto, segundo.id).estoque_bar, db.get(Produto, seed['product']).estoque_bar) == (2, 9)
+        movimento = db.query(MovimentacaoMembro).filter_by(venda_id=venda.id).one()
+        assert (movimento.tipo_movimentacao, movimento.origem, movimento.descricao, movimento.valor,
+                movimento.usuario_id) == ('debito', 'venda_fiado', 'Venda fiado', Decimal('31.03'), seed['users'][0])
+        assert db.get(Membro, seed['member']).saldo_devedor == Decimal('31.03')
+
+
+def test_criar_venda_normal_usa_cliente_e_nao_bloqueia_membro(pg, seed):
+    with pg() as db:
+        with Locks(pg) as locks:
+            resultado = processar_venda(db, sale(seed, cliente='Mesa 4', metodo='pix'))
+        assert locks.ordem == ['advisory', Caixa.__tablename__, Produto.__tablename__]
+        venda = db.get(Venda, UUID(resultado['venda_id']))
+        assert (venda.tipo_venda, venda.nome_cliente, venda.membro_id) == ('normal', 'Mesa 4', None)
+        assert db.query(MovimentacaoMembro).count() == 0
+
+
+@pytest.mark.parametrize(('ajuste', 'itens', 'esperado'), [
+    ('nenhum', [{'id': 999999, 'qtd': 1}],
+     ('PRODUTO_NAO_ENCONTRADO', 404, 'Produto não encontrado.', {'produto_id': 999999})),
+    ('inativo', [{'id': 'seed', 'qtd': 1}],
+     ('PRODUTO_INATIVO', 409, 'Produto inativo.', {'produto_id': 'seed'})),
+    ('nenhum', [{'id': 'seed', 'qtd': 6}, {'id': 'seed', 'qtd': 5}],
+     ('ESTOQUE_INSUFICIENTE', 409, 'Estoque insuficiente.', {'produto_id': 'seed', 'disponivel': 10, 'solicitado': 11})),
+    # Validação segue a ordem dos itens enviados.
+    ('inativo', [{'id': 999999, 'qtd': 1}, {'id': 'seed', 'qtd': 1}],
+     ('PRODUTO_NAO_ENCONTRADO', 404, 'Produto não encontrado.', {'produto_id': 999999})),
+    ('inativo', [{'id': 'seed', 'qtd': 1}, {'id': 999999, 'qtd': 1}],
+     ('PRODUTO_INATIVO', 409, 'Produto inativo.', {'produto_id': 'seed'})),
+])
+def test_criar_venda_valida_produtos(pg, seed, ajuste, itens, esperado):
+    trocar = lambda v: seed['product'] if v == 'seed' else v
+    with pg() as db:
+        if ajuste == 'inativo':
+            db.get(Produto, seed['product']).ativo = False
+            db.commit()
+        payload = sale(seed, itens=[{**i, 'id': trocar(i['id'])} for i in itens])
+        with pytest.raises(ApiError) as capturado:
+            processar_venda(db, payload)
+        e = capturado.value
+        code, status, mensagem, detalhes = esperado
+        assert (e.code, e.status_code, e.message, e.details) == (
+            code, status, mensagem, {k: trocar(v) for k, v in detalhes.items()})
+        assert db.query(Venda).count() == 0 and db.get(Produto, seed['product']).estoque_bar == 10
+
+
+@pytest.mark.parametrize(('ativo', 'esperado'), [
+    (False, ('MEMBRO_INATIVO', 409, 'Membro inativo.')),
+    (None, ('MEMBRO_NAO_ENCONTRADO', 404, 'Membro não encontrado.')),
+])
+def test_criar_venda_fiada_exige_membro_ativo(pg, seed, ativo, esperado):
+    with pg() as db:
+        membro_id = seed['member'] if ativo is not None else uuid4()
+        if ativo is not None:
+            db.get(Membro, seed['member']).ativo = ativo
+            db.commit()
+        # Membro é validado antes dos produtos.
+        payload = sale(seed, metodo='fiado', membro_id=membro_id, itens=[{'id': 999999, 'qtd': 1}])
+        assert erro(processar_venda, db, payload) == esperado
+
+
+def test_criar_venda_valida_caixa_antes_do_membro(pg, seed):
+    with pg() as db:
+        payload = sale(seed, caixa_id=seed['boxes'][1], metodo='fiado', membro_id=uuid4())
+        assert erro(processar_venda, db, payload) == ('CAIXA_NAO_AUTORIZADO', 403, 'Caixa pertence a outro operador.')
+
+
+def test_criar_venda_duplicada_devolve_confirmacao_sem_novos_efeitos(pg, seed):
+    with pg() as db:
+        payload = sale(seed)
+        original = processar_venda(db, payload)
+        with Locks(pg) as locks:
+            duplicado = processar_venda(db, payload)
+        assert locks.ordem == ['advisory']
+        assert duplicado == {**original, 'status': 'duplicado', 'mensagem': 'Operação já confirmada.'}
+        assert db.get(Produto, seed['product']).estoque_bar == 9
