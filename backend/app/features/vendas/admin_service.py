@@ -97,6 +97,29 @@ def _aplicar_estoque(itens, novos, produtos):
         produto.estoque_bar += delta
 
 
+def _aplicar_itens(venda, itens, novos, entrada):
+    """Aplica a edição aos itens (quantidade zero remove) e devolve o novo total da venda."""
+    total = Decimal('0')
+    for item in itens:
+        novo = novos.get(item.id)
+        quantidade = novo.quantidade if novo else 0
+        if quantidade == 0:
+            venda.itens.remove(item)
+        else:
+            item.quantidade = quantidade
+            item.preco_unitario = novo.preco_unitario
+            item.preco_total = novo.preco_unitario * quantidade
+            item.observacoes = novo.observacoes
+            total += item.preco_total
+    if not itens:
+        if entrada.valor_total is None:
+            raise ApiError('VALOR_OBRIGATORIO', 'Informe o valor do recebimento ou ajuste.', 422)
+        total = entrada.valor_total
+    if itens and not any(i.quantidade for i in entrada.itens):
+        raise ApiError('VENDA_SEM_ITENS', 'Mantenha um item ou exclua a venda.', 422)
+    return total
+
+
 def alterar_venda(db, venda_id, dados, excluir=False):
     entrada = (VersaoPayload if excluir else VendaEdicao).model_validate(dados)
     with unit_of_work(db):
@@ -107,25 +130,7 @@ def alterar_venda(db, venda_id, dados, excluir=False):
         if not excluir:
             _validar_edicao(venda, itens, novos, entrada)
         _aplicar_estoque(itens, novos, produtos)
-        total = Decimal('0')
-        for item in itens:
-            novo = novos.get(item.id)
-            quantidade = novo.quantidade if novo else 0
-            if not excluir:
-                if quantidade == 0:
-                    venda.itens.remove(item)
-                else:
-                    item.quantidade = quantidade
-                    item.preco_unitario = novo.preco_unitario
-                    item.preco_total = novo.preco_unitario * quantidade
-                    item.observacoes = novo.observacoes
-                    total += item.preco_total
-        if not excluir and not itens:
-            if entrada.valor_total is None:
-                raise ApiError('VALOR_OBRIGATORIO', 'Informe o valor do recebimento ou ajuste.', 422)
-            total = entrada.valor_total
-        if not excluir and itens and not any(i.quantidade for i in entrada.itens):
-            raise ApiError('VENDA_SEM_ITENS', 'Mantenha um item ou exclua a venda.', 422)
+        total = Decimal('0') if excluir else _aplicar_itens(venda, itens, novos, entrada)
         if membro:
             anterior = sum((efeito_no_saldo(m) for m in movimentos), Decimal('0'))
             novo_efeito = Decimal('0') if excluir else total * (1 if venda.tipo_venda == 'fiado' else -1)
