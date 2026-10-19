@@ -4,6 +4,7 @@ Fixam mensagens, códigos, status, efeitos e ordem de locks, que não podem muda
 """
 import re
 from decimal import Decimal
+from unittest.mock import Mock
 from uuid import UUID, uuid4
 
 import pytest
@@ -156,3 +157,105 @@ def test_excluir_venda_fiada_respeita_ordem_de_locks(pg, seed):
         assert locks.ordem == ['advisory', tabelas[Caixa], tabelas[Venda], tabelas[Membro],
                                tabelas[MovimentacaoMembro], tabelas[Produto]]
         assert db.get(Membro, seed['member']).saldo_devedor == Decimal('0')
+
+
+# ─── Etapa 15: editar_usuario ───
+
+def _usuarios(pg, seed):
+    from app.models import Usuario
+    with pg() as db:
+        return [db.get(Usuario, uid).to_dict() for uid in seed['users']]
+
+
+@pytest.mark.parametrize(('dados', 'esperado'), [
+    ({'perfil': 'gerente'}, ('PERFIL_INVALIDO', 422, 'Perfil deve ser "admin" ou "operador".')),
+    ({'nome': '  '}, ('NOME_OBRIGATORIO', 422, 'Nome é obrigatório.')),
+    ({'nome': None}, ('NOME_OBRIGATORIO', 422, 'Nome é obrigatório.')),
+    ({'email': ' '}, ('EMAIL_OBRIGATORIO', 422, 'Email é obrigatório.')),
+    ({'senha': '12345'}, ('SENHA_INVALIDA', 422, 'A senha deve ter pelo menos 6 caracteres.')),
+    # Precedência: perfil → ativo → nome → email → senha.
+    ({'perfil': 'gerente', 'nome': ' ', 'senha': '1'}, ('PERFIL_INVALIDO', 422, 'Perfil deve ser "admin" ou "operador".')),
+    ({'nome': ' ', 'email': ' ', 'senha': '1'}, ('NOME_OBRIGATORIO', 422, 'Nome é obrigatório.')),
+    ({'email': ' ', 'senha': '1'}, ('EMAIL_OBRIGATORIO', 422, 'Email é obrigatório.')),
+])
+def test_editar_usuario_valida_campos(pg, seed, dados, esperado):
+    from app.features.usuarios.service import editar_usuario
+    auth = Mock()
+    with pg() as db:
+        assert erro(editar_usuario, db, auth, str(seed['users'][2]), str(seed['users'][0]), dados) == esperado
+    auth.auth.admin.update_user_by_id.assert_not_called()
+    assert _usuarios(pg, seed)[0]['nome'] == 'Operador 0'
+
+
+def test_editar_usuario_impede_autoalteracao_e_email_duplicado(pg, seed):
+    from app.features.usuarios.service import editar_usuario
+    admin, outro = str(seed['users'][2]), str(seed['users'][1])
+    email_outro = _usuarios(pg, seed)[1]['email']
+    with pg() as db:
+        assert erro(editar_usuario, db, Mock(), admin, admin, {'perfil': 'operador'}) == (
+            'AUTOALTERACAO_NEGADA', 409, 'Um administrador não pode remover o próprio perfil admin.')
+        assert erro(editar_usuario, db, Mock(), admin, admin, {'ativo': False}) == (
+            'AUTOALTERACAO_NEGADA', 409, 'Um administrador não pode desativar a própria conta.')
+        assert erro(editar_usuario, db, Mock(), admin, str(seed['users'][0]), {'email': email_outro.upper()}) == (
+            'EMAIL_EM_USO', 409, 'Já existe outro usuário com este email.')
+        # O próprio email atual não conta como duplicado; perfil admin para si mesmo é permitido.
+        assert editar_usuario(db, Mock(), admin, outro, {'email': email_outro})['mensagem'] == 'Usuário atualizado.'
+        assert editar_usuario(db, Mock(), admin, admin, {'perfil': 'admin', 'ativo': True})['usuario']['perfil'] == 'admin'
+
+
+def test_editar_usuario_sem_alteracoes_nao_chama_auth(pg, seed):
+    from app.features.usuarios.service import editar_usuario
+    auth = Mock()
+    with pg() as db:
+        for dados in ({}, {'senha': '   '}, {'senha': None}):
+            resultado = editar_usuario(db, auth, str(seed['users'][2]), str(seed['users'][0]), dados)
+            assert resultado['mensagem'] == 'Nenhuma alteração enviada.'
+            assert resultado['usuario']['nome'] == 'Operador 0'
+    auth.auth.admin.update_user_by_id.assert_not_called()
+
+
+def test_editar_usuario_envia_ao_auth_somente_campos_de_identidade(pg, seed):
+    from app.features.usuarios.service import editar_usuario
+    auth = Mock()
+    alvo = str(seed['users'][0])
+    with pg() as db:
+        resultado = editar_usuario(db, auth, str(seed['users'][2]), alvo, {'perfil': 'admin'})
+        auth.auth.admin.update_user_by_id.assert_not_called()
+        assert resultado['usuario']['perfil'] == 'admin'
+        resultado = editar_usuario(db, auth, str(seed['users'][2]), alvo, {
+            'perfil': 'operador', 'ativo': False, 'nome': ' Novo Nome ', 'email': ' NOVO@Example.test ',
+            'senha': ' segredo1 '})
+    auth.auth.admin.update_user_by_id.assert_called_once_with(alvo, {
+        'ban_duration': '876000h', 'user_metadata': {'nome': 'Novo Nome'},
+        'email': 'novo@example.test', 'password': 'segredo1'})
+    assert resultado['mensagem'] == 'Usuário atualizado.'
+    usuario = _usuarios(pg, seed)[0]
+    assert (usuario['perfil'], usuario['ativo'], usuario['nome'], usuario['email']) == (
+        'operador', False, 'Novo Nome', 'novo@example.test')
+
+
+def test_editar_usuario_recusa_do_auth_nao_altera_perfil(pg, seed):
+    from supabase_auth.errors import AuthApiError
+    from app.features.usuarios.service import editar_usuario
+    auth = Mock()
+    auth.auth.admin.update_user_by_id.side_effect = AuthApiError('recusado', 422, None)
+    with pg() as db:
+        assert erro(editar_usuario, db, auth, str(seed['users'][2]), str(seed['users'][0]), {'nome': 'Outro'}) == (
+            'AUTH_RECUSOU', 400, 'O serviço de autenticação recusou a operação. Verifique os dados informados.')
+    assert _usuarios(pg, seed)[0]['nome'] == 'Operador 0'
+
+
+def test_editar_usuario_falha_local_reverte_o_auth(pg, seed, monkeypatch):
+    from app.features.usuarios.service import editar_usuario
+    auth = Mock()
+    alvo = str(seed['users'][0])
+    original = _usuarios(pg, seed)[0]
+    with pg() as db:
+        monkeypatch.setattr(db, 'commit', Mock(side_effect=RuntimeError('falha sintética')))
+        assert erro(editar_usuario, db, auth, str(seed['users'][2]), alvo,
+                    {'ativo': False, 'nome': 'Outro', 'email': 'outro@example.test', 'senha': 'segredo1'}) == (
+            'USUARIO_NAO_ATUALIZADO', 503,
+            'Não foi possível atualizar o usuário. Confirme o estado antes de repetir.')
+    assert auth.auth.admin.update_user_by_id.call_args_list[1].args == (alvo, {
+        'email': original['email'], 'user_metadata': {'nome': 'Operador 0'}, 'ban_duration': 'none'})
+    assert _usuarios(pg, seed)[0] == original
