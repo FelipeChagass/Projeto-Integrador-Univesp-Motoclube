@@ -8,7 +8,7 @@ from app.core.config import Config
 
 @lru_cache(maxsize=1)
 def get_supabase_admin_client() -> Client:
-    """Retorna um client exclusivo para operacoes administrativas no Supabase Auth."""
+    """Retorna um client exclusivo para operações administrativas no Supabase Auth."""
     if not Config.SUPABASE_URL or not Config.SUPABASE_SERVICE_ROLE_KEY:
         raise RuntimeError(
             'SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY devem estar configuradas no backend.'

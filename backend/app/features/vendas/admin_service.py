@@ -36,21 +36,27 @@ class VendaEdicao(VersaoPayload):
     observacoes: str = Field(default='', max_length=2000)
 
 
+def _bloquear_registros(db, venda_id, versao):
+    """Bloqueia chave externa → caixa → venda → membro → movimentações, nesta ordem."""
+    original = db.get(Venda, venda_id)
+    if not original:
+        raise ApiError('VENDA_NAO_ENCONTRADA', 'Venda não encontrada.', 404)
+    if original.id_externo:
+        bloquear_id_externo(db, original.id_externo)
+    caixa = db.query(Caixa).filter_by(id=original.caixa_id).populate_existing().with_for_update().first() if original.caixa_id else None
+    venda = db.query(Venda).filter_by(id=venda_id).populate_existing().with_for_update().first()
+    if not venda:
+        raise ApiError('VENDA_NAO_ENCONTRADA', 'Venda já excluída.', 404)
+    conferir_versao(venda, versao)
+    membro = db.query(Membro).filter_by(id=venda.membro_id).populate_existing().with_for_update().first() if venda.membro_id else None
+    movimentos = db.query(MovimentacaoMembro).filter_by(venda_id=venda.id).populate_existing().with_for_update().all()
+    return caixa, venda, membro, movimentos
+
+
 def alterar_venda(db, venda_id, dados, excluir=False):
     entrada = (VersaoPayload if excluir else VendaEdicao).model_validate(dados)
     with unit_of_work(db):
-        original = db.get(Venda, venda_id)
-        if not original:
-            raise ApiError('VENDA_NAO_ENCONTRADA', 'Venda não encontrada.', 404)
-        if original.id_externo:
-            bloquear_id_externo(db, original.id_externo)
-        caixa = db.query(Caixa).filter_by(id=original.caixa_id).populate_existing().with_for_update().first() if original.caixa_id else None
-        venda = db.query(Venda).filter_by(id=venda_id).populate_existing().with_for_update().first()
-        if not venda:
-            raise ApiError('VENDA_NAO_ENCONTRADA', 'Venda já excluída.', 404)
-        conferir_versao(venda, entrada.versao)
-        membro = db.query(Membro).filter_by(id=venda.membro_id).populate_existing().with_for_update().first() if venda.membro_id else None
-        movimentos = db.query(MovimentacaoMembro).filter_by(venda_id=venda.id).populate_existing().with_for_update().all()
+        caixa, venda, membro, movimentos = _bloquear_registros(db, venda_id, entrada.versao)
         if any(m.membro_id != venda.membro_id for m in movimentos):
             raise ApiError('VINCULO_INCONSISTENTE', 'Venda com vínculos de membros inconsistentes.', 409)
         if venda.tipo_venda in ('fiado', 'recebimento_divida') and (not membro or len(movimentos) != 1):
