@@ -1,6 +1,9 @@
 """Garantias do plano de organização: estrutura muda, comportamento não."""
 import importlib
+import os
 import runpy
+import subprocess
+import sys
 from decimal import Decimal
 from pathlib import Path
 from types import SimpleNamespace
@@ -9,7 +12,8 @@ from uuid import UUID
 import pytest
 from flask import Flask
 from pydantic import ValidationError
-from sqlalchemy import text
+from sqlalchemy import event, text
+from sqlalchemy.engine import make_url
 
 from app.core.errors import ApiError
 from app.core.financeiro import VersaoPayload, aplicar_delta_saldo, conferir_versao, efeito_no_saldo
@@ -283,3 +287,42 @@ def test_endpoint_de_movimento_avulso_mantem_contrato(pg, seed, client):
     assert client.delete(url, headers=admin, json={'versao': 2}).status_code == 404
     with pg() as db:
         assert db.get(Membro, membro).saldo_devedor == 0
+
+
+def test_importar_database_nao_cria_engine():
+    codigo = 'import app.core.database as d; assert d.engine is None; import app.models'
+    subprocess.run([sys.executable, '-c', codigo], cwd=ROOT / 'backend', check=True)
+
+
+def test_create_app_cria_engine_com_a_configuracao_atual():
+    from app import create_app
+    from app.core import database
+    create_app({'TESTING': True, 'DB_POOL_SIZE': 4, 'DB_MAX_OVERFLOW': 6, 'DB_POOL_TIMEOUT': 9})
+    engine = database.engine
+    assert database.SessionLocal.kw['bind'] is engine
+    assert engine.url.render_as_string(hide_password=False) == 'postgresql+psycopg2://127.0.0.1/pdv_test'
+    assert (engine.pool.size(), engine.pool._max_overflow, engine.pool._timeout) == (4, 6, 9)
+    assert engine.pool._pre_ping is True and engine.pool._recycle == 300
+    assert engine.hide_parameters is True and engine.echo is False
+    assert event.contains(engine, 'connect', database._set_pg_options)
+    # Mesma configuração reaproveita a engine (uma por processo, como antes).
+    create_app({'TESTING': True, 'DB_POOL_SIZE': 4, 'DB_MAX_OVERFLOW': 6, 'DB_POOL_TIMEOUT': 9})
+    assert database.engine is engine
+    create_app({'TESTING': True})
+    assert database.engine is not engine and database.SessionLocal.kw['bind'] is database.engine
+
+
+@pytest.mark.postgres
+def test_create_app_aceita_outro_banco_e_aplica_statement_timeout():
+    url = os.environ.get('TEST_DATABASE_URL')
+    if not url:
+        pytest.skip('Defina TEST_DATABASE_URL para PostgreSQL local isolado.')
+    from app import create_app
+    from app.core.database import session_scope
+    create_app({'TESTING': True, 'DATABASE_URL': url})
+    try:
+        with session_scope() as db:
+            assert db.execute(text('SELECT current_database()')).scalar() == make_url(url).database
+            assert db.execute(text('SHOW statement_timeout')).scalar() == '30s'
+    finally:
+        create_app({'TESTING': True})

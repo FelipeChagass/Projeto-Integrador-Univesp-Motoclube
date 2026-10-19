@@ -12,6 +12,7 @@ import uuid
 from flask import Flask, render_template, g, request
 from flask_cors import CORS
 from app.core.config import Config, validate_config
+from app.core.database import init_db
 from app.core.errors import register_error_handlers
 
 
@@ -25,6 +26,7 @@ def create_app(test_config=None):
     if test_config:
         app.config.update(test_config)
     validate_config(app.config)
+    init_db(app)
     register_error_handlers(app)
 
     @app.before_request
