@@ -2,22 +2,14 @@
 from datetime import date, datetime, time, timedelta, timezone
 from decimal import Decimal
 from uuid import UUID
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from sqlalchemy import func
 from sqlalchemy.orm import selectinload
 
 from app.core.errors import ApiError
+from app.core.tempo import FUSO
 from app.models.caixa import Caixa
 from app.models.venda import Venda, ItemVenda
-
-try:
-    FUSO = ZoneInfo('America/Sao_Paulo')
-except ZoneInfoNotFoundError as error:
-    raise RuntimeError(
-        "Base de fusos horários ausente. Instale as dependências com "
-        "'python -m pip install -r requirements-dev.txt'."
-    ) from error
 
 
 def _intervalo(tipo, dados, agora):

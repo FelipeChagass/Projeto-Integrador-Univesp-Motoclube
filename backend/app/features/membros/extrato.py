@@ -6,13 +6,11 @@ Histórico incompatível com o saldo oficial não recebe quitações presumidas.
 """
 from datetime import datetime, time, timedelta
 from decimal import Decimal
-from zoneinfo import ZoneInfo
 
 from sqlalchemy import case, func
 
+from app.core.tempo import FUSO
 from app.models.movimentacao_membro import MovimentacaoMembro as Movimento
-
-FUSO = ZoneInfo('America/Sao_Paulo')
 
 
 def consultar_extrato(db, membro, filtro):

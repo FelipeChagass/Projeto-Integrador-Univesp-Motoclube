@@ -10,6 +10,7 @@ from sqlalchemy import text
 
 from app.core.locks import bloquear_id_externo, chave_id_externo
 from app.core.servidor import BANNER
+from app.core.tempo import FUSO
 from test_auth_postgres import client, headers  # noqa: F401 (fixture)
 from test_finance_postgres import sale
 
@@ -127,3 +128,16 @@ def test_venda_e_edicao_usam_o_lock_compartilhado(pg, seed, monkeypatch):
         venda_id = venda_service.processar_venda(db, payload)['venda_id']
         admin_service.alterar_venda(db, UUID(venda_id), {'versao': 1}, excluir=True)
     assert chamadas == [payload.id_externo, payload.id_externo]
+
+
+def test_fuso_do_estabelecimento_e_unico():
+    from app.features.membros import extrato
+    from app.features.relatorios import service as relatorios
+    from app.features.vendas import admin_routes
+    assert FUSO.key == 'America/Sao_Paulo'
+    assert extrato.FUSO is relatorios.FUSO is admin_routes.FUSO is FUSO
+
+
+def test_vendas_nao_depende_de_relatorios_para_o_fuso():
+    fonte = (ROOT / 'backend/app/features/vendas/admin_routes.py').read_text(encoding='utf-8')
+    assert 'features.relatorios' not in fonte

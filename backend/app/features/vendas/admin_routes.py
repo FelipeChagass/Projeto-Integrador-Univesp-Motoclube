@@ -7,7 +7,7 @@ from app.features.auth.middleware import requer_admin
 from app.core.database import session_scope
 from app.models.venda import Venda
 from app.features.vendas.schemas import FiltroVendas
-from app.features.relatorios.service import FUSO
+from app.core.tempo import FUSO
 from app.core.errors import ApiError, json_object
 from app.features.vendas.admin_service import alterar_venda
 
