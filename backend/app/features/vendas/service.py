@@ -79,6 +79,64 @@ def _bloquear_membro(db, membro_id):
     return membro
 
 
+def _quantidades_por_produto(itens) -> dict:
+    quantidades = {}
+    for item in itens:
+        quantidades[item.id] = quantidades.get(item.id, 0) + item.qtd
+    return quantidades
+
+
+def _bloquear_produtos_disponiveis(db, quantidades: dict) -> dict:
+    """Bloqueia os produtos em ID crescente e valida existência, atividade e estoque na ordem enviada."""
+    produtos = db.query(Produto).filter(Produto.id.in_(quantidades)).order_by(
+        Produto.id).populate_existing().with_for_update().all()
+    por_id = {p.id: p for p in produtos}
+    for pid, qtd in quantidades.items():
+        produto = por_id.get(pid)
+        if not produto:
+            raise ApiError('PRODUTO_NAO_ENCONTRADO', 'Produto não encontrado.', 404, {'produto_id': pid})
+        if not produto.ativo:
+            raise ApiError('PRODUTO_INATIVO', 'Produto inativo.', 409, {'produto_id': pid})
+        if produto.estoque_bar < qtd:
+            raise ApiError('ESTOQUE_INSUFICIENTE', 'Estoque insuficiente.', 409,
+                           {'produto_id': pid, 'disponivel': produto.estoque_bar, 'solicitado': qtd})
+    return por_id
+
+
+def _precos_atuais(por_id: dict) -> dict:
+    """Preço do servidor, nunca o enviado pelo cliente."""
+    return {pid: Decimal(p.preco_atual).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+            for pid, p in por_id.items()}
+
+
+def _registrar_venda(db, dados: VendaNormalPayload, assinatura: str, tipo: str, membro, por_id: dict,
+                     precos: dict, total: Decimal) -> Venda:
+    venda = Venda(id_externo=dados.id_externo, payload_hash=assinatura,
+                  usuario_id=dados.usuario_id, caixa_id=dados.caixa_id,
+                  membro_id=membro.id if membro else None, tipo_venda=tipo,
+                  metodo_pagamento=dados.metodo, nome_cliente=membro.nome if membro else dados.cliente,
+                  valor_total=total)
+    db.add(venda)
+    db.flush()
+    for item in dados.itens:
+        db.add(ItemVenda(venda_id=venda.id, produto_id=item.id, nome_produto=por_id[item.id].nome,
+                         quantidade=item.qtd, preco_unitario=precos[item.id],
+                         preco_total=precos[item.id] * item.qtd, observacoes=item.obs))
+    return venda
+
+
+def _baixar_estoque(por_id: dict, quantidades: dict) -> None:
+    for pid, qtd in quantidades.items():
+        por_id[pid].estoque_bar -= qtd
+
+
+def _debitar_membro(db, membro, venda: Venda, usuario_id, total: Decimal) -> None:
+    membro.saldo_devedor += total
+    db.add(MovimentacaoMembro(membro_id=membro.id, venda_id=venda.id,
+                             usuario_id=usuario_id, tipo_movimentacao='debito',
+                             origem='venda_fiado', descricao='Venda fiado', valor=total))
+
+
 def _criar_venda(db: Session, dados: VendaNormalPayload) -> dict:
     tipo = 'fiado' if dados.metodo == 'fiado' else 'normal'
     assinatura = _assinatura(dados, tipo)
@@ -88,42 +146,14 @@ def _criar_venda(db: Session, dados: VendaNormalPayload) -> dict:
             return duplicado
         bloquear_caixa_autorizado(db, dados.caixa_id, dados.usuario_id)
         membro = _bloquear_membro(db, dados.membro_id) if tipo == 'fiado' else None
-        quantidades = {}
-        for item in dados.itens:
-            quantidades[item.id] = quantidades.get(item.id, 0) + item.qtd
-        produtos = db.query(Produto).filter(Produto.id.in_(quantidades)).order_by(
-            Produto.id).populate_existing().with_for_update().all()
-        por_id = {p.id: p for p in produtos}
-        for pid, qtd in quantidades.items():
-            produto = por_id.get(pid)
-            if not produto:
-                raise ApiError('PRODUTO_NAO_ENCONTRADO', 'Produto não encontrado.', 404, {'produto_id': pid})
-            if not produto.ativo:
-                raise ApiError('PRODUTO_INATIVO', 'Produto inativo.', 409, {'produto_id': pid})
-            if produto.estoque_bar < qtd:
-                raise ApiError('ESTOQUE_INSUFICIENTE', 'Estoque insuficiente.', 409,
-                               {'produto_id': pid, 'disponivel': produto.estoque_bar, 'solicitado': qtd})
-        precos = {pid: Decimal(p.preco_atual).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
-                  for pid, p in por_id.items()}
+        quantidades = _quantidades_por_produto(dados.itens)
+        por_id = _bloquear_produtos_disponiveis(db, quantidades)
+        precos = _precos_atuais(por_id)
         total = sum((precos[pid] * qtd for pid, qtd in quantidades.items()), Decimal('0.00'))
-        venda = Venda(id_externo=dados.id_externo, payload_hash=assinatura,
-                      usuario_id=dados.usuario_id, caixa_id=dados.caixa_id,
-                      membro_id=membro.id if membro else None, tipo_venda=tipo,
-                      metodo_pagamento=dados.metodo, nome_cliente=membro.nome if membro else dados.cliente,
-                      valor_total=total)
-        db.add(venda)
-        db.flush()
-        for item in dados.itens:
-            db.add(ItemVenda(venda_id=venda.id, produto_id=item.id, nome_produto=por_id[item.id].nome,
-                             quantidade=item.qtd, preco_unitario=precos[item.id],
-                             preco_total=precos[item.id] * item.qtd, observacoes=item.obs))
-        for pid, qtd in quantidades.items():
-            por_id[pid].estoque_bar -= qtd
+        venda = _registrar_venda(db, dados, assinatura, tipo, membro, por_id, precos, total)
+        _baixar_estoque(por_id, quantidades)
         if membro:
-            membro.saldo_devedor += total
-            db.add(MovimentacaoMembro(membro_id=membro.id, venda_id=venda.id,
-                                     usuario_id=dados.usuario_id, tipo_movimentacao='debito',
-                                     origem='venda_fiado', descricao='Venda fiado', valor=total))
+            _debitar_membro(db, membro, venda, dados.usuario_id, total)
         db.flush()
         return _confirmacao(venda)
 
