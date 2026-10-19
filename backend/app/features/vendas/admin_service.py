@@ -11,16 +11,12 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.core.database import unit_of_work
 from app.core.errors import ApiError
+from app.core.financeiro import VersaoPayload, aplicar_delta_saldo, conferir_versao, efeito_no_saldo
 from app.core.locks import bloquear_id_externo
 from app.core.schemas import Dinheiro
 from app.features.caixa.service import calcular_fechamento
 from app.models import Caixa, Membro, MovimentacaoMembro, Produto, Venda
 from app.models.venda import OperacaoExcluida
-
-
-class VersaoPayload(BaseModel):
-    model_config = ConfigDict(extra='forbid')
-    versao: int = Field(ge=1)
 
 
 class ItemEdicao(BaseModel):
@@ -43,24 +39,6 @@ class MovimentoEdicao(VersaoPayload):
     tipo: Literal['debito', 'credito']
     valor: Dinheiro
     descricao: str = Field(default='', max_length=1000)
-
-
-def conferir_versao(registro, versao):
-    if registro.versao != versao:
-        raise ApiError('REGISTRO_ALTERADO', 'Registro alterado por outro usuário. Atualize a tela e tente novamente.', 409)
-
-
-def _saldo(membro, delta):
-    novo = Decimal(membro.saldo_devedor) + delta
-    if novo < 0:
-        raise ApiError('SALDO_NEGATIVO', 'A alteração excede a dívida atual. Corrija os recebimentos vinculados antes de continuar.', 409)
-    membro.saldo_devedor = novo
-
-
-def _efeito(movimento):
-    if movimento.tipo_movimentacao not in ('debito', 'credito'):
-        raise ApiError('MOVIMENTO_AMBIGUO', 'Movimentação histórica sem direção de saldo. Reconcilie antes de alterar.', 409)
-    return Decimal(movimento.valor) * (1 if movimento.tipo_movimentacao == 'debito' else -1)
 
 
 def alterar_venda(db, venda_id, dados, excluir=False):
@@ -129,9 +107,9 @@ def alterar_venda(db, venda_id, dados, excluir=False):
         if not excluir and itens and not any(i.quantidade for i in entrada.itens):
             raise ApiError('VENDA_SEM_ITENS', 'Mantenha um item ou exclua a venda.', 422)
         if membro:
-            anterior = sum((_efeito(m) for m in movimentos), Decimal('0'))
+            anterior = sum((efeito_no_saldo(m) for m in movimentos), Decimal('0'))
             novo_efeito = Decimal('0') if excluir else total * (1 if venda.tipo_venda == 'fiado' else -1)
-            _saldo(membro, novo_efeito - anterior)
+            aplicar_delta_saldo(membro, novo_efeito - anterior)
         for movimento in movimentos:
             if excluir:
                 db.delete(movimento)
@@ -165,9 +143,9 @@ def alterar_movimento(db, membro_id, movimento_id, dados, excluir=False):
         if movimento.venda_id:
             raise ApiError('MOVIMENTO_VINCULADO', 'Edite ou exclua a venda vinculada para recalcular todos os valores.', 409)
         conferir_versao(movimento, entrada.versao)
-        anterior = _efeito(movimento)
+        anterior = efeito_no_saldo(movimento)
         novo = Decimal('0') if excluir else entrada.valor * (1 if entrada.tipo == 'debito' else -1)
-        _saldo(membro, novo - anterior)
+        aplicar_delta_saldo(membro, novo - anterior)
         if excluir:
             db.delete(movimento)
         else:

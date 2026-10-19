@@ -3,13 +3,16 @@ import importlib
 import runpy
 from decimal import Decimal
 from pathlib import Path
+from types import SimpleNamespace
 from uuid import UUID
 
 import pytest
 from flask import Flask
+from pydantic import ValidationError
 from sqlalchemy import text
 
 from app.core.errors import ApiError
+from app.core.financeiro import VersaoPayload, aplicar_delta_saldo, conferir_versao, efeito_no_saldo
 from app.core.locks import bloquear_id_externo, chave_id_externo
 from app.core.servidor import BANNER
 from app.core.tempo import FUSO
@@ -212,3 +215,39 @@ def test_bloqueios_de_membro_divergem_quanto_a_membro_inativo(pg, seed):
             with pytest.raises(ApiError) as erro:
                 bloquear(db, UUID(int=0))
             assert (erro.value.code, erro.value.status_code) == ('MEMBRO_NAO_ENCONTRADO', 404)
+
+
+def test_conferir_versao_e_versao_payload():
+    conferir_versao(SimpleNamespace(versao=3), 3)
+    with pytest.raises(ApiError) as erro:
+        conferir_versao(SimpleNamespace(versao=3), 2)
+    assert (erro.value.code, erro.value.status_code) == ('REGISTRO_ALTERADO', 409)
+    assert VersaoPayload.model_validate({'versao': 1}).versao == 1
+    for invalido in ({'versao': 0}, {}, {'versao': 1, 'extra': True}):
+        with pytest.raises(ValidationError):
+            VersaoPayload.model_validate(invalido)
+
+
+def test_aplicar_delta_saldo_nao_permite_saldo_negativo():
+    membro = SimpleNamespace(saldo_devedor=Decimal('10.00'))
+    aplicar_delta_saldo(membro, Decimal('-4.50'))
+    assert membro.saldo_devedor == Decimal('5.50')
+    aplicar_delta_saldo(membro, Decimal('-5.50'))
+    assert membro.saldo_devedor == 0
+    with pytest.raises(ApiError) as erro:
+        aplicar_delta_saldo(membro, Decimal('-0.01'))
+    assert (erro.value.code, erro.value.status_code) == ('SALDO_NEGATIVO', 409)
+    assert membro.saldo_devedor == 0
+
+
+def test_efeito_no_saldo_por_tipo_de_movimento():
+    assert efeito_no_saldo(SimpleNamespace(tipo_movimentacao='debito', valor='7.25')) == Decimal('7.25')
+    assert efeito_no_saldo(SimpleNamespace(tipo_movimentacao='credito', valor='7.25')) == Decimal('-7.25')
+    with pytest.raises(ApiError) as erro:
+        efeito_no_saldo(SimpleNamespace(tipo_movimentacao='ajuste', valor='1'))
+    assert (erro.value.code, erro.value.status_code) == ('MOVIMENTO_AMBIGUO', 409)
+
+
+def test_core_nao_depende_das_features():
+    for arquivo in (ROOT / 'backend/app/core').glob('*.py'):
+        assert 'app.features' not in arquivo.read_text(encoding='utf-8'), arquivo.name
