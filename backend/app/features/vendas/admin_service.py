@@ -53,21 +53,31 @@ def _bloquear_registros(db, venda_id, versao):
     return caixa, venda, membro, movimentos
 
 
+def _validar_vinculos(venda, membro, movimentos):
+    if any(m.membro_id != venda.membro_id for m in movimentos):
+        raise ApiError('VINCULO_INCONSISTENTE', 'Venda com vínculos de membros inconsistentes.', 409)
+    if venda.tipo_venda in ('fiado', 'recebimento_divida') and (not membro or len(movimentos) != 1):
+        raise ApiError('VINCULO_INCONSISTENTE', 'Venda sem uma movimentação financeira correspondente.', 409)
+    if movimentos:
+        tipo_esperado = 'debito' if venda.tipo_venda == 'fiado' else 'credito' if venda.tipo_venda == 'recebimento_divida' else None
+        if any(m.tipo_movimentacao != tipo_esperado or m.valor != venda.valor_total for m in movimentos):
+            raise ApiError('VINCULO_INCONSISTENTE', 'Movimentação diverge da venda; reconcilie antes de alterar.', 409)
+
+
+def _bloquear_produtos(db, venda):
+    """Recarrega os itens e bloqueia seus produtos em ID crescente."""
+    db.expire(venda, ['itens'])
+    itens = list(venda.itens)
+    produtos = {p.id: p for p in db.query(Produto).filter(Produto.id.in_([i.produto_id for i in itens if i.produto_id])).order_by(Produto.id).populate_existing().with_for_update().all()}
+    return itens, produtos
+
+
 def alterar_venda(db, venda_id, dados, excluir=False):
     entrada = (VersaoPayload if excluir else VendaEdicao).model_validate(dados)
     with unit_of_work(db):
         caixa, venda, membro, movimentos = _bloquear_registros(db, venda_id, entrada.versao)
-        if any(m.membro_id != venda.membro_id for m in movimentos):
-            raise ApiError('VINCULO_INCONSISTENTE', 'Venda com vínculos de membros inconsistentes.', 409)
-        if venda.tipo_venda in ('fiado', 'recebimento_divida') and (not membro or len(movimentos) != 1):
-            raise ApiError('VINCULO_INCONSISTENTE', 'Venda sem uma movimentação financeira correspondente.', 409)
-        if movimentos:
-            tipo_esperado = 'debito' if venda.tipo_venda == 'fiado' else 'credito' if venda.tipo_venda == 'recebimento_divida' else None
-            if any(m.tipo_movimentacao != tipo_esperado or m.valor != venda.valor_total for m in movimentos):
-                raise ApiError('VINCULO_INCONSISTENTE', 'Movimentação diverge da venda; reconcilie antes de alterar.', 409)
-        db.expire(venda, ['itens'])
-        itens = list(venda.itens)
-        produtos = {p.id: p for p in db.query(Produto).filter(Produto.id.in_([i.produto_id for i in itens if i.produto_id])).order_by(Produto.id).populate_existing().with_for_update().all()}
+        _validar_vinculos(venda, membro, movimentos)
+        itens, produtos = _bloquear_produtos(db, venda)
         novos = {} if excluir else {i.id: i for i in entrada.itens}
         if not excluir:
             if len(novos) != len(entrada.itens) or set(novos) != {i.id for i in itens}:
