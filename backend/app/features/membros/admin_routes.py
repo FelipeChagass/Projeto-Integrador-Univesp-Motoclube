@@ -6,7 +6,7 @@ from app.core.database import session_scope
 from app.core.errors import json_object
 from app.features.membros.schemas import FiltroExtrato
 from app.features.membros import service as membro_service
-from app.features.vendas.admin_service import alterar_movimento
+from app.features.membros.admin_service import alterar_movimento
 
 
 @bp.route('/membros/<uuid:membro_id>/movimentos/<uuid:movimento_id>', methods=['PUT', 'DELETE'])

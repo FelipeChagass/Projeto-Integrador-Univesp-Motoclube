@@ -15,6 +15,7 @@ from app.core.financeiro import VersaoPayload, aplicar_delta_saldo, conferir_ver
 from app.core.locks import bloquear_id_externo
 from app.core.schemas import Dinheiro
 from app.features.caixa.service import calcular_fechamento
+from app.features.membros.admin_service import alterar_movimento  # noqa: F401 (compatibilidade de import)
 from app.models import Caixa, Membro, MovimentacaoMembro, Produto, Venda
 from app.models.venda import OperacaoExcluida
 
@@ -33,12 +34,6 @@ class VendaEdicao(VersaoPayload):
     metodo_pagamento: Literal['dinheiro', 'pix', 'cartao_credito', 'cartao_debito', 'fiado', 'ajuste']
     nome_cliente: str = Field(default='', max_length=200)
     observacoes: str = Field(default='', max_length=2000)
-
-
-class MovimentoEdicao(VersaoPayload):
-    tipo: Literal['debito', 'credito']
-    valor: Dinheiro
-    descricao: str = Field(default='', max_length=1000)
 
 
 def alterar_venda(db, venda_id, dados, excluir=False):
@@ -131,26 +126,3 @@ def alterar_venda(db, venda_id, dados, excluir=False):
         if caixa and caixa.status == 'fechado' and caixa.fechamento_calculado:
             caixa.valor_fechamento = calcular_fechamento(db, caixa)
         return {'status': 'ok', 'mensagem': 'Venda excluída.' if excluir else 'Venda atualizada; estoque e valores recalculados.'}
-
-
-def alterar_movimento(db, membro_id, movimento_id, dados, excluir=False):
-    entrada = (VersaoPayload if excluir else MovimentoEdicao).model_validate(dados)
-    with unit_of_work(db):
-        membro = db.query(Membro).filter_by(id=membro_id).populate_existing().with_for_update().first()
-        movimento = db.query(MovimentacaoMembro).filter_by(id=movimento_id, membro_id=membro_id).populate_existing().with_for_update().first()
-        if not membro or not movimento:
-            raise ApiError('MOVIMENTO_NAO_ENCONTRADO', 'Movimentação não encontrada.', 404)
-        if movimento.venda_id:
-            raise ApiError('MOVIMENTO_VINCULADO', 'Edite ou exclua a venda vinculada para recalcular todos os valores.', 409)
-        conferir_versao(movimento, entrada.versao)
-        anterior = efeito_no_saldo(movimento)
-        novo = Decimal('0') if excluir else entrada.valor * (1 if entrada.tipo == 'debito' else -1)
-        aplicar_delta_saldo(membro, novo - anterior)
-        if excluir:
-            db.delete(movimento)
-        else:
-            movimento.valor = entrada.valor
-            movimento.tipo_movimentacao = entrada.tipo
-            movimento.descricao = entrada.descricao
-            movimento.versao += 1
-        return {'status': 'ok', 'mensagem': 'Movimentação excluída.' if excluir else 'Movimentação atualizada.'}

@@ -251,3 +251,35 @@ def test_efeito_no_saldo_por_tipo_de_movimento():
 def test_core_nao_depende_das_features():
     for arquivo in (ROOT / 'backend/app/core').glob('*.py'):
         assert 'app.features' not in arquivo.read_text(encoding='utf-8'), arquivo.name
+
+
+def test_alterar_movimento_pertence_a_membros_sem_depender_de_vendas():
+    from app.features.membros import admin_service as membros_admin
+    from app.features.vendas import admin_service as vendas_admin
+    assert vendas_admin.alterar_movimento is membros_admin.alterar_movimento
+    assert membros_admin.MovimentoEdicao.__module__ == 'app.features.membros.admin_service'
+    fonte = (ROOT / 'backend/app/features/membros/admin_service.py').read_text(encoding='utf-8')
+    assert 'features.vendas' not in fonte
+
+
+@pytest.mark.postgres
+def test_endpoint_de_movimento_avulso_mantem_contrato(pg, seed, client):
+    from app.models import Membro, MovimentacaoMembro
+    admin = headers(seed['users'][2])
+    membro = seed['member']
+    assert client.post(f'/api/admin/membros/{membro}/ajuste', headers=admin,
+                       json={'valor': '20', 'tipo': 'debito'}).status_code == 200
+    with pg() as db:
+        movimento = db.query(MovimentacaoMembro).filter_by(membro_id=membro).one().id
+    url = f'/api/admin/membros/{membro}/movimentos/{movimento}'
+    editado = client.put(url, headers=admin, json={'versao': 1, 'tipo': 'debito', 'valor': '10'})
+    assert editado.status_code == 200
+    assert editado.get_json() == {'status': 'ok', 'mensagem': 'Movimentação atualizada.'}
+    obsoleto = client.put(url, headers=admin, json={'versao': 1, 'tipo': 'debito', 'valor': '5'})
+    assert obsoleto.status_code == 409 and obsoleto.get_json()['code'] == 'REGISTRO_ALTERADO'
+    assert client.put(url, headers=admin, json={'versao': 2, 'tipo': 'x', 'valor': '5'}).status_code == 422
+    excluido = client.delete(url, headers=admin, json={'versao': 2})
+    assert excluido.get_json() == {'status': 'ok', 'mensagem': 'Movimentação excluída.'}
+    assert client.delete(url, headers=admin, json={'versao': 2}).status_code == 404
+    with pg() as db:
+        assert db.get(Membro, membro).saldo_devedor == 0
