@@ -130,16 +130,6 @@ def _criar_venda(db: Session, dados: VendaNormalPayload) -> dict:
         return _confirmacao(venda)
 
 
-def criar_venda_normal(db: Session, dados: VendaNormalPayload) -> dict:
-    return _criar_venda(db, dados)
-
-
-def criar_venda_fiado(db: Session, dados: VendaNormalPayload) -> dict:
-    if dados.metodo != 'fiado':
-        raise ApiError('METODO_INVALIDO', 'Venda fiada exige método fiado.', 422)
-    return _criar_venda(db, dados)
-
-
 def processar_venda(db: Session, dados: VendaNormalPayload) -> dict:
     return _criar_venda(db, dados)
 

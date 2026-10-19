@@ -119,20 +119,6 @@ def sincronizar_perfil(db: Session, user_id: str, email: str, nome: str, perfil:
         ) from None
 
 
-def buscar_por_id(db: Session, usuario_id: str) -> Usuario | None:
-    """Busca perfil por UUID (string ou UUID object)."""
-    uid = _parse_uuid(usuario_id)
-    if not uid:
-        return None
-    return db.query(Usuario).filter_by(id=uid, ativo=True).first()
-
-
-def listar_operadores(db: Session) -> list:
-    """Retorna todos os operadores ativos."""
-    usuarios = db.query(Usuario).filter_by(ativo=True).order_by(Usuario.nome).all()
-    return [u.to_dict() for u in usuarios]
-
-
 # ─── Admin Operations ───
 
 def listar_todos(db: Session) -> list:

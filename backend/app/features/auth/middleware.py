@@ -136,10 +136,4 @@ def requer_permissao(permissao):
 
 
 def requer_admin(f):
-    return requer_permissao('admin:gerenciar')(f)
-
-
-def usuario_atual():
-    token = _extrair_token()
-    return _validar_token(token) if token else None
- 
+    return requer_permissao('admin:gerenciar')(f) 

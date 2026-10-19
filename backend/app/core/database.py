@@ -77,9 +77,3 @@ def unit_of_work(db):
         if depth == 0:
             db.info.pop('uow_depth', None)
             db.info.pop('uow_failed', None)
-
-
-def get_db():
-    """Compatibilidade: novos consumidores devem usar session_scope()."""
-    with session_scope() as db:
-        yield db
