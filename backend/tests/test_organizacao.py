@@ -81,3 +81,12 @@ def test_rotas_admin_de_membros_mantem_status_de_sucesso_e_de_erro(seed, client)
     excesso = client.post(f"/api/admin/membros/{seed['member']}/ajuste", headers=admin,
                           json={'valor': '50.00', 'tipo': 'credito'})
     assert excesso.status_code == 409 and excesso.get_json()['code'] == 'CREDITO_EXCEDE_SALDO'
+
+
+@pytest.mark.parametrize('pasta', ['routes', 'schemas', 'services'])
+def test_estrutura_antiga_por_camada_nao_existe(pasta):
+    assert not (ROOT / 'backend' / 'app' / pasta).exists()
+
+
+def test_gitignore_cobre_bytecode():
+    assert '__pycache__' in (ROOT / '.gitignore').read_text(encoding='utf-8').split()
