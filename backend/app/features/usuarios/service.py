@@ -192,6 +192,25 @@ def _coletar_alteracoes(db: Session, uid: uuid.UUID, autoalteracao: bool, dados:
     return locais, auth
 
 
+def _valores_para_reverter_auth(usuario: Usuario, atualizacoes_auth: dict) -> dict:
+    """Estado atual no Auth dos campos que serão alterados (senha não é reversível)."""
+    rollback_auth = {}
+    if 'email' in atualizacoes_auth:
+        rollback_auth['email'] = usuario.email
+    if 'user_metadata' in atualizacoes_auth:
+        rollback_auth['user_metadata'] = {'nome': usuario.nome}
+    if 'ban_duration' in atualizacoes_auth:
+        rollback_auth['ban_duration'] = _ban_duration_for_status(usuario.ativo)
+    return rollback_auth
+
+
+def _reverter_auth(admin_client, usuario: Usuario, rollback_auth: dict, user_id: str) -> None:
+    try:
+        admin_client.auth.admin.update_user_by_id(str(usuario.id), rollback_auth)
+    except Exception:
+        logger.error('Falha ao reverter atualização do Auth para o usuário %s', user_id)
+
+
 def editar_usuario(db: Session, admin_client, operador_atual_id: str, user_id: str, dados: dict) -> dict:
     """
     Edita dados locais e do Supabase Auth de um usuário.
@@ -216,13 +235,7 @@ def editar_usuario(db: Session, admin_client, operador_atual_id: str, user_id: s
         if not atualizacoes_locais and not atualizacoes_auth:
             return {'status': 'ok', 'mensagem': 'Nenhuma alteração enviada.', 'usuario': usuario.to_dict()}
 
-        rollback_auth = {}
-        if 'email' in atualizacoes_auth:
-            rollback_auth['email'] = usuario.email
-        if 'user_metadata' in atualizacoes_auth:
-            rollback_auth['user_metadata'] = {'nome': usuario.nome}
-        if 'ban_duration' in atualizacoes_auth:
-            rollback_auth['ban_duration'] = _ban_duration_for_status(usuario.ativo)
+        rollback_auth = _valores_para_reverter_auth(usuario, atualizacoes_auth)
 
         if atualizacoes_auth:
             admin_client.auth.admin.update_user_by_id(str(usuario.id), atualizacoes_auth)
@@ -240,10 +253,7 @@ def editar_usuario(db: Session, admin_client, operador_atual_id: str, user_id: s
     except Exception as error:
         db.rollback()
         if atualizacoes_auth and rollback_auth:
-            try:
-                admin_client.auth.admin.update_user_by_id(str(usuario.id), rollback_auth)
-            except Exception:
-                logger.error('Falha ao reverter atualização do Auth para o usuário %s', user_id)
+            _reverter_auth(admin_client, usuario, rollback_auth, user_id)
         logger.error('Erro ao editar usuário: tipo=%s', type(error).__name__)
         raise ApiError('USUARIO_NAO_ATUALIZADO', 'Não foi possível atualizar o usuário. Confirme o estado antes de repetir.', 503) from None
 
