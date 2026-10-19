@@ -8,12 +8,12 @@ from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import func
 
 from app.core.database import unit_of_work
 from app.core.errors import ApiError
 from app.core.locks import bloquear_id_externo
 from app.core.schemas import Dinheiro
+from app.features.caixa.service import calcular_fechamento
 from app.models import Caixa, Membro, MovimentacaoMembro, Produto, Venda
 from app.models.venda import OperacaoExcluida
 
@@ -151,10 +151,7 @@ def alterar_venda(db, venda_id, dados, excluir=False):
             venda.payload_hash = None  # Reenvio antigo recebe conflito, nunca ACK de conteúdo alterado.
         db.flush()
         if caixa and caixa.status == 'fechado' and caixa.fechamento_calculado:
-            recebimentos = db.query(func.coalesce(func.sum(Venda.valor_total), 0)).filter(
-                Venda.caixa_id == caixa.id, Venda.metodo_pagamento == 'dinheiro',
-                Venda.tipo_venda.in_(['normal', 'recebimento_divida'])).scalar()
-            caixa.valor_fechamento = Decimal(caixa.valor_abertura) + recebimentos
+            caixa.valor_fechamento = calcular_fechamento(db, caixa)
         return {'status': 'ok', 'mensagem': 'Venda excluída.' if excluir else 'Venda atualizada; estoque e valores recalculados.'}
 
 

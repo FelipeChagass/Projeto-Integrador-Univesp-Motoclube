@@ -29,6 +29,14 @@ def bloquear_caixa_autorizado(db, caixa_id, usuario_id, *, permitir_admin=False,
     return caixa
 
 
+def calcular_fechamento(db, caixa) -> Decimal:
+    """Valor de fechamento calculado: abertura + recebimentos em dinheiro do caixa."""
+    recebimentos = db.query(func.coalesce(func.sum(Venda.valor_total), 0)).filter(
+        Venda.caixa_id == caixa.id, Venda.metodo_pagamento == 'dinheiro',
+        Venda.tipo_venda.in_(['normal', 'recebimento_divida'])).scalar()
+    return Decimal(caixa.valor_abertura) + Decimal(recebimentos)
+
+
 def abrir_caixa(db: Session, dados: dict) -> dict:
     entrada = AberturaCaixaPayload.model_validate(dados)
     with unit_of_work(db):
@@ -54,10 +62,7 @@ def fechar_caixa(db: Session, dados: dict) -> dict:
         valor = entrada.valor_fechamento
         caixa.fechamento_calculado = valor is None
         if valor is None:
-            recebimentos = db.query(func.coalesce(func.sum(Venda.valor_total), 0)).filter(
-                Venda.caixa_id == caixa.id, Venda.metodo_pagamento == 'dinheiro',
-                Venda.tipo_venda.in_(['normal', 'recebimento_divida'])).scalar()
-            valor = Decimal(caixa.valor_abertura) + Decimal(recebimentos)
+            valor = calcular_fechamento(db, caixa)
         caixa.status = 'fechado'
         caixa.fechado_em = datetime.now(timezone.utc)
         caixa.usuario_fechamento_id = entrada.usuario_id

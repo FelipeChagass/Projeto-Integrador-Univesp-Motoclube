@@ -1,6 +1,7 @@
 """Garantias do plano de organização: estrutura muda, comportamento não."""
 import importlib
 import runpy
+from decimal import Decimal
 from pathlib import Path
 from uuid import UUID
 
@@ -12,7 +13,7 @@ from app.core.locks import bloquear_id_externo, chave_id_externo
 from app.core.servidor import BANNER
 from app.core.tempo import FUSO
 from test_auth_postgres import client, headers  # noqa: F401 (fixture)
-from test_finance_postgres import sale
+from test_finance_postgres import payment, sale
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -141,3 +142,21 @@ def test_fuso_do_estabelecimento_e_unico():
 def test_vendas_nao_depende_de_relatorios_para_o_fuso():
     fonte = (ROOT / 'backend/app/features/vendas/admin_routes.py').read_text(encoding='utf-8')
     assert 'features.relatorios' not in fonte
+
+
+@pytest.mark.postgres
+def test_fechamento_calculado_soma_abertura_e_recebimentos_em_dinheiro(pg, seed):
+    from app.features.caixa.service import calcular_fechamento, fechar_caixa
+    from app.features.vendas.service import processar_venda, registrar_pagamento_divida
+    from app.models import Caixa
+    with pg() as db:
+        assert calcular_fechamento(db, db.get(Caixa, seed['boxes'][0])) == Decimal('100')
+        processar_venda(db, sale(seed))                                   # conta: 10
+        processar_venda(db, sale(seed, metodo='pix'))                     # não conta
+        processar_venda(db, sale(seed, metodo='fiado', membro_id=seed['member']))  # não conta
+        registrar_pagamento_divida(db, payment(seed, metodo='dinheiro'))  # conta: 10
+        assert calcular_fechamento(db, db.get(Caixa, seed['boxes'][0])) == Decimal('120')
+        assert calcular_fechamento(db, db.get(Caixa, seed['boxes'][1])) == Decimal('100')
+        fechado = fechar_caixa(db, {'usuario_id': seed['users'][0], 'caixa_id': seed['boxes'][0]})
+        assert fechado['caixa']['valor_fechamento'] == 120
+        assert db.get(Caixa, seed['boxes'][0]).fechamento_calculado is True
