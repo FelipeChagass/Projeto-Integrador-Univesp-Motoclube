@@ -53,6 +53,51 @@ def _atualizar_usuario_local(usuario: Usuario, atualizacoes: dict) -> None:
         setattr(usuario, campo, valor)
 
 
+def _validar_dados_perfil(user_id, email, nome) -> tuple[uuid.UUID, str, str]:
+    """Valida nome → id → email, nesta ordem; devolve (uid, email normalizado, nome)."""
+    nome = (nome or '').strip()
+    if not nome:
+        raise ApiError('NOME_OBRIGATORIO', 'Nome é obrigatório.', 422)
+
+    uid = _parse_uuid(user_id)
+    if not uid:
+        raise ApiError('ID_USUARIO_INVALIDO', 'ID de usuário inválido.', 422)
+
+    email_normalizado = _normalize_email(email)
+    if not email_normalizado:
+        raise ApiError('EMAIL_OBRIGATORIO', 'Email é obrigatório.', 422)
+    return uid, email_normalizado, nome
+
+
+def _atualizar_perfil_existente(db: Session, existente: Usuario, nome: str, email: str) -> dict:
+    """Atualiza só nome e email, e só confirma se algo mudou; perfil e status são preservados."""
+    mudou = False
+    if existente.nome != nome:
+        existente.nome = nome
+        mudou = True
+    if existente.email != email:
+        existente.email = email
+        mudou = True
+    if mudou:
+        db.commit()
+        db.refresh(existente)
+    return {'status': 'ok', 'usuario': existente.to_dict()}
+
+
+def _criar_perfil(db: Session, uid: uuid.UUID, nome: str, email: str, perfil: str) -> dict:
+    novo = Usuario(
+        id=uid,
+        nome=nome,
+        email=email,
+        perfil=perfil,
+        ativo=True,
+    )
+    db.add(novo)
+    db.commit()
+    db.refresh(novo)
+    return {'status': 'ok', 'usuario': novo.to_dict()}
+
+
 def sincronizar_perfil(db: Session, user_id: str, email: str, nome: str, perfil: str = 'operador') -> dict:
     """
     Cria ou atualiza o perfil do usuário em public.usuarios.
@@ -69,47 +114,12 @@ def sincronizar_perfil(db: Session, user_id: str, email: str, nome: str, perfil:
     Returns:
         dict com status e dados do perfil
     """
-    nome = (nome or '').strip()
-    if not nome:
-        raise ApiError('NOME_OBRIGATORIO', 'Nome é obrigatório.', 422)
-
-    uid = _parse_uuid(user_id)
-    if not uid:
-        raise ApiError('ID_USUARIO_INVALIDO', 'ID de usuário inválido.', 422)
-
-    email_normalizado = _normalize_email(email)
-    if not email_normalizado:
-        raise ApiError('EMAIL_OBRIGATORIO', 'Email é obrigatório.', 422)
-
+    uid, email_normalizado, nome = _validar_dados_perfil(user_id, email, nome)
     try:
         existente = db.query(Usuario).filter_by(id=uid).first()
-
         if existente:
-            mudou = False
-            if existente.nome != nome:
-                existente.nome = nome
-                mudou = True
-            if existente.email != email_normalizado:
-                existente.email = email_normalizado
-                mudou = True
-            if mudou:
-                db.commit()
-                db.refresh(existente)
-            return {'status': 'ok', 'usuario': existente.to_dict()}
-
-        # Cria novo perfil
-        novo = Usuario(
-            id=uid,
-            nome=nome,
-            email=email_normalizado,
-            perfil=perfil,
-            ativo=True,
-        )
-        db.add(novo)
-        db.commit()
-        db.refresh(novo)
-        return {'status': 'ok', 'usuario': novo.to_dict()}
-
+            return _atualizar_perfil_existente(db, existente, nome, email_normalizado)
+        return _criar_perfil(db, uid, nome, email_normalizado, perfil)
     except ApiError:
         raise
     except Exception:
