@@ -16,9 +16,11 @@ cria o perfil local. Falhas parciais exigem compensação explícita.
 import logging
 import uuid
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from supabase_auth.errors import AuthApiError
 
+from app.models import AjusteEstoque, Caixa, MovimentacaoMembro, Venda
 from app.models.usuario import Usuario
 from app.core.errors import ApiError
 
@@ -321,8 +323,8 @@ def criar_usuario_admin(db: Session, supabase_client, dados: dict) -> dict:
         raise ApiError('USUARIO_NAO_CRIADO', 'Não foi possível criar o usuário. Confirme o estado antes de repetir.', 503) from None
 
 
-def excluir_usuario_admin(db: Session, admin_client, operador_atual_id: str, user_id: str) -> dict:
-    """Exclui o perfil e a identidade sem apagar registros financeiros por cascata."""
+def _usuario_a_excluir(db: Session, operador_atual_id: str, user_id: str) -> Usuario:
+    """Valida id → autoexclusão → existência, nesta ordem."""
     uid = _parse_uuid(user_id)
     if not uid:
         raise ApiError('ID_USUARIO_INVALIDO', 'ID inválido.', 422)
@@ -334,49 +336,64 @@ def excluir_usuario_admin(db: Session, admin_client, operador_atual_id: str, use
     usuario = db.query(Usuario).filter_by(id=uid).first()
     if not usuario:
         raise ApiError('USUARIO_NAO_ENCONTRADO', 'Usuário não encontrado.', 404)
+    return usuario
 
-    from app.models import Caixa, Venda, MovimentacaoMembro, AjusteEstoque
-    from sqlalchemy import or_
-    if (db.query(Caixa.id).filter(or_(Caixa.usuario_abertura_id == uid, Caixa.usuario_fechamento_id == uid)).first()
-            or db.query(Venda.id).filter_by(usuario_id=uid).first()
-            or db.query(MovimentacaoMembro.id).filter_by(usuario_id=uid).first()
-            or db.query(AjusteEstoque.id).filter_by(usuario_id=uid).first()):
+
+def _tem_vinculos_operacionais(db: Session, uid: uuid.UUID) -> bool:
+    return bool(
+        db.query(Caixa.id).filter(or_(Caixa.usuario_abertura_id == uid, Caixa.usuario_fechamento_id == uid)).first()
+        or db.query(Venda.id).filter_by(usuario_id=uid).first()
+        or db.query(MovimentacaoMembro.id).filter_by(usuario_id=uid).first()
+        or db.query(AjusteEstoque.id).filter_by(usuario_id=uid).first())
+
+
+def _excluir_identidade_auth(admin_client, uid: uuid.UUID) -> None:
+    """Identidade já ausente no Auth (404) conta como excluída."""
+    try:
+        admin_client.auth.admin.delete_user(str(uid), should_soft_delete=False)
+    except AuthApiError as error:
+        if str(getattr(error, 'status', '')) != '404':
+            raise
+
+
+def _restaurar_perfil(db: Session, fotografia: dict, perfil_excluido: bool, uid: uuid.UUID) -> None:
+    db.rollback()
+    if perfil_excluido:
+        try:
+            db.add(Usuario(**fotografia))
+            db.commit()
+        except Exception:
+            db.rollback()
+            logger.error('Exclusão de usuário requer reconciliação entre Auth e perfil: %s', uid)
+
+
+def excluir_usuario_admin(db: Session, admin_client, operador_atual_id: str, user_id: str) -> dict:
+    """Exclui o perfil e a identidade sem apagar registros financeiros por cascata."""
+    usuario = _usuario_a_excluir(db, operador_atual_id, user_id)
+    uid = usuario.id
+    if _tem_vinculos_operacionais(db, uid):
         raise ApiError('USUARIO_COM_VINCULOS', 'Usuário vinculado a caixas ou registros operacionais. Sua exclusão exige reconciliar esses registros primeiro.', 409)
     # Auth usa outra conexão ao mesmo PostgreSQL. Seu DELETE não pode aguardar
     # nosso perfil ainda não confirmado (FK usuarios.id -> auth.users.id).
     fotografia = {coluna.name: getattr(usuario, coluna.name) for coluna in Usuario.__table__.columns}
     perfil_excluido = False
 
-    def restaurar_perfil():
-        db.rollback()
-        if perfil_excluido:
-            try:
-                db.add(Usuario(**fotografia))
-                db.commit()
-            except Exception:
-                db.rollback()
-                logger.error('Exclusão de usuário requer reconciliação entre Auth e perfil: %s', uid)
-
     try:
         db.delete(usuario)
         db.commit()  # Valida vínculos e libera a FK antes de chamar o Auth.
         perfil_excluido = True
-        try:
-            admin_client.auth.admin.delete_user(str(uid), should_soft_delete=False)
-        except AuthApiError as error:
-            if str(getattr(error, 'status', '')) != '404':
-                raise
+        _excluir_identidade_auth(admin_client, uid)
         return {
             'status': 'ok',
             'mensagem': 'Usuário excluído.',
         }
     except AuthApiError:
-        restaurar_perfil()
+        _restaurar_perfil(db, fotografia, perfil_excluido, uid)
         raise ApiError('AUTH_RECUSOU', _auth_error_message(), 400) from None
     except ApiError:
-        restaurar_perfil()
+        _restaurar_perfil(db, fotografia, perfil_excluido, uid)
         raise
     except Exception as error:
-        restaurar_perfil()
+        _restaurar_perfil(db, fotografia, perfil_excluido, uid)
         logger.error('Erro ao excluir usuário: tipo=%s', type(error).__name__)
         raise ApiError('USUARIO_NAO_EXCLUIDO', 'Não foi possível excluir o usuário. Confirme o estado antes de repetir.', 503) from None
