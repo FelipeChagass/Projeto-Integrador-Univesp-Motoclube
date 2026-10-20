@@ -1,0 +1,23 @@
+# A adoção do Prettier é limitada a JavaScript, inclusive no editor.
+**/*
+!**/
+!**/*.js
+!**/*.mjs
+!**/*.cjs
+
+# Dependências, ambientes virtuais, saídas geradas e ferramentas locais.
+node_modules/
+.venv/
+.venv-test/
+__pycache__/
+.pytest_cache/
+pytest-cache-files-*/
+.ruff_cache/
+coverage/
+htmlcov/
+dist/
+build/
+.test-tools/
+.test-pgdata/
+.test-logs/
+plans/

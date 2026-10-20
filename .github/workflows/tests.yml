@@ -33,6 +33,7 @@ jobs:
           cache: npm
       - run: pip install -r requirements-dev.txt
       - run: npm ci
+      - run: npm run format:check
       - run: ruff check backend migrations scripts
       - run: pytest -q --cov=backend/app --cov-report=term-missing
       - run: python scripts/run_js_tests.py

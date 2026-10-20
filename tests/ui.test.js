@@ -1,26 +1,33 @@
 /**
  * @jest-environment jsdom
  */
-import { jest, describe, test, expect, beforeEach, afterEach } from '@jest/globals';
-import { estadoPdv } from '../static/js/features/pdv/state.js';
+import {
+  jest,
+  describe,
+  test,
+  expect,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
+import { estadoPdv } from "../static/js/features/pdv/state.js";
 
 function mockMatchMedia() {
-    window.matchMedia = jest.fn().mockImplementation(() => ({
-        matches: false,
-        media: '(max-width: 768px)',
-        onchange: null,
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-        addEventListener: jest.fn(),
-        removeEventListener: jest.fn(),
-        dispatchEvent: jest.fn(),
-    }));
+  window.matchMedia = jest.fn().mockImplementation(() => ({
+    matches: false,
+    media: "(max-width: 768px)",
+    onchange: null,
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  }));
 }
 
 /* ── Helpers: minimal DOM for ui.js ── */
 function setupDOM() {
-    estadoPdv.categoriaCatalogo = 'todos';
-    document.body.innerHTML = `
+  estadoPdv.categoriaCatalogo = "todos";
+  document.body.innerHTML = `
         <div id="loading" style="display:flex"><div class="spinner"></div></div>
         <div id="toast">...</div>
         <div id="barra-operador">CAIXA FECHADO</div>
@@ -36,245 +43,341 @@ function setupDOM() {
     `;
 }
 
-test('filtro fixo separa categorias sem alterar produtos ou carrinho', async () => {
+test("filtro fixo separa categorias sem alterar produtos ou carrinho", async () => {
+  setupDOM();
+  const { selecionarCategoria } =
+    await import("../static/js/features/pdv/ui.js");
+  document.body.insertAdjacentHTML(
+    "afterbegin",
+    '<nav id="filtro-catalogo"><button data-categoria="bebida"></button><button data-categoria="comida"></button></nav>',
+  );
+  estadoPdv.produtos = [
+    {
+      id: 1,
+      nome: "Cerveja",
+      categoria: "bebida",
+      preco_atual: 10,
+      estoque_bar: 5,
+    },
+    {
+      id: 2,
+      nome: "Lanche",
+      categoria: "comida",
+      preco_atual: 20,
+      estoque_bar: 5,
+    },
+  ];
+  estadoPdv.carrinho = [{ id: 1, qtd: 1 }];
+  selecionarCategoria("bebida");
+  expect(document.querySelectorAll(".card")).toHaveLength(1);
+  expect(document.getElementById("grid-produtos").textContent).toContain(
+    "Cerveja",
+  );
+  selecionarCategoria("comida");
+  expect(document.getElementById("grid-produtos").textContent).toContain(
+    "Lanche",
+  );
+  expect(
+    document
+      .querySelector('[data-categoria="comida"]')
+      .getAttribute("aria-pressed"),
+  ).toBe("true");
+  expect(estadoPdv.produtos).toHaveLength(2);
+  expect(estadoPdv.carrinho).toEqual([{ id: 1, qtd: 1 }]);
+  selecionarCategoria("outro");
+  expect(document.querySelector(".catalogo-vazio")).not.toBeNull();
+});
+
+describe("ui.js — showToast()", () => {
+  let showToast;
+  beforeEach(async () => {
     setupDOM();
-    const { selecionarCategoria } = await import('../static/js/features/pdv/ui.js');
-    document.body.insertAdjacentHTML('afterbegin', '<nav id="filtro-catalogo"><button data-categoria="bebida"></button><button data-categoria="comida"></button></nav>');
+    mockMatchMedia();
+    const mod = await import("../static/js/features/pdv/ui.js");
+    showToast = mod.showToast;
+  });
+
+  test("exibe mensagem no element toast", () => {
+    showToast("Venda OK!");
+    const toast = document.getElementById("toast");
+    expect(toast.innerText).toBe("Venda OK!");
+    expect(toast.className).toContain("show");
+  });
+
+  test("adiciona classe toast-error para tipo err", () => {
+    showToast("Falha!", "err");
+    const toast = document.getElementById("toast");
+    expect(toast.className).toContain("toast-error");
+  });
+});
+
+describe("ui.js — fecharModal()", () => {
+  let fecharModal;
+  beforeEach(async () => {
+    setupDOM();
+    mockMatchMedia();
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      '<div id="modal-teste" class="modal-overlay" style="display:flex"></div>',
+    );
+    const mod = await import("../static/js/features/pdv/ui.js");
+    fecharModal = mod.fecharModal;
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  test("esconde o modal setando display none", () => {
+    jest.useFakeTimers();
+    fecharModal("modal-teste");
+    jest.runAllTimers();
+    expect(document.getElementById("modal-teste").style.display).toBe("none");
+  });
+
+  test("não quebra com ID inexistente", () => {
+    expect(() => fecharModal("modal-inexistente")).not.toThrow();
+  });
+});
+
+describe("ui.js — atualizarEstadoBotoes()", () => {
+  let atualizarEstadoBotoes;
+  beforeEach(async () => {
+    setupDOM();
+    mockMatchMedia();
+    estadoPdv.operadorAtual = "";
+    estadoPdv.caixaAberto = false;
+    estadoPdv.usuarioAtual = null;
+    const mod = await import("../static/js/features/pdv/ui.js");
+    atualizarEstadoBotoes = mod.atualizarEstadoBotoes;
+  });
+
+  test("mostra BLOQUEADO quando sem operador", () => {
+    estadoPdv.operadorAtual = "";
+    atualizarEstadoBotoes();
+    const barra = document.getElementById("barra-operador");
+    expect(barra.innerText).toContain("BLOQUEADO");
+  });
+
+  test("mostra nome do operador quando logado", () => {
+    estadoPdv.operadorAtual = "Felipe";
+    estadoPdv.caixaAberto = false;
+    atualizarEstadoBotoes();
+    const barra = document.getElementById("barra-operador");
+    expect(barra.innerText).toContain("FELIPE");
+    expect(barra.innerText).toContain("FECHADO");
+  });
+
+  test("mostra CAIXA ABERTO quando caixa aberto", () => {
+    estadoPdv.operadorAtual = "Maria";
+    estadoPdv.caixaAberto = true;
+    atualizarEstadoBotoes();
+    const barra = document.getElementById("barra-operador");
+    expect(barra.innerText).toContain("ABERTO");
+  });
+
+  test("mostra botão admin para perfil admin", () => {
+    estadoPdv.operadorAtual = "Admin";
+    estadoPdv.usuarioAtual = { perfil: "admin" };
+    atualizarEstadoBotoes();
+    expect(
+      document.getElementById("btn-admin").classList.contains("d-none"),
+    ).toBe(false);
+  });
+
+  test("esconde botão admin para perfil operador", () => {
+    estadoPdv.operadorAtual = "Operador";
+    estadoPdv.usuarioAtual = { perfil: "operador" };
+    atualizarEstadoBotoes();
+    expect(
+      document.getElementById("btn-admin").classList.contains("d-none"),
+    ).toBe(true);
+  });
+});
+
+describe("ui.js — renderizarCatalogo()", () => {
+  let renderizarCatalogo;
+  beforeEach(async () => {
+    setupDOM();
+    mockMatchMedia();
+    estadoPdv.produtos = [];
+    estadoPdv.carrinho = [];
+    estadoPdv.modoGerenciaEstoque = false;
+    const mod = await import("../static/js/features/pdv/ui.js");
+    renderizarCatalogo = mod.renderizarCatalogo;
+  });
+
+  test("mostra mensagem quando sem produtos", () => {
+    estadoPdv.produtos = [];
+    renderizarCatalogo();
+    const grid = document.getElementById("grid-produtos");
+    expect(grid.innerHTML).toContain("Nenhum produto encontrado");
+  });
+
+  test("renderiza cards para cada produto", () => {
     estadoPdv.produtos = [
-        { id: 1, nome: 'Cerveja', categoria: 'bebida', preco_atual: 10, estoque_bar: 5 },
-        { id: 2, nome: 'Lanche', categoria: 'comida', preco_atual: 20, estoque_bar: 5 },
+      {
+        id: 1,
+        nome: "Cerveja",
+        preco_atual: 10,
+        estoque_bar: 20,
+        estoque_deposito: 50,
+        estoque_min_bar: 5,
+        estoque_min_deposito: 10,
+        url_imagem: "",
+      },
+      {
+        id: 2,
+        nome: "Água",
+        preco_atual: 5,
+        estoque_bar: 15,
+        estoque_deposito: 30,
+        estoque_min_bar: 3,
+        estoque_min_deposito: 5,
+        url_imagem: "",
+      },
     ];
-    estadoPdv.carrinho = [{ id: 1, qtd: 1 }];
-    selecionarCategoria('bebida');
-    expect(document.querySelectorAll('.card')).toHaveLength(1);
-    expect(document.getElementById('grid-produtos').textContent).toContain('Cerveja');
-    selecionarCategoria('comida');
-    expect(document.getElementById('grid-produtos').textContent).toContain('Lanche');
-    expect(document.querySelector('[data-categoria="comida"]').getAttribute('aria-pressed')).toBe('true');
-    expect(estadoPdv.produtos).toHaveLength(2);
-    expect(estadoPdv.carrinho).toEqual([{ id: 1, qtd: 1 }]);
-    selecionarCategoria('outro');
-    expect(document.querySelector('.catalogo-vazio')).not.toBeNull();
+    renderizarCatalogo();
+    const cards = document.querySelectorAll(".card");
+    expect(cards.length).toBe(2);
+  });
+
+  test("cards contêm nome e preço sanitizados", () => {
+    estadoPdv.produtos = [
+      {
+        id: 1,
+        nome: "<script>Evil</script>",
+        preco_atual: 99.9,
+        estoque_bar: 10,
+        estoque_deposito: 20,
+        estoque_min_bar: 2,
+        estoque_min_deposito: 5,
+        url_imagem: "",
+      },
+    ];
+    renderizarCatalogo();
+    const card = document.querySelector(".card");
+    expect(card.innerHTML).not.toContain("<script>");
+    expect(card.innerHTML).toContain("&lt;script&gt;");
+    expect(card.innerHTML).toContain("R$ 99.90");
+  });
+
+  test("marca card esgotado quando estoque_bar <= 0", () => {
+    estadoPdv.produtos = [
+      {
+        id: 1,
+        nome: "Esgotado",
+        preco_atual: 10,
+        estoque_bar: 0,
+        estoque_deposito: 5,
+        estoque_min_bar: 1,
+        estoque_min_deposito: 1,
+        url_imagem: "",
+      },
+    ];
+    renderizarCatalogo();
+    const card = document.querySelector(".card");
+    expect(card.dataset.barZerado).toBe("true");
+    expect(card.innerHTML).toContain("ACABOU");
+  });
+
+  test("desconta quantidade do carrinho do estoque visível", () => {
+    estadoPdv.produtos = [
+      {
+        id: 1,
+        nome: "Cerveja",
+        preco_atual: 10,
+        estoque_bar: 5,
+        estoque_deposito: 20,
+        estoque_min_bar: 1,
+        estoque_min_deposito: 5,
+        url_imagem: "",
+      },
+    ];
+    estadoPdv.carrinho = [
+      { id: 1, nome: "Cerveja", preco: 10, qtd: 3, obs: "" },
+    ];
+    renderizarCatalogo();
+    const stock = document.querySelector(".card-stock");
+    expect(stock.textContent).toContain("Bar: 2");
+  });
+
+  test("mostra badge ESTOQUE BAIXO quando abaixo do mínimo", () => {
+    estadoPdv.produtos = [
+      {
+        id: 1,
+        nome: "Pouco",
+        preco_atual: 10,
+        estoque_bar: 2,
+        estoque_deposito: 20,
+        estoque_min_bar: 5,
+        estoque_min_deposito: 3,
+        url_imagem: "",
+      },
+    ];
+    renderizarCatalogo();
+    const card = document.querySelector(".card");
+    expect(card.classList.contains("card-alerta")).toBe(true);
+    expect(card.innerHTML).toContain("ESTOQUE BAIXO");
+  });
 });
 
-describe('ui.js — showToast()', () => {
-    let showToast;
-    beforeEach(async () => {
-        setupDOM();
-        mockMatchMedia();
-        const mod = await import('../static/js/features/pdv/ui.js');
-        showToast = mod.showToast;
-    });
+describe("ui.js — atualizarUI()", () => {
+  let atualizarUI;
+  beforeEach(async () => {
+    setupDOM();
+    mockMatchMedia();
+    estadoPdv.produtos = [
+      {
+        id: 1,
+        nome: "Cerveja",
+        preco_atual: 10,
+        estoque_bar: 50,
+        estoque_deposito: 100,
+        estoque_min_bar: 5,
+        estoque_min_deposito: 10,
+        url_imagem: "",
+      },
+    ];
+    estadoPdv.carrinho = [];
+    estadoPdv.modoGerenciaEstoque = false;
+    const mod = await import("../static/js/features/pdv/ui.js");
+    atualizarUI = mod.atualizarUI;
+  });
 
-    test('exibe mensagem no element toast', () => {
-        showToast('Venda OK!');
-        const toast = document.getElementById('toast');
-        expect(toast.innerText).toBe('Venda OK!');
-        expect(toast.className).toContain('show');
-    });
+  test("mostra total R$ 0,00 com carrinho vazio", () => {
+    estadoPdv.carrinho = [];
+    atualizarUI();
+    expect(document.getElementById("total-display").innerText).toBe("R$ 0.00");
+  });
 
-    test('adiciona classe toast-error para tipo err', () => {
-        showToast('Falha!', 'err');
-        const toast = document.getElementById('toast');
-        expect(toast.className).toContain('toast-error');
-    });
-});
+  test("calcula total correto com múltiplos itens", () => {
+    estadoPdv.carrinho = [
+      { id: 1, nome: "Cerveja", preco: 10, qtd: 3, obs: "" },
+      { id: 2, nome: "Água", preco: 5, qtd: 2, obs: "" },
+    ];
+    atualizarUI();
+    expect(document.getElementById("total-display").innerText).toBe("R$ 40.00");
+  });
 
-describe('ui.js — fecharModal()', () => {
-    let fecharModal;
-    beforeEach(async () => {
-        setupDOM();
-        mockMatchMedia();
-        document.body.insertAdjacentHTML('beforeend', '<div id="modal-teste" class="modal-overlay" style="display:flex"></div>');
-        const mod = await import('../static/js/features/pdv/ui.js');
-        fecharModal = mod.fecharModal;
-    });
+  test("renderiza itens do carrinho no DOM", () => {
+    estadoPdv.carrinho = [
+      { id: 1, nome: "Cerveja", preco: 10, qtd: 1, obs: "Gelada" },
+    ];
+    atualizarUI();
+    const items = document.querySelectorAll(".item-carrinho");
+    expect(items.length).toBe(1);
+    expect(items[0].innerHTML).toContain("Cerveja");
+    expect(items[0].innerHTML).toContain("Gelada");
+  });
 
-    afterEach(() => {
-        jest.useRealTimers();
-    });
-
-    test('esconde o modal setando display none', () => {
-        jest.useFakeTimers();
-        fecharModal('modal-teste');
-        jest.runAllTimers();
-        expect(document.getElementById('modal-teste').style.display).toBe('none');
-    });
-
-    test('não quebra com ID inexistente', () => {
-        expect(() => fecharModal('modal-inexistente')).not.toThrow();
-    });
-});
-
-describe('ui.js — atualizarEstadoBotoes()', () => {
-    let atualizarEstadoBotoes;
-    beforeEach(async () => {
-        setupDOM();
-        mockMatchMedia();
-        estadoPdv.operadorAtual = '';
-        estadoPdv.caixaAberto = false;
-        estadoPdv.usuarioAtual = null;
-        const mod = await import('../static/js/features/pdv/ui.js');
-        atualizarEstadoBotoes = mod.atualizarEstadoBotoes;
-    });
-
-    test('mostra BLOQUEADO quando sem operador', () => {
-        estadoPdv.operadorAtual = '';
-        atualizarEstadoBotoes();
-        const barra = document.getElementById('barra-operador');
-        expect(barra.innerText).toContain('BLOQUEADO');
-    });
-
-    test('mostra nome do operador quando logado', () => {
-        estadoPdv.operadorAtual = 'Felipe';
-        estadoPdv.caixaAberto = false;
-        atualizarEstadoBotoes();
-        const barra = document.getElementById('barra-operador');
-        expect(barra.innerText).toContain('FELIPE');
-        expect(barra.innerText).toContain('FECHADO');
-    });
-
-    test('mostra CAIXA ABERTO quando caixa aberto', () => {
-        estadoPdv.operadorAtual = 'Maria';
-        estadoPdv.caixaAberto = true;
-        atualizarEstadoBotoes();
-        const barra = document.getElementById('barra-operador');
-        expect(barra.innerText).toContain('ABERTO');
-    });
-
-    test('mostra botão admin para perfil admin', () => {
-        estadoPdv.operadorAtual = 'Admin';
-        estadoPdv.usuarioAtual = { perfil: 'admin' };
-        atualizarEstadoBotoes();
-        expect(document.getElementById('btn-admin').classList.contains('d-none')).toBe(false);
-    });
-
-    test('esconde botão admin para perfil operador', () => {
-        estadoPdv.operadorAtual = 'Operador';
-        estadoPdv.usuarioAtual = { perfil: 'operador' };
-        atualizarEstadoBotoes();
-        expect(document.getElementById('btn-admin').classList.contains('d-none')).toBe(true);
-    });
-});
-
-describe('ui.js — renderizarCatalogo()', () => {
-    let renderizarCatalogo;
-    beforeEach(async () => {
-        setupDOM();
-        mockMatchMedia();
-        estadoPdv.produtos = [];
-        estadoPdv.carrinho = [];
-        estadoPdv.modoGerenciaEstoque = false;
-        const mod = await import('../static/js/features/pdv/ui.js');
-        renderizarCatalogo = mod.renderizarCatalogo;
-    });
-
-    test('mostra mensagem quando sem produtos', () => {
-        estadoPdv.produtos = [];
-        renderizarCatalogo();
-        const grid = document.getElementById('grid-produtos');
-        expect(grid.innerHTML).toContain('Nenhum produto encontrado');
-    });
-
-    test('renderiza cards para cada produto', () => {
-        estadoPdv.produtos = [
-            { id: 1, nome: 'Cerveja', preco_atual: 10, estoque_bar: 20, estoque_deposito: 50, estoque_min_bar: 5, estoque_min_deposito: 10, url_imagem: '' },
-            { id: 2, nome: 'Água', preco_atual: 5, estoque_bar: 15, estoque_deposito: 30, estoque_min_bar: 3, estoque_min_deposito: 5, url_imagem: '' },
-        ];
-        renderizarCatalogo();
-        const cards = document.querySelectorAll('.card');
-        expect(cards.length).toBe(2);
-    });
-
-    test('cards contêm nome e preço sanitizados', () => {
-        estadoPdv.produtos = [
-            { id: 1, nome: '<script>Evil</script>', preco_atual: 99.9, estoque_bar: 10, estoque_deposito: 20, estoque_min_bar: 2, estoque_min_deposito: 5, url_imagem: '' },
-        ];
-        renderizarCatalogo();
-        const card = document.querySelector('.card');
-        expect(card.innerHTML).not.toContain('<script>');
-        expect(card.innerHTML).toContain('&lt;script&gt;');
-        expect(card.innerHTML).toContain('R$ 99.90');
-    });
-
-    test('marca card esgotado quando estoque_bar <= 0', () => {
-        estadoPdv.produtos = [
-            { id: 1, nome: 'Esgotado', preco_atual: 10, estoque_bar: 0, estoque_deposito: 5, estoque_min_bar: 1, estoque_min_deposito: 1, url_imagem: '' },
-        ];
-        renderizarCatalogo();
-        const card = document.querySelector('.card');
-        expect(card.dataset.barZerado).toBe('true');
-        expect(card.innerHTML).toContain('ACABOU');
-    });
-
-    test('desconta quantidade do carrinho do estoque visível', () => {
-        estadoPdv.produtos = [
-            { id: 1, nome: 'Cerveja', preco_atual: 10, estoque_bar: 5, estoque_deposito: 20, estoque_min_bar: 1, estoque_min_deposito: 5, url_imagem: '' },
-        ];
-        estadoPdv.carrinho = [{ id: 1, nome: 'Cerveja', preco: 10, qtd: 3, obs: '' }];
-        renderizarCatalogo();
-        const stock = document.querySelector('.card-stock');
-        expect(stock.textContent).toContain('Bar: 2');
-    });
-
-    test('mostra badge ESTOQUE BAIXO quando abaixo do mínimo', () => {
-        estadoPdv.produtos = [
-            { id: 1, nome: 'Pouco', preco_atual: 10, estoque_bar: 2, estoque_deposito: 20, estoque_min_bar: 5, estoque_min_deposito: 3, url_imagem: '' },
-        ];
-        renderizarCatalogo();
-        const card = document.querySelector('.card');
-        expect(card.classList.contains('card-alerta')).toBe(true);
-        expect(card.innerHTML).toContain('ESTOQUE BAIXO');
-    });
-});
-
-describe('ui.js — atualizarUI()', () => {
-    let atualizarUI;
-    beforeEach(async () => {
-        setupDOM();
-        mockMatchMedia();
-        estadoPdv.produtos = [
-            { id: 1, nome: 'Cerveja', preco_atual: 10, estoque_bar: 50, estoque_deposito: 100, estoque_min_bar: 5, estoque_min_deposito: 10, url_imagem: '' },
-        ];
-        estadoPdv.carrinho = [];
-        estadoPdv.modoGerenciaEstoque = false;
-        const mod = await import('../static/js/features/pdv/ui.js');
-        atualizarUI = mod.atualizarUI;
-    });
-
-    test('mostra total R$ 0,00 com carrinho vazio', () => {
-        estadoPdv.carrinho = [];
-        atualizarUI();
-        expect(document.getElementById('total-display').innerText).toBe('R$ 0.00');
-    });
-
-    test('calcula total correto com múltiplos itens', () => {
-        estadoPdv.carrinho = [
-            { id: 1, nome: 'Cerveja', preco: 10, qtd: 3, obs: '' },
-            { id: 2, nome: 'Água', preco: 5, qtd: 2, obs: '' },
-        ];
-        atualizarUI();
-        expect(document.getElementById('total-display').innerText).toBe('R$ 40.00');
-    });
-
-    test('renderiza itens do carrinho no DOM', () => {
-        estadoPdv.carrinho = [
-            { id: 1, nome: 'Cerveja', preco: 10, qtd: 1, obs: 'Gelada' },
-        ];
-        atualizarUI();
-        const items = document.querySelectorAll('.item-carrinho');
-        expect(items.length).toBe(1);
-        expect(items[0].innerHTML).toContain('Cerveja');
-        expect(items[0].innerHTML).toContain('Gelada');
-    });
-
-    test('sanitiza observações no carrinho', () => {
-        estadoPdv.carrinho = [
-            { id: 1, nome: 'Item', preco: 10, qtd: 1, obs: '<img onerror=alert(1)>' },
-        ];
-        atualizarUI();
-        const item = document.querySelector('.item-carrinho');
-        expect(item.innerHTML).not.toContain('<img');
-        expect(item.innerHTML).toContain('&lt;img');
-    });
+  test("sanitiza observações no carrinho", () => {
+    estadoPdv.carrinho = [
+      { id: 1, nome: "Item", preco: 10, qtd: 1, obs: "<img onerror=alert(1)>" },
+    ];
+    atualizarUI();
+    const item = document.querySelector(".item-carrinho");
+    expect(item.innerHTML).not.toContain("<img");
+    expect(item.innerHTML).toContain("&lt;img");
+  });
 });

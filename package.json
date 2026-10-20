@@ -4,6 +4,8 @@
   "description": "Sistema de Ponto de Venda (PDV) e Painel Administrativo para bar de moto clube.  \r Stack: **Python Flask + PostgreSQL (Supabase) + Vanilla JS + Bootstrap 5**.",
   "main": "index.js",
   "scripts": {
+    "format": "prettier --write \"**/*.{js,mjs,cjs}\"",
+    "format:check": "prettier --check \"**/*.{js,mjs,cjs}\"",
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --verbose"
   },
   "repository": {
@@ -20,7 +22,9 @@
   "homepage": "https://github.com/FelipeChagass/Projeto-Integrador-Univesp-Motoclube#readme",
   "jest": {
     "testEnvironment": "jsdom",
-    "setupFiles": ["<rootDir>/tests/setup.js"],
+    "setupFiles": [
+      "<rootDir>/tests/setup.js"
+    ],
     "transform": {}
   },
   "devDependencies": {
@@ -28,6 +32,7 @@
     "fake-indexeddb": "6.2.4",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
-    "jest-location-mock": "^3.0.0"
+    "jest-location-mock": "^3.0.0",
+    "prettier": "3.9.10"
   }
 }

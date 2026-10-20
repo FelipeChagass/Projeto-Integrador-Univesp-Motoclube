@@ -64,6 +64,33 @@ python -m venv .venv
 npm ci
 ```
 
+### Formatação do JavaScript
+
+O Prettier é uma dependência de desenvolvimento com versão exata e lockfile versionado.
+Use `npm run format` para formatar os arquivos JavaScript e `npm run format:check`
+para verificar sem modificar; a CI executa essa verificação após `npm ci`.
+
+A configuração adota os padrões do Prettier: indentação com 2 espaços,
+largura-alvo de 80 colunas (não é um limite rígido), ponto e vírgula, preferência
+por aspas duplas, vírgulas finais em estruturas multilinha e parênteses nos
+parâmetros de arrow functions. Os finais de linha são LF também no Windows.
+Não há regras experimentais nem plugins para ordenar imports.
+
+O escopo inclui módulos da aplicação, testes e scripts `.js`, `.mjs` e `.cjs`.
+Dependências, ambientes virtuais e artefatos são ignorados. Outros tipos de arquivo
+e linguagens embutidas em strings não são reformatados, preservando templates e
+conteúdo HTML/CSS gerado pelo JavaScript.
+
+No VS Code, a extensão recomendada **Prettier – Code formatter** usa a versão local
+e formata JavaScript ao salvar. As configurações não alteram o formatador de Python,
+HTML ou CSS. Execute `npm ci` ao preparar uma nova cópia do repositório.
+
+Prettier cuida da formatação, não da correção ou arquitetura do código. Nomes de
+variáveis e funções próprias devem continuar descritivos, em **pt-BR**, usando
+`camelCase`; constantes podem usar `UPPER_SNAKE_CASE`. Nomes de APIs externas,
+contratos JSON e APIs do navegador não devem ser traduzidos indiscriminadamente.
+Formatação não substitui revisão, análise estática nem execução dos testes.
+
 Configure um `.env` local, nunca versionado:
 
 ```dotenv

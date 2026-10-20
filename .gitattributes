@@ -1,0 +1,4 @@
+# Manter os finais de linha do JavaScript iguais no Windows e na CI Linux.
+*.js text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
