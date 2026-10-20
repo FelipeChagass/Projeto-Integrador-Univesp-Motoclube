@@ -54,7 +54,7 @@ describe('Servidor — Módulos ES6 do PDV', () => {
     test('state.js é servido', async () => {
         const { status, body } = await fetchText(`${BASE}/static/js/features/pdv/state.js`);
         expect(status).toBe(200);
-        expect(body).toContain('export const S');
+        expect(body).toContain('export const estadoPdv');
     });
 
     test('ui.js é servido', async () => {

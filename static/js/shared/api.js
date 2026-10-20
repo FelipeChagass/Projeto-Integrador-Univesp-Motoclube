@@ -2,10 +2,10 @@
  * Cliente HTTP/autenticação compartilhado; ApiError preserva status e possibilidade de retry.
  */
 export class ApiError extends Error {
-    constructor(message, { status = 0, code = 'NETWORK_ERROR', details = null, retryable = false, requestId = null } = {}) {
-        super(message);
+    constructor(mensagem, { status: statusHttp = 0, code: codigoErro = 'NETWORK_ERROR', details: detalhesErro = null, retryable: permiteNovaTentativa = false, requestId: identificadorRequisicao = null } = {}) {
+        super(mensagem);
         this.name = 'ApiError';
-        Object.assign(this, { status, code, details, retryable, requestId });
+        Object.assign(this, { status: statusHttp, code: codigoErro, details: detalhesErro, retryable: permiteNovaTentativa, requestId: identificadorRequisicao });
     }
 }
 
@@ -14,7 +14,7 @@ export const API = (function () {
     const BASE_URL = window.location.origin + '/api';
 
     let supabaseClient = null;
-    let _initPromise = null;
+    let inicializacaoSupabaseEmCurso = null;
 
     async function initSupabase() {
         if (supabaseClient) return supabaseClient;
@@ -23,121 +23,121 @@ export const API = (function () {
             return null;
         }
 
-        if (_initPromise) return _initPromise;
+        if (inicializacaoSupabaseEmCurso) return inicializacaoSupabaseEmCurso;
 
-        _initPromise = (async () => {
+        inicializacaoSupabaseEmCurso = (async () => {
             try {
-                const res = await fetch(BASE_URL + '/auth/config');
-                const config = await res.json();
-                if (res.ok && config.status === 'ok') {
-                    supabaseClient = window.supabase.createClient(config.supabase_url, config.supabase_anon_key);
+                const respostaConfiguracao = await fetch(BASE_URL + '/auth/config');
+                const configuracaoAutenticacao = await respostaConfiguracao.json();
+                if (respostaConfiguracao.ok && configuracaoAutenticacao.status === 'ok') {
+                    supabaseClient = window.supabase.createClient(configuracaoAutenticacao.supabase_url, configuracaoAutenticacao.supabase_anon_key);
                 }
-            } catch (e) {
+            } catch {
                 console.error('Não foi possível carregar a configuração de autenticação.');
             }
             return supabaseClient;
         })();
 
-        const client = await _initPromise;
-        if (!client) _initPromise = null;
-        return client;
+        const clienteAutenticacao = await inicializacaoSupabaseEmCurso;
+        if (!clienteAutenticacao) inicializacaoSupabaseEmCurso = null;
+        return clienteAutenticacao;
     }
 
-    const _cache = {};
-    const CACHE_TTL = 30000;
+    const cacheRespostas = {};
+    const DURACAO_CACHE_MS = 30000;
 
-    function _getCached(key) {
-        let entry = _cache[key];
-        if (entry && (Date.now() - entry.ts) < CACHE_TTL) return entry.data;
+    function _getCached(chaveCache) {
+        let entradaCache = cacheRespostas[chaveCache];
+        if (entradaCache && (Date.now() - entradaCache.ts) < DURACAO_CACHE_MS) return entradaCache.data;
         return null;
     }
 
-    function _setCache(key, data) {
-        _cache[key] = { data: data, ts: Date.now() };
+    function _setCache(chaveCache, dadosResposta) {
+        cacheRespostas[chaveCache] = { data: dadosResposta, ts: Date.now() };
     }
 
-    function _clearCache(key) {
-        if (key) { delete _cache[key]; } else { Object.keys(_cache).forEach(function (k) { delete _cache[k]; }); }
+    function _clearCache(chaveCache) {
+        if (chaveCache) { delete cacheRespostas[chaveCache]; } else { Object.keys(cacheRespostas).forEach(function (chaveArmazenada) { delete cacheRespostas[chaveArmazenada]; }); }
     }
 
-    const REQUEST_TIMEOUT = 15000;
+    const TEMPO_LIMITE_REQUISICAO_MS = 15000;
 
-    async function _request(method, endpoint, body, _retryCount) {
-        if (typeof _retryCount === 'undefined') _retryCount = 0;
-        const headers = {
+    async function _request(metodoHttp, caminhoEndpoint, corpoRequisicao, tentativasRequisicao) {
+        if (typeof tentativasRequisicao === 'undefined') tentativasRequisicao = 0;
+        const cabecalhosRequisicao = {
             'Content-Type': 'application/json',
         };
 
         try {
-            const client = await initSupabase();
-            if (!client) throw new Error('Auth unavailable');
-            const { data: { session }, error } = await client.auth.getSession();
-            if (error) throw error;
-            if (session?.access_token) headers['Authorization'] = 'Bearer ' + session.access_token;
-        } catch (_) {
+            const clienteAutenticacao = await initSupabase();
+            if (!clienteAutenticacao) throw new Error('Auth unavailable');
+            const { data: { session: sessaoAutenticacao }, error: erroSessao } = await clienteAutenticacao.auth.getSession();
+            if (erroSessao) throw erroSessao;
+            if (sessaoAutenticacao?.access_token) cabecalhosRequisicao['Authorization'] = 'Bearer ' + sessaoAutenticacao.access_token;
+        } catch {
             throw new ApiError('Autenticação temporariamente indisponível.', { code: 'AUTH_UNAVAILABLE', retryable: true });
         }
 
         // Financial state and identity must never come from a stale client cache.
-        let cacheKey = null;
-        if (cacheKey) {
-            let cached = _getCached(cacheKey);
-            if (cached) return cached;
+        let chaveCache = null;
+        if (chaveCache) {
+            let respostaEmCache = _getCached(chaveCache);
+            if (respostaEmCache) return respostaEmCache;
         }
 
-        let controller = new AbortController();
-        let timeoutId = setTimeout(function () { controller.abort(); }, REQUEST_TIMEOUT);
+        let controladorCancelamento = new AbortController();
+        let temporizadorRequisicaoId = setTimeout(function () { controladorCancelamento.abort(); }, TEMPO_LIMITE_REQUISICAO_MS);
 
-        const options = {
-            method: method,
-            headers: headers,
-            signal: controller.signal,
+        const opcoesRequisicao = {
+            method: metodoHttp,
+            headers: cabecalhosRequisicao,
+            signal: controladorCancelamento.signal,
         };
 
-        if (body && (method === 'POST' || method === 'PUT' || method === 'DELETE')) {
-            if (body instanceof FormData) {
-                delete headers['Content-Type'];
-                options.body = body;
-            } else options.body = JSON.stringify(body);
+        if (corpoRequisicao && (metodoHttp === 'POST' || metodoHttp === 'PUT' || metodoHttp === 'DELETE')) {
+            if (corpoRequisicao instanceof FormData) {
+                delete cabecalhosRequisicao['Content-Type'];
+                opcoesRequisicao.body = corpoRequisicao;
+            } else opcoesRequisicao.body = JSON.stringify(corpoRequisicao);
         }
 
         try {
-            const response = await fetch(BASE_URL + endpoint, options);
-            let data = null;
-            try { data = response.status === 204 ? null : await response.json(); }
-            catch (_) {
-                if (response.ok) throw new ApiError('Resposta inválida do servidor.', { status: response.status, code: 'INVALID_RESPONSE' });
+            const respostaHttp = await fetch(BASE_URL + caminhoEndpoint, opcoesRequisicao);
+            let dadosResposta = null;
+            try { dadosResposta = respostaHttp.status === 204 ? null : await respostaHttp.json(); }
+            catch {
+                if (respostaHttp.ok) throw new ApiError('Resposta inválida do servidor.', { status: respostaHttp.status, code: 'INVALID_RESPONSE' });
             }
-            if (!response.ok || data?.status === 'erro') {
-                const status = response.status;
-                const defaultCodes = { 400: 'BAD_REQUEST', 401: 'AUTH_REQUIRED', 403: 'FORBIDDEN', 404: 'NOT_FOUND', 409: 'CONFLICT', 422: 'VALIDATION_ERROR' };
-                throw new ApiError(data?.message || 'Não foi possível concluir a operação.', {
-                    status, code: data?.code || defaultCodes[status] || 'SERVER_ERROR',
-                    details: data?.details || null,
-                    retryable: ![400, 401, 403, 404, 409, 422].includes(status) && (data?.retryable ?? (status >= 500 || status === 429)),
-                    requestId: data?.request_id || response.headers?.get?.('X-Request-ID') || null
+            if (!respostaHttp.ok || dadosResposta?.status === 'erro') {
+                const statusHttp = respostaHttp.status;
+                const codigosErroPorStatus = { 400: 'BAD_REQUEST', 401: 'AUTH_REQUIRED', 403: 'FORBIDDEN', 404: 'NOT_FOUND', 409: 'CONFLICT', 422: 'VALIDATION_ERROR' };
+                throw new ApiError(dadosResposta?.message || 'Não foi possível concluir a operação.', {
+                    status: statusHttp, code: dadosResposta?.code || codigosErroPorStatus[statusHttp] || 'SERVER_ERROR',
+                    details: dadosResposta?.details || null,
+                    retryable: ![400, 401, 403, 404, 409, 422].includes(statusHttp) && (dadosResposta?.retryable ?? (statusHttp >= 500 || statusHttp === 429)),
+                    requestId: dadosResposta?.request_id || respostaHttp.headers?.get?.('X-Request-ID') || null
                 });
             }
 
-            if (cacheKey) _setCache(cacheKey, data);
+            if (chaveCache) _setCache(chaveCache, dadosResposta);
 
-            clearTimeout(timeoutId);
-            return data;
-        } catch (error) {
-            clearTimeout(timeoutId);
+            clearTimeout(temporizadorRequisicaoId);
+            return dadosResposta;
+        } catch (erroRequisicao) {
+            clearTimeout(temporizadorRequisicaoId);
 
-            if (error instanceof ApiError) throw error;
-            const timeout = error.name === 'AbortError';
-            const online = typeof navigator === 'undefined' || navigator.onLine !== false;
-            const details = {
-                tipo: 'transporte', method, endpoint, online,
-                browser_error: error?.name || 'Error'
+            if (erroRequisicao instanceof ApiError) throw erroRequisicao;
+            const tempoLimiteExcedido = erroRequisicao.name === 'AbortError';
+            const dispositivoOnline = typeof navigator === 'undefined' || navigator.onLine !== false;
+            const detalhesTransporte = {
+                tipo: 'transporte', method: metodoHttp, endpoint: caminhoEndpoint, online: dispositivoOnline,
+                browser_error: erroRequisicao?.name || 'Error'
             };
-            console.error('API inacessível antes de receber resposta HTTP.', details, error);
+            console.error('API inacessível antes de receber resposta HTTP.', detalhesTransporte, erroRequisicao);
             // A durable queue controls retries of financial operations with the same id.
-            throw new ApiError(timeout ? 'O servidor excedeu o tempo limite.' :
-                (online ? 'Não foi possível alcançar o servidor.' : 'O dispositivo está sem conexão.'), {
-                code: timeout ? 'TIMEOUT' : 'SERVER_UNREACHABLE', details, retryable: true
+            throw new ApiError(tempoLimiteExcedido ? 'O servidor excedeu o tempo limite.' :
+                (dispositivoOnline ? 'Não foi possível alcançar o servidor.' : 'O dispositivo está sem conexão.'), {
+                code: tempoLimiteExcedido ? 'TIMEOUT' : 'SERVER_UNREACHABLE', details: detalhesTransporte, retryable: true
             });
         }
     }
@@ -148,35 +148,35 @@ export const API = (function () {
         request: _request,
 
         login: async function (email, senha) {
-            const client = await initSupabase();
-            if (!client) return { status: 'erro', mensagem: 'Supabase não inicializado' };
-            const { data, error } = await client.auth.signInWithPassword({ email: email, password: senha });
-            if (error) return { status: 'erro', mensagem: error.message };
-            return { status: 'ok', usuario: data.user, session: data.session };
+            const clienteAutenticacao = await initSupabase();
+            if (!clienteAutenticacao) return { status: 'erro', mensagem: 'Supabase não inicializado' };
+            const { data: dadosAutenticacao, error: erroAutenticacao } = await clienteAutenticacao.auth.signInWithPassword({ email: email, password: senha });
+            if (erroAutenticacao) return { status: 'erro', mensagem: erroAutenticacao.message };
+            return { status: 'ok', usuario: dadosAutenticacao.user, session: dadosAutenticacao.session };
         },
 
-        logout: async function (options) {
-            const preserveKeys = new Set(
-                options && Array.isArray(options.preserveKeys) ? options.preserveKeys : []
+        logout: async function (opcoesLogout) {
+            const chavesPreservadas = new Set(
+                opcoesLogout && Array.isArray(opcoesLogout.preserveKeys) ? opcoesLogout.preserveKeys : []
             );
-            const client = await initSupabase();
-            if (client) {
+            const clienteAutenticacao = await initSupabase();
+            if (clienteAutenticacao) {
                 try {
-                    await client.auth.signOut({ scope: 'local' });
-                } catch (e) {
-                    console.warn('Erro no signOut:', e);
+                    await clienteAutenticacao.auth.signOut({ scope: 'local' });
+                } catch (erroLogout) {
+                    console.warn('Erro no signOut:', erroLogout);
                 }
             }
 
-            let keys = Object.keys(localStorage);
-            keys.forEach(function (k) {
-                if ((k.startsWith('motoBar') && !preserveKeys.has(k)) || k.startsWith('sb-')) {
-                    localStorage.removeItem(k);
+            let chavesArmazenamento = Object.keys(localStorage);
+            chavesArmazenamento.forEach(function (chaveArmazenamento) {
+                if ((chaveArmazenamento.startsWith('motoBar') && !chavesPreservadas.has(chaveArmazenamento)) || chaveArmazenamento.startsWith('sb-')) {
+                    localStorage.removeItem(chaveArmazenamento);
                 }
             });
 
             supabaseClient = null;
-            _initPromise = null;
+            inicializacaoSupabaseEmCurso = null;
             _clearCache();
             return { status: 'ok' };
         },
@@ -197,52 +197,52 @@ export const API = (function () {
             return _request('POST', '/produtos/estoque/verificar-senha', { senha: senha });
         },
 
-        invalidateCache: function (endpoint) {
-            _clearCache(endpoint || null);
+        invalidateCache: function (caminhoEndpoint) {
+            _clearCache(caminhoEndpoint || null);
         },
 
         getListaMembros: function () {
-            return _request('GET', '/membros').then(function (res) {
-                return res.membros || [];
+            return _request('GET', '/membros').then(function (respostaMembros) {
+                return respostaMembros.membros || [];
             });
         },
 
-        salvarDadosProduto: function (produtoId, estBar, estDep, minBar, minDep, esperadoBar, esperadoDep, senhaEstoque) {
+        salvarDadosProduto: function (produtoId, estoqueBar, estoqueDeposito, estoqueMinimoBar, estoqueMinimoDeposito, estoqueEsperadoBar, estoqueEsperadoDeposito, senhaEstoque) {
             return _request('PUT', '/produtos/estoque', {
                 produto_id: produtoId,
                 senha_estoque: senhaEstoque,
-                estoque_bar: estBar,
-                estoque_deposito: estDep,
-                estoque_min_bar: minBar,
-                estoque_min_deposito: minDep,
-                estoque_bar_esperado: esperadoBar,
-                estoque_deposito_esperado: esperadoDep,
-            }).then(function (res) { _clearCache(); return res; });
+                estoque_bar: estoqueBar,
+                estoque_deposito: estoqueDeposito,
+                estoque_min_bar: estoqueMinimoBar,
+                estoque_min_deposito: estoqueMinimoDeposito,
+                estoque_bar_esperado: estoqueEsperadoBar,
+                estoque_deposito_esperado: estoqueEsperadoDeposito,
+            }).then(function (respostaEstoque) { _clearCache(); return respostaEstoque; });
         },
 
         processarVenda: function (venda) {
-            return _request('POST', '/vendas', venda).then(function (res) {
+            return _request('POST', '/vendas', venda).then(function (respostaVenda) {
                 _clearCache();
-                return res;
+                return respostaVenda;
             });
         },
 
         buscarExtratoMembro: function (membroId, filtros = {}) {
-            const params = new URLSearchParams({ membro_id: membroId, ...filtros });
-            return _request('GET', '/membros/extrato?' + params);
+            const parametrosConsulta = new URLSearchParams({ membro_id: membroId, ...filtros });
+            return _request('GET', '/membros/extrato?' + parametrosConsulta);
         },
 
         quitarContaMembro: function (pagamento) {
-            return _request('POST', '/vendas/pagamento', pagamento).then(function (res) {
+            return _request('POST', '/vendas/pagamento', pagamento).then(function (respostaPagamento) {
                 _clearCache();
-                return res;
+                return respostaPagamento;
             });
         },
 
-        gerarRelatorioCaixa: function (tipo, dadosFiltro) {
-            let body = Object.assign({}, dadosFiltro || {});
-            body.tipo = tipo;
-            return _request('POST', '/relatorios', body);
+        gerarRelatorioCaixa: function (tipoRelatorio, dadosFiltro) {
+            let corpoRelatorio = Object.assign({}, dadosFiltro || {});
+            corpoRelatorio.tipo = tipoRelatorio;
+            return _request('POST', '/relatorios', corpoRelatorio);
         },
 
         abrirCaixa: function (valorAbertura) {
@@ -260,8 +260,8 @@ export const API = (function () {
         },
 
         getCaixaAberto: function (caixaId) {
-            const query = caixaId ? '?caixa_id=' + encodeURIComponent(caixaId) : '';
-            return _request('GET', '/caixa/aberto' + query);
+            const consultaCaixa = caixaId ? '?caixa_id=' + encodeURIComponent(caixaId) : '';
+            return _request('GET', '/caixa/aberto' + consultaCaixa);
         },
 
         health: function () {

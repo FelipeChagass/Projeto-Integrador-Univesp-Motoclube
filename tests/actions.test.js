@@ -3,7 +3,7 @@
  * DOM, mocks e IndexedDB isolado são preparados por helpers/pdv.js.
  */
 import { jest, describe, test, expect, beforeEach } from '@jest/globals';
-import { S } from '../static/js/features/pdv/state.js';
+import { estadoPdv } from '../static/js/features/pdv/state.js';
 import { persistirOperacao, listarOperacoes } from '../static/js/features/pdv/offline-queue.js';
 import { actions, reports, loadModules } from './helpers/pdv.js';
 
@@ -12,48 +12,48 @@ describe('actions.js — Carrinho', () => {
 
     test('adicionarAoCarrinho adiciona item novo', () => {
         actions.adicionarAoCarrinho(1, 'Cerveja', 10, '');
-        expect(S.carrinho).toHaveLength(1);
-        expect(S.carrinho[0]).toEqual({ id: 1, nome: 'Cerveja', preco: 10, obs: '', qtd: 1 });
+        expect(estadoPdv.carrinho).toHaveLength(1);
+        expect(estadoPdv.carrinho[0]).toEqual({ id: 1, nome: 'Cerveja', preco: 10, obs: '', qtd: 1 });
     });
 
     test('adicionarAoCarrinho incrementa item existente', () => {
         actions.adicionarAoCarrinho(1, 'Cerveja', 10, '');
         actions.adicionarAoCarrinho(1, 'Cerveja', 10, '');
-        expect(S.carrinho).toHaveLength(1);
-        expect(S.carrinho[0].qtd).toBe(2);
+        expect(estadoPdv.carrinho).toHaveLength(1);
+        expect(estadoPdv.carrinho[0].qtd).toBe(2);
     });
 
     test('adicionarAoCarrinho permite itens com obs diferentes', () => {
         actions.adicionarAoCarrinho(2, 'Hamburguer', 25, '');
         actions.adicionarAoCarrinho(2, 'Hamburguer', 25, 'Sem cebola');
-        expect(S.carrinho).toHaveLength(2);
+        expect(estadoPdv.carrinho).toHaveLength(2);
     });
 
     test('adicionarAoCarrinho bloqueia se estoque insuficiente', () => {
-        S.produtos[0].estoque_bar = 1;
+        estadoPdv.produtos[0].estoque_bar = 1;
         actions.adicionarAoCarrinho(1, 'Cerveja', 10, '');
         actions.adicionarAoCarrinho(1, 'Cerveja', 10, '');
-        expect(S.carrinho).toHaveLength(1);
-        expect(S.carrinho[0].qtd).toBe(1);
+        expect(estadoPdv.carrinho).toHaveLength(1);
+        expect(estadoPdv.carrinho[0].qtd).toBe(1);
     });
 
     test('incrementarQtd aumenta quantidade', () => {
         actions.adicionarAoCarrinho(1, 'Cerveja', 10, '');
         actions.incrementarQtd(0);
-        expect(S.carrinho[0].qtd).toBe(2);
+        expect(estadoPdv.carrinho[0].qtd).toBe(2);
     });
 
     test('decrementarQtd diminui quantidade', () => {
         actions.adicionarAoCarrinho(1, 'Cerveja', 10, '');
         actions.adicionarAoCarrinho(1, 'Cerveja', 10, '');
         actions.decrementarQtd(0);
-        expect(S.carrinho[0].qtd).toBe(1);
+        expect(estadoPdv.carrinho[0].qtd).toBe(1);
     });
 
     test('decrementarQtd remove item quando qtd chega a 0', () => {
         actions.adicionarAoCarrinho(1, 'Cerveja', 10, '');
         actions.decrementarQtd(0);
-        expect(S.carrinho).toHaveLength(0);
+        expect(estadoPdv.carrinho).toHaveLength(0);
     });
 });
 
@@ -61,31 +61,31 @@ describe('actions.js — cliqueProduto()', () => {
     beforeEach(loadModules);
 
     test('adiciona bebida direto ao carrinho (sem modal)', () => {
-        const prod = S.produtos[0]; // Cerveja = BEBIDA
+        const prod = estadoPdv.produtos[0]; // Cerveja = BEBIDA
         actions.cliqueProduto(prod, false);
-        expect(S.carrinho).toHaveLength(1);
-        expect(S.carrinho[0].nome).toBe('Cerveja');
+        expect(estadoPdv.carrinho).toHaveLength(1);
+        expect(estadoPdv.carrinho[0].nome).toBe('Cerveja');
     });
 
     test('abre modal obs para COMIDA', () => {
-        const prod = S.produtos[1]; // Hamburguer = COMIDA
+        const prod = estadoPdv.produtos[1]; // Hamburguer = COMIDA
         actions.cliqueProduto(prod, false);
-        expect(S.produtoPendente).not.toBeNull();
-        expect(S.produtoPendente.nome).toBe('Hamburguer');
+        expect(estadoPdv.produtoPendente).not.toBeNull();
+        expect(estadoPdv.produtoPendente.nome).toBe('Hamburguer');
         expect(document.getElementById('modal-obs').style.display).toBe('flex');
     });
 
     test('bloqueia produto esgotado', () => {
-        const prod = S.produtos[0];
+        const prod = estadoPdv.produtos[0];
         actions.cliqueProduto(prod, true); // barZerado = true
-        expect(S.carrinho).toHaveLength(0);
+        expect(estadoPdv.carrinho).toHaveLength(0);
     });
 
     test('bloqueia se caixa fechado', () => {
-        S.caixaAberto = false;
-        const prod = S.produtos[0];
+        estadoPdv.caixaAberto = false;
+        const prod = estadoPdv.produtos[0];
         actions.cliqueProduto(prod, false);
-        expect(S.carrinho).toHaveLength(0);
+        expect(estadoPdv.carrinho).toHaveLength(0);
     });
 });
 
@@ -93,17 +93,17 @@ describe('actions.js — Abertura/Fechamento Caixa', () => {
     beforeEach(loadModules);
 
     test('confirmarAberturaValor abre o caixa somente após ACK', async () => {
-        S.caixaAberto = false;
+        estadoPdv.caixaAberto = false;
         document.getElementById('input-valor-abertura').value = '150';
         const abertura = actions.confirmarAberturaValor();
-        expect(S.caixaAberto).toBe(false);
+        expect(estadoPdv.caixaAberto).toBe(false);
         await abertura;
-        expect(S.caixaAberto).toBe(true);
-        expect(S.valorAbertura).toBe(150);
+        expect(estadoPdv.caixaAberto).toBe(true);
+        expect(estadoPdv.valorAbertura).toBe(150);
     });
 
     test('abrirModalAberturaCaixa bloqueia se já aberto', () => {
-        S.caixaAberto = true;
+        estadoPdv.caixaAberto = true;
         actions.abrirModalAberturaCaixa();
         // Should not open modal, should show toast
         expect(document.getElementById('toast').innerText).toContain('já está aberto');
@@ -120,9 +120,9 @@ describe('actions.js — Abertura/Fechamento Caixa', () => {
         const redirectSpy = jest.fn();
         globalThis.redirect = redirectSpy;
 
-        S.caixaAberto = true;
-        S.caixaId = 'cx-test-123';
-        S.valorAbertura = 100;
+        estadoPdv.caixaAberto = true;
+        estadoPdv.caixaId = 'cx-test-123';
+        estadoPdv.valorAbertura = 100;
         
         document.getElementById('input-valor-fechamento').value = '150';
         document.getElementById('input-obs-fechamento').value = 'Tudo OK';
@@ -130,9 +130,9 @@ describe('actions.js — Abertura/Fechamento Caixa', () => {
         await reports.executarFechamentoCaixa();
 
         expect(API.fecharCaixa).toHaveBeenCalledWith('cx-test-123', 150, 'Tudo OK');
-        expect(S.caixaAberto).toBe(false);
-        expect(S.caixaId).toBeNull();
-        expect(S.valorAbertura).toBe(0);
+        expect(estadoPdv.caixaAberto).toBe(false);
+        expect(estadoPdv.caixaId).toBeNull();
+        expect(estadoPdv.valorAbertura).toBe(0);
         expect(API.logout).toHaveBeenCalled();
         expect(redirectSpy).toHaveBeenCalledWith('/login');
 
@@ -143,12 +143,12 @@ describe('actions.js — Abertura/Fechamento Caixa', () => {
 describe('actions.js — Config', () => {
     beforeEach(loadModules);
 
-    test('salvarConfig atualiza S.config', () => {
+    test('salvarConfig atualiza estadoPdv.config', () => {
         document.getElementById('cfg-imprimir').checked = false;
         document.getElementById('cfg-largura').value = 'ticket-58mm';
         actions.salvarConfig();
-        expect(S.config.imprimir).toBe(false);
-        expect(S.config.largura).toBe('ticket-58mm');
+        expect(estadoPdv.config.imprimir).toBe(false);
+        expect(estadoPdv.config.largura).toBe('ticket-58mm');
     });
 
     test('salvarConfig persiste no localStorage', () => {
@@ -163,22 +163,22 @@ describe('actions.js — Fila Vendas', () => {
     beforeEach(loadModules);
 
     test('processarFilaVendas não faz nada com fila vazia', async () => {
-        S.filaVendas = [];
+        estadoPdv.filaVendas = [];
         await actions.processarFilaVendas();
         expect(API.processarVenda).not.toHaveBeenCalled();
     });
 
     test('processarFilaVendas confirma a mesma identidade persistida', async () => {
-        const payload = { id_externo: '123', usuario_origem_id: S.usuarioAtual.id, caixa_id: S.caixaId, itens: [], metodo: 'PIX' };
+        const payload = { id_externo: '123', usuario_origem_id: estadoPdv.usuarioAtual.id, caixa_id: estadoPdv.caixaId, itens: [], metodo: 'PIX' };
         await persistirOperacao(payload);
-        API.processarVenda.mockResolvedValueOnce({ status: 'ok', id_externo: '123', usuario_id: S.usuarioAtual.id, caixa_id: S.caixaId, venda_id: 'venda-1', total_calculado: 10 });
+        API.processarVenda.mockResolvedValueOnce({ status: 'ok', id_externo: '123', usuario_id: estadoPdv.usuarioAtual.id, caixa_id: estadoPdv.caixaId, venda_id: 'venda-1', total_calculado: 10 });
         await actions.processarFilaVendas();
         expect(API.processarVenda).toHaveBeenCalledWith(payload);
         expect(await listarOperacoes()).toHaveLength(0);
     });
 
     test('falha em tentativa automática não repete notificação na tela', async () => {
-        const payload = { id_externo: 'background-failure', usuario_origem_id: S.usuarioAtual.id, caixa_id: S.caixaId };
+        const payload = { id_externo: 'background-failure', usuario_origem_id: estadoPdv.usuarioAtual.id, caixa_id: estadoPdv.caixaId };
         await persistirOperacao(payload);
         API.processarVenda.mockRejectedValueOnce(Object.assign(new Error('Falha de conexão.'), { retryable: true }));
         const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
@@ -192,7 +192,7 @@ describe('actions.js — Fila Vendas', () => {
     });
 
     test('falha iniciada pelo operador exibe uma única notificação', async () => {
-        const payload = { id_externo: 'foreground-failure', usuario_origem_id: S.usuarioAtual.id, caixa_id: S.caixaId };
+        const payload = { id_externo: 'foreground-failure', usuario_origem_id: estadoPdv.usuarioAtual.id, caixa_id: estadoPdv.caixaId };
         await persistirOperacao(payload);
         API.processarVenda.mockRejectedValueOnce(Object.assign(new Error('Falha de conexão.'), { retryable: true }));
 
@@ -206,7 +206,7 @@ describe('actions.js — Membros', () => {
     beforeEach(loadModules);
 
     test('Pendurar consulta um período de datas e confirma a mesma venda sem incorporar o filtro', async () => {
-        S.carrinho = [{ id: 1, nome: 'Cerveja', preco: 10, qtd: 1 }];
+        estadoPdv.carrinho = [{ id: 1, nome: 'Cerveja', preco: 10, qtd: 1 }];
         API.getListaMembros.mockResolvedValueOnce([{ id: 'membro-a', nome: 'Ana' }]);
         actions.abrirModalMembros('FIADO');
         await new Promise(resolve => setTimeout(resolve, 0));
@@ -224,15 +224,15 @@ describe('actions.js — Membros', () => {
             usuario_id: payload.usuario_origem_id, caixa_id: payload.caixa_id, venda_id: 'venda-fiado', total_calculado: 10 }));
         actions.confirmarSelecaoMembro();
         // IndexedDB performs multiple asynchronous transactions before sending the sale.
-        for (let i = 0; i < 100 && (S.enviandoVenda || S.processandoFila); i++) await new Promise(resolve => setTimeout(resolve, 5));
+        for (let i = 0; i < 100 && (estadoPdv.enviandoVenda || estadoPdv.processandoFila); i++) await new Promise(resolve => setTimeout(resolve, 5));
         expect(API.processarVenda).toHaveBeenCalledTimes(1);
         expect(API.processarVenda.mock.calls[0][0]).toMatchObject({ membro_id: 'membro-a', metodo: 'FIADO' });
         expect(API.processarVenda.mock.calls[0][0]).not.toHaveProperty('data_inicio');
-        expect(S.carrinho).toHaveLength(0);
+        expect(estadoPdv.carrinho).toHaveLength(0);
     });
 
     test('erro na consulta não impede confirmar membro para Pendurar', async () => {
-        S.membros = [{ id: 'membro-a', nome: 'Ana' }];
+        estadoPdv.membros = [{ id: 'membro-a', nome: 'Ana' }];
         actions.popularSelectMembros('select-membro');
         document.getElementById('select-membro').value = 'membro-a';
         API.buscarExtratoMembro.mockRejectedValueOnce(new Error('Indisponível'));
@@ -242,7 +242,7 @@ describe('actions.js — Membros', () => {
     });
 
     test('popularSelectMembros preenche o select', () => {
-        S.membros = [{ id: 'a', nome: 'Ana' }, { id: 'b', nome: 'Bruno' }, { id: 'c', nome: 'Carlos' }];
+        estadoPdv.membros = [{ id: 'a', nome: 'Ana' }, { id: 'b', nome: 'Bruno' }, { id: 'c', nome: 'Carlos' }];
         actions.popularSelectMembros('select-membro');
         const options = document.querySelectorAll('#select-membro option');
         // 3 membros + 1 default option = 4
@@ -269,19 +269,19 @@ describe('actions.js — Pagamento', () => {
     beforeEach(loadModules);
 
     test('iniciarPagamento bloqueia sem operador', () => {
-        S.operadorAtual = '';
+        estadoPdv.operadorAtual = '';
         actions.iniciarPagamento('DINHEIRO');
         expect(document.getElementById('toast').innerText).toContain('login');
     });
 
     test('iniciarPagamento bloqueia sem caixa aberto', () => {
-        S.caixaAberto = false;
+        estadoPdv.caixaAberto = false;
         actions.iniciarPagamento('DINHEIRO');
         expect(document.getElementById('toast').innerText).toContain('Abertura');
     });
 
     test('iniciarPagamento bloqueia com carrinho vazio', () => {
-        S.carrinho = [];
+        estadoPdv.carrinho = [];
         actions.iniciarPagamento('DINHEIRO');
         expect(document.getElementById('toast').innerText).toContain('Vazio');
     });
@@ -291,34 +291,34 @@ describe('Integridade: falhas e reconciliação', () => {
     beforeEach(loadModules);
 
     test('abertura com erro mantém caixa fechado', async () => {
-        S.caixaAberto = false;
-        S.caixaId = null;
+        estadoPdv.caixaAberto = false;
+        estadoPdv.caixaId = null;
         API.abrirCaixa.mockRejectedValueOnce(new Error('indisponível'));
         await actions.confirmarAberturaValor();
-        expect(S.caixaAberto).toBe(false);
-        expect(S.caixaId).toBeNull();
+        expect(estadoPdv.caixaAberto).toBe(false);
+        expect(estadoPdv.caixaId).toBeNull();
     });
 
     test('abertura repetida usa valor confirmado pelo servidor', async () => {
         document.getElementById('input-valor-abertura').value = '900';
         API.abrirCaixa.mockResolvedValueOnce({ status: 'ok', caixa_id: 'same', valor_abertura: 50 });
         await actions.confirmarAberturaValor();
-        expect(S.valorAbertura).toBe(50);
+        expect(estadoPdv.valorAbertura).toBe(50);
     });
 
     test.each([401, 403, 409, 422, 500])('fechamento rejeitado com %s não fecha nem faz logout', async status => {
         API.fecharCaixa.mockRejectedValueOnce(Object.assign(new Error('rejeitado'), { status }));
         await reports.executarFechamentoCaixa();
-        expect(S.caixaAberto).toBe(true);
-        expect(S.caixaId).toBe('cx-test');
+        expect(estadoPdv.caixaAberto).toBe(true);
+        expect(estadoPdv.caixaId).toBe('cx-test');
         expect(API.logout).not.toHaveBeenCalled();
     });
 
     test('pendência impede fechamento sem chamar servidor', async () => {
-        await persistirOperacao({ id_externo: 'pending', usuario_origem_id: S.usuarioAtual.id, caixa_id: S.caixaId });
+        await persistirOperacao({ id_externo: 'pending', usuario_origem_id: estadoPdv.usuarioAtual.id, caixa_id: estadoPdv.caixaId });
         await reports.executarFechamentoCaixa();
         expect(API.fecharCaixa).not.toHaveBeenCalled();
-        expect(S.caixaAberto).toBe(true);
+        expect(estadoPdv.caixaAberto).toBe(true);
     });
 
     test('troca de operador não envia operação de outro usuário', async () => {
@@ -329,7 +329,7 @@ describe('Integridade: falhas e reconciliação', () => {
     });
 
     test.each([401, 403, 409, 422, 500])('falha %s de sincronização preserva operação', async status => {
-        const payload = { id_externo: 'preserved', usuario_origem_id: S.usuarioAtual.id, caixa_id: S.caixaId };
+        const payload = { id_externo: 'preserved', usuario_origem_id: estadoPdv.usuarioAtual.id, caixa_id: estadoPdv.caixaId };
         await persistirOperacao(payload);
         API.processarVenda.mockRejectedValueOnce(Object.assign(new Error('rejeitado'), { status, retryable: status >= 500 }));
         await actions.processarFilaVendas();
@@ -339,10 +339,10 @@ describe('Integridade: falhas e reconciliação', () => {
     });
 
     test('sem persistência durável o carrinho não é apagado', async () => {
-        S.carrinho = [{ id: 1, nome: 'Cerveja', preco: 10, qtd: 1 }];
+        estadoPdv.carrinho = [{ id: 1, nome: 'Cerveja', preco: 10, qtd: 1 }];
         globalThis.indexedDB = undefined;
         await actions.registrarVendaOtimista('PIX', 'Cliente');
-        expect(S.carrinho).toHaveLength(1);
+        expect(estadoPdv.carrinho).toHaveLength(1);
         expect(API.processarVenda).not.toHaveBeenCalled();
     });
 

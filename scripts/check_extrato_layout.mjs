@@ -82,7 +82,7 @@ try {
             API.request = async () => sample;
             const loading = document.getElementById('loading'); if (loading) loading.remove();
             if (${JSON.stringify(page)} === 'pdv') {
-                const {S} = await import('/static/js/features/pdv/state.js'); S.operadorAtual='Operador'; S.carrinho=[{id:1,qtd:1}];
+                const {estadoPdv} = await import('/static/js/features/pdv/state.js'); estadoPdv.operadorAtual='Operador'; estadoPdv.carrinho=[{id:1,qtd:1}];
                 const a = await import('/static/js/features/pdv/actions/membros.js'); a.abrirModalMembros('FIADO');
                 await new Promise(resolve=>setTimeout(resolve,0)); document.getElementById('select-membro').value='membro-a'; await a.verificarDividaSelecionada();
             } else { const a = await import('/static/js/features/admin/membros.js'); await a.verExtrato('membro-a','Membro de exemplo'); }

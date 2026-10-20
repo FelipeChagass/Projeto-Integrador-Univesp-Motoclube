@@ -5,43 +5,43 @@
 
 
 export function fecharModalAdmin(id) {
-    const el = document.getElementById(id);
-    if (!el || el.classList.contains('d-none')) return;
-    el.classList.add('closing');
+    const modal = document.getElementById(id);
+    if (!modal || modal.classList.contains('d-none')) return;
+    modal.classList.add('closing');
     setTimeout(() => {
-        el.classList.add('d-none');
-        el.style.display = '';
-        el.classList.remove('closing');
+        modal.classList.add('d-none');
+        modal.style.display = '';
+        modal.classList.remove('closing');
 
         // Verifica se ainda tem modal aberto
-        const hasOpenModal = document.querySelectorAll('.modal-overlay:not(.d-none)').length > 0;
-        if (!hasOpenModal) {
+        const existeModalAberto = document.querySelectorAll('.modal-overlay:not(.d-none)').length > 0;
+        if (!existeModalAberto) {
             document.body.classList.remove('modal-open');
         }
     }, 250);
 }
 
-export function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+export function esc(texto) { return (texto || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
-export function toast(msg, ok) {
-    const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.className = 'toast show ' + (ok ? 'ok' : 'err');
-    setTimeout(() => el.className = 'toast', 3500);
+export function toast(mensagem, sucesso) {
+    const notificacao = document.getElementById('toast');
+    notificacao.textContent = mensagem;
+    notificacao.className = 'toast show ' + (sucesso ? 'ok' : 'err');
+    setTimeout(() => notificacao.className = 'toast', 3500);
 }
 
-export function mostrarSkeleton(tbodyId, cols) {
-    const tbody = document.getElementById(tbodyId);
-    if (!tbody) return;
-    const numCols = cols || 6;
-    let html = '';
-    for (let i = 0; i < 5; i++) {
-        html += '<tr class="skeleton-row">';
-        for (let c = 0; c < numCols; c++) {
-            const w = 60 + Math.random() * 30;
-            html += `<td><div class="skel" style="width:${w.toFixed(0)}%;"></div></td>`;
+export function mostrarSkeleton(idCorpoTabela, quantidadeColunas) {
+    const corpoTabela = document.getElementById(idCorpoTabela);
+    if (!corpoTabela) return;
+    const totalColunas = quantidadeColunas || 6;
+    let linhasHtml = '';
+    for (let indiceLinha = 0; indiceLinha < 5; indiceLinha++) {
+        linhasHtml += '<tr class="skeleton-row">';
+        for (let indiceColuna = 0; indiceColuna < totalColunas; indiceColuna++) {
+            const larguraPercentual = 60 + Math.random() * 30;
+            linhasHtml += `<td><div class="skel" style="width:${larguraPercentual.toFixed(0)}%;"></div></td>`;
         }
-        html += '</tr>';
+        linhasHtml += '</tr>';
     }
-    tbody.innerHTML = html;
+    corpoTabela.innerHTML = linhasHtml;
 }

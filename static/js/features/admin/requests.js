@@ -7,12 +7,12 @@ import { toast } from './ui.js';
 
 export const BASE = '';
 
-export async function authFetch(url, opts = {}) {
+export async function authFetch(url, opcoes = {}) {
     try {
-        const data = await API.request(opts.method || 'GET', url.replace(/^\/api/, ''), opts.body ? JSON.parse(opts.body) : undefined);
-        return { json: async () => data };
-    } catch (error) {
-        toast(error.message || 'Operação não concluída.', false);
+        const dadosResposta = await API.request(opcoes.method || 'GET', url.replace(/^\/api/, ''), opcoes.body ? JSON.parse(opcoes.body) : undefined);
+        return { json: async () => dadosResposta };
+    } catch (erro) {
+        toast(erro.message || 'Operação não concluída.', false);
         // Every caller checks this sentinel before committing a UI success state.
         return null;
     }

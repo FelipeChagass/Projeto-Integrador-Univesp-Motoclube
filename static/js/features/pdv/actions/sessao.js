@@ -4,18 +4,18 @@
  */
 import { API } from '../../../shared/api.js';
 import { UIModal } from '../../../shared/modals.js';
-import { S, salvarDadosLocais } from '../state.js';
+import { estadoPdv, salvarDadosLocais } from '../state.js';
 import { formatCurrency, LocalDB } from '../../../shared/utils.js';
 import { showToast, fecharModal, abrirModal, atualizarUI, atualizarEstadoBotoes } from '../ui.js';
 
 /* ─── Operator ─── */
 
-export function processarTrocaOperador(nomeInput) {
-    if (!nomeInput || S.operadorAtual === nomeInput) return;
-    if (S.carrinho.length > 0) return showToast('Conclua a venda em andamento antes de trocar o operador', 'err');
+export function processarTrocaOperador(nomeOperadorInformado) {
+    if (!nomeOperadorInformado || estadoPdv.operadorAtual === nomeOperadorInformado) return;
+    if (estadoPdv.carrinho.length > 0) return showToast('Conclua a venda em andamento antes de trocar o operador', 'err');
     UIModal.confirm('Confirma a troca de operador?', () => {
-        S.operadorAtual = nomeInput;
-        LocalDB.set('motoBarOperador', S.operadorAtual);
+        estadoPdv.operadorAtual = nomeOperadorInformado;
+        LocalDB.set('motoBarOperador', estadoPdv.operadorAtual);
         atualizarUI();
     });
 }
@@ -26,9 +26,9 @@ export function trocarMembro() {
         API.logout({
             preserveKeys: ['motoBarCaixaAberto', 'motoBarCaixaId', 'motoBarValorAbertura']
         }).then(() => {
-            S.operadorAtual = '';
-            S.usuarioAtual = null;
-            S.inicioTurno = null;
+            estadoPdv.operadorAtual = '';
+            estadoPdv.usuarioAtual = null;
+            estadoPdv.inicioTurno = null;
             atualizarUI();
             atualizarEstadoBotoes();
             window.location.replace('/login');
@@ -39,40 +39,40 @@ export function trocarMembro() {
 /* ─── Cash Register ─── */
 
 export function abrirModalAberturaCaixa() {
-    if (S.caixaAberto) return showToast('O caixa já está aberto!');
+    if (estadoPdv.caixaAberto) return showToast('O caixa já está aberto!');
     fecharModal('modal-relatorios');
     abrirModal('modal-abertura-caixa');
     document.getElementById('input-valor-abertura').focus();
 }
 
 export async function confirmarAberturaValor() {
-    let val = parseFloat(document.getElementById('input-valor-abertura').value);
-    if (!Number.isFinite(val) || val < 0) return showToast('Informe um valor de abertura válido.');
+    let valorAberturaInformado = parseFloat(document.getElementById('input-valor-abertura').value);
+    if (!Number.isFinite(valorAberturaInformado) || valorAberturaInformado < 0) return showToast('Informe um valor de abertura válido.');
     try {
-        const res = await API.abrirCaixa(val);
-        if (res.status !== 'ok' || !res.caixa_id || res.valor_abertura == null || !Number.isFinite(Number(res.valor_abertura)) || Number(res.valor_abertura) < 0) throw new Error('Servidor não confirmou a abertura.');
-        S.caixaId = res.caixa_id;
-        S.valorAbertura = Number(res.valor_abertura);
-        S.caixaAberto = true;
-        S.inicioTurno = new Date();
+        const respostaAbertura = await API.abrirCaixa(valorAberturaInformado);
+        if (respostaAbertura.status !== 'ok' || !respostaAbertura.caixa_id || respostaAbertura.valor_abertura == null || !Number.isFinite(Number(respostaAbertura.valor_abertura)) || Number(respostaAbertura.valor_abertura) < 0) throw new Error('Servidor não confirmou a abertura.');
+        estadoPdv.caixaId = respostaAbertura.caixa_id;
+        estadoPdv.valorAbertura = Number(respostaAbertura.valor_abertura);
+        estadoPdv.caixaAberto = true;
+        estadoPdv.inicioTurno = new Date();
         salvarDadosLocais();
         fecharModal('modal-abertura-caixa');
-        showToast(`Caixa Aberto: ${formatCurrency(S.valorAbertura)}`);
+        showToast(`Caixa Aberto: ${formatCurrency(estadoPdv.valorAbertura)}`);
         atualizarEstadoBotoes();
-    } catch (error) { showToast(`Caixa não aberto: ${error.message}`); }
+    } catch (erroAberturaCaixa) { showToast(`Caixa não aberto: ${erroAberturaCaixa.message}`); }
 }
 
 /* ─── Config ─── */
 
 export function abrirConfig() {
     abrirModal('modal-config');
-    document.getElementById('cfg-imprimir').checked = S.config.imprimir;
-    document.getElementById('cfg-largura').value = S.config.largura;
+    document.getElementById('cfg-imprimir').checked = estadoPdv.config.imprimir;
+    document.getElementById('cfg-largura').value = estadoPdv.config.largura;
 }
 
 export function salvarConfig() {
-    S.config.imprimir = document.getElementById('cfg-imprimir').checked;
-    S.config.largura = document.getElementById('cfg-largura').value;
-    LocalDB.set('motoBarConfig', JSON.stringify(S.config));
+    estadoPdv.config.imprimir = document.getElementById('cfg-imprimir').checked;
+    estadoPdv.config.largura = document.getElementById('cfg-largura').value;
+    LocalDB.set('motoBarConfig', JSON.stringify(estadoPdv.config));
     fecharModal('modal-config');
 }

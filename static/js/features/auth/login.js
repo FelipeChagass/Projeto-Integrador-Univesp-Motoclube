@@ -1,15 +1,15 @@
 /** Entrada do login: autentica no Supabase e consulta o perfil local autorizado. */
 import { API } from '../../shared/api.js';
 import { UIModal } from '../../shared/modals.js';
-function showToast(msg) {
-    const t = document.getElementById('login-toast');
-    t.innerText = msg;
-    t.className = 'login-toast show';
-    setTimeout(() => { t.className = 'login-toast'; }, 3000);
+function showToast(mensagem) {
+    const elementoToast = document.getElementById('login-toast');
+    elementoToast.innerText = mensagem;
+    elementoToast.className = 'login-toast show';
+    setTimeout(() => { elementoToast.className = 'login-toast'; }, 3000);
 }
 
-function setLoading(show) {
-    document.getElementById('login-loading').className = show ? 'login-loading active' : 'login-loading';
+function setLoading(exibirCarregamento) {
+    document.getElementById('login-loading').className = exibirCarregamento ? 'login-loading active' : 'login-loading';
 }
 
 function redirecionarParaPdv() {
@@ -18,15 +18,15 @@ function redirecionarParaPdv() {
 }
 
 function toggleSenha() {
-    const campo = document.getElementById('login-senha');
+    const campoSenha = document.getElementById('login-senha');
     const iconeFechado = document.getElementById('icon-olho-fechado');
     const iconeAberto = document.getElementById('icon-olho-aberto');
-    if (campo.type === 'password') {
-        campo.type = 'text';
+    if (campoSenha.type === 'password') {
+        campoSenha.type = 'text';
         iconeFechado.style.display = 'none';
         iconeAberto.style.display = 'block';
     } else {
-        campo.type = 'password';
+        campoSenha.type = 'password';
         iconeFechado.style.display = 'block';
         iconeAberto.style.display = 'none';
     }
@@ -35,14 +35,14 @@ function toggleSenha() {
 const lembrarMeAtivo = localStorage.getItem('motoBarLembrarMe') === 'true';
 
 if (lembrarMeAtivo) {
-    API._initSupabase().then(client => {
-        if (!client) return;
-        return client.auth.getSession();
-    }).then(result => {
-        if (!result || !result.data || !result.data.session) return;
+    API._initSupabase().then(clienteSupabase => {
+        if (!clienteSupabase) return;
+        return clienteSupabase.auth.getSession();
+    }).then(resultadoSessao => {
+        if (!resultadoSessao || !resultadoSessao.data || !resultadoSessao.data.session) return;
 
-        return API.getMe().then(res => {
-            if (res.status === 'ok' && res.usuario) {
+        return API.getMe().then(respostaPerfil => {
+            if (respostaPerfil.status === 'ok' && respostaPerfil.usuario) {
                 window.location.replace('/');
             }
         });
@@ -51,10 +51,10 @@ if (lembrarMeAtivo) {
         API.logout().catch(() => { });
     });
 } else {
-    API._initSupabase().then(client => {
-        if (client) {
-            client.auth.getSession().then(result => {
-                if (result && result.data && result.data.session) {
+    API._initSupabase().then(clienteSupabase => {
+        if (clienteSupabase) {
+            clienteSupabase.auth.getSession().then(resultadoSessao => {
+                if (resultadoSessao && resultadoSessao.data && resultadoSessao.data.session) {
                     API.logout().catch(() => { });
                 }
             });
@@ -62,45 +62,45 @@ if (lembrarMeAtivo) {
     }).catch(() => { });
 }
 
-document.getElementById('login-senha').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') realizarLogin();
+document.getElementById('login-senha').addEventListener('keydown', (eventoTeclado) => {
+    if (eventoTeclado.key === 'Enter') realizarLogin();
 });
 
 function realizarLogin() {
     const email = document.getElementById('login-email').value.trim();
     const senha = document.getElementById('login-senha').value;
-    const lembrar = document.getElementById('lembrar-me').checked;
+    const lembrarSessao = document.getElementById('lembrar-me').checked;
     if (!email || !senha) return showToast('Preencha e-mail e senha.');
 
     setLoading(true);
 
     API.login(email, senha)
-        .then(res => {
-            if (res.status === 'ok') {
-                if (lembrar) {
+        .then(respostaLogin => {
+            if (respostaLogin.status === 'ok') {
+                if (lembrarSessao) {
                     localStorage.setItem('motoBarLembrarMe', 'true');
                 } else {
                     localStorage.removeItem('motoBarLembrarMe');
                 }
 
-                return API.getMe().then(meRes => {
-                    if (meRes.status === 'pendente') {
-                        const nome = (res.usuario && res.usuario.user_metadata && res.usuario.user_metadata.nome) || email.split('@')[0];
-                        return API.request('POST', '/auth/sincronizar', { nome, perfil: 'operador' }).then(() => {
+                return API.getMe().then(respostaPerfil => {
+                    if (respostaPerfil.status === 'pendente') {
+                        const nomeUsuario = (respostaLogin.usuario && respostaLogin.usuario.user_metadata && respostaLogin.usuario.user_metadata.nome) || email.split('@')[0];
+                        return API.request('POST', '/auth/sincronizar', { nome: nomeUsuario, perfil: 'operador' }).then(() => {
                             redirecionarParaPdv();
                         });
                     }
-                    if (meRes.status !== 'ok' || !meRes.usuario) throw new Error('Perfil ainda não autorizado.');
+                    if (respostaPerfil.status !== 'ok' || !respostaPerfil.usuario) throw new Error('Perfil ainda não autorizado.');
                     redirecionarParaPdv();
                 });
             } else {
                 setLoading(false);
-                showToast(res.mensagem || 'Erro no login.');
+                showToast(respostaLogin.mensagem || 'Erro no login.');
             }
         })
-        .catch(err => {
+        .catch(erroLogin => {
             setLoading(false);
-            showToast(err.message || 'Não foi possível entrar.');
+            showToast(erroLogin.message || 'Não foi possível entrar.');
         });
 }
 

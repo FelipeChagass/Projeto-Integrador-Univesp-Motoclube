@@ -9,49 +9,49 @@ export function initBottomSheetGestures() {
     const DRAG_THRESHOLD = 10;
 
     /* ─── Touch Start ─── */
-    document.addEventListener('touchstart', (e) => {
-        const touch = e.touches[0];
+    document.addEventListener('touchstart', (touchEvent) => {
+        const activeTouch = touchEvent.touches[0];
 
 
-        const header = e.target.closest('.modal-drag-header');
-        if (header) {
-            const content = header.closest('.modal-content');
-            if (content) {
+        const modalHeader = touchEvent.target.closest('.modal-drag-header');
+        if (modalHeader) {
+            const modalContent = modalHeader.closest('.modal-content');
+            if (modalContent) {
                 dragState = {
                     type: 'modal',
-                    el: content,
-                    overlay: content.closest('.modal-overlay'),
-                    startY: touch.clientY,
+                    el: modalContent,
+                    overlay: modalContent.closest('.modal-overlay'),
+                    startY: activeTouch.clientY,
                     currentOffset: 0,
                     activated: false,
-                    points: [{ y: touch.clientY, t: Date.now() }]
+                    points: [{ y: activeTouch.clientY, t: Date.now() }]
                 };
                 return;
             }
         }
 
         // Priority 2: Cart section
-        const cart = e.target.closest('#carrinho-section');
-        if (cart) {
+        const cartSection = touchEvent.target.closest('#carrinho-section');
+        if (cartSection) {
             dragState = {
                 type: 'cart',
-                el: cart,
-                startY: touch.clientY,
-                startX: touch.clientX,
+                el: cartSection,
+                startY: activeTouch.clientY,
+                startX: activeTouch.clientX,
                 currentOffset: 0,
                 activated: false,
-                points: [{ y: touch.clientY, t: Date.now() }]
+                points: [{ y: activeTouch.clientY, t: Date.now() }]
             };
             return;
         }
 
         // Priority 3: Sidebar panel
-        const sidebar = e.target.closest('.sidebar-panel');
-        if (sidebar) {
+        const sidebarPanel = touchEvent.target.closest('.sidebar-panel');
+        if (sidebarPanel) {
             dragState = {
                 type: 'sidebar',
-                el: sidebar,
-                startX: touch.clientX,
+                el: sidebarPanel,
+                startX: activeTouch.clientX,
                 currentOffsetX: 0,
                 activated: false
             };
@@ -60,73 +60,73 @@ export function initBottomSheetGestures() {
     }, { passive: true });
 
     /* ─── Touch Move ─── */
-    document.addEventListener('touchmove', (e) => {
+    document.addEventListener('touchmove', (touchEvent) => {
         if (!dragState) return;
-        const touch = e.touches[0];
+        const activeTouch = touchEvent.touches[0];
 
         /* ── Sidebar ── */
         if (dragState.type === 'sidebar') {
-            const dx = touch.clientX - dragState.startX;
+            const horizontalDisplacement = activeTouch.clientX - dragState.startX;
             if (!dragState.activated) {
-                if (Math.abs(dx) < DRAG_THRESHOLD) return;
+                if (Math.abs(horizontalDisplacement) < DRAG_THRESHOLD) return;
                 dragState.activated = true;
                 dragState.el.style.transition = 'none';
             }
-            if (dx > 0) {
-                e.preventDefault();
-                dragState.el.style.transform = `translateX(${dx}px)`;
-                dragState.currentOffsetX = dx;
+            if (horizontalDisplacement > 0) {
+                touchEvent.preventDefault();
+                dragState.el.style.transform = `translateX(${horizontalDisplacement}px)`;
+                dragState.currentOffsetX = horizontalDisplacement;
             }
             return;
         }
 
         /* ── Modal (header-only drag) ── */
         if (dragState.type === 'modal') {
-            const dy = touch.clientY - dragState.startY;
+            const verticalDisplacement = activeTouch.clientY - dragState.startY;
             if (!dragState.activated) {
-                if (Math.abs(dy) < DRAG_THRESHOLD) return;
+                if (Math.abs(verticalDisplacement) < DRAG_THRESHOLD) return;
                 dragState.activated = true;
                 dragState.el.style.transition = 'none';
             }
-            const offset = Math.max(0, dy);
-            dragState.el.style.transform = `translateY(${offset}px)`;
-            dragState.currentOffset = offset;
-            dragState.points.push({ y: touch.clientY, t: Date.now() });
+            const verticalOffset = Math.max(0, verticalDisplacement);
+            dragState.el.style.transform = `translateY(${verticalOffset}px)`;
+            dragState.currentOffset = verticalOffset;
+            dragState.points.push({ y: activeTouch.clientY, t: Date.now() });
             if (dragState.points.length > 6) dragState.points.shift();
-            if (dy > 0) e.preventDefault();
+            if (verticalDisplacement > 0) touchEvent.preventDefault();
             return;
         }
 
         /* ── Cart ── */
         if (dragState.type === 'cart') {
-            const dy = touch.clientY - dragState.startY;
-            const dx = touch.clientX - dragState.startX;
+            const verticalDisplacement = activeTouch.clientY - dragState.startY;
+            const horizontalDisplacement = activeTouch.clientX - dragState.startX;
             if (!dragState.activated) {
-                if (Math.abs(dy) < DRAG_THRESHOLD && Math.abs(dx) < DRAG_THRESHOLD) return;
+                if (Math.abs(verticalDisplacement) < DRAG_THRESHOLD && Math.abs(horizontalDisplacement) < DRAG_THRESHOLD) return;
                 dragState.activated = true;
                 dragState.el.style.transition = 'none';
             }
             const isCartClosed = !dragState.el.classList.contains('mobile-aberto');
 
             // Swipe up — only for closed cart
-            if (dy < 0) {
+            if (verticalDisplacement < 0) {
                 if (isCartClosed) {
-                    e.preventDefault();
-                    dragState.el.style.transform = `translateY(max(0px, calc(100% - 64px + ${dy}px)))`;
-                    dragState.currentOffset = dy;
+                    touchEvent.preventDefault();
+                    dragState.el.style.transform = `translateY(max(0px, calc(100% - 64px + ${verticalDisplacement}px)))`;
+                    dragState.currentOffset = verticalDisplacement;
                 }
                 return;
             }
 
             // Swipe down — only when scrolled to top
-            if (dy > 0 && dragState.el.scrollTop <= 0) {
+            if (verticalDisplacement > 0 && dragState.el.scrollTop <= 0) {
                 if (isCartClosed) return;
-                e.preventDefault();
-                dragState.el.style.transform = `translateY(${dy}px)`;
-                dragState.currentOffset = dy;
+                touchEvent.preventDefault();
+                dragState.el.style.transform = `translateY(${verticalDisplacement}px)`;
+                dragState.currentOffset = verticalDisplacement;
             }
             // Track velocity
-            dragState.points.push({ y: touch.clientY, t: Date.now() });
+            dragState.points.push({ y: activeTouch.clientY, t: Date.now() });
             if (dragState.points.length > 6) dragState.points.shift();
         }
     }, { passive: false });
@@ -155,48 +155,48 @@ export function initBottomSheetGestures() {
         }
 
         /* Calculate velocity from tracked points */
-        function calcVelocity(points) {
-            if (points.length < 2) return 0;
-            const first = points[0];
-            const last = points[points.length - 1];
-            const dt = last.t - first.t;
-            if (dt <= 0) return 0;
-            return (last.y - first.y) / dt;
+        function calcVelocity(trackedPoints) {
+            if (trackedPoints.length < 2) return 0;
+            const firstTrackedPoint = trackedPoints[0];
+            const lastTrackedPoint = trackedPoints[trackedPoints.length - 1];
+            const elapsedMilliseconds = lastTrackedPoint.t - firstTrackedPoint.t;
+            if (elapsedMilliseconds <= 0) return 0;
+            return (lastTrackedPoint.y - firstTrackedPoint.y) / elapsedMilliseconds;
         }
 
         /* ── Modal ── */
         if (dragState.type === 'modal') {
-            const { el, overlay, currentOffset, points } = dragState;
-            const velocity = calcVelocity(points);
-            const elHeight = el.offsetHeight || 400;
-            const dismissThreshold = elHeight * DISMISS_THRESHOLD_RATIO;
+            const { el: modalElement, overlay: modalOverlay, currentOffset: verticalOffset, points: trackedPoints } = dragState;
+            const velocity = calcVelocity(trackedPoints);
+            const modalHeight = modalElement.offsetHeight || 400;
+            const dismissThreshold = modalHeight * DISMISS_THRESHOLD_RATIO;
 
-            if (currentOffset > dismissThreshold || velocity > VELOCITY_DISMISS) {
-                const remainingDistance = elHeight - currentOffset;
+            if (verticalOffset > dismissThreshold || velocity > VELOCITY_DISMISS) {
+                const remainingDistance = modalHeight - verticalOffset;
                 const speed = Math.max(velocity, 0.8); // minimum speed
                 const duration = Math.min(Math.max(remainingDistance / speed, 150), 350);
 
-                el.style.transition = `transform ${duration}ms ${SPRING_CURVE}`;
-                el.style.transform = 'translateY(100%)';
+                modalElement.style.transition = `transform ${duration}ms ${SPRING_CURVE}`;
+                modalElement.style.transform = 'translateY(100%)';
 
-                const elRef = el;
-                const overlayRef = overlay;
+                const modalElementReference = modalElement;
+                const modalOverlayReference = modalOverlay;
                 setTimeout(() => {
-                    if (overlayRef) {
-                        overlayRef.style.display = 'none';
-                        overlayRef.classList.remove('sheet-open');
+                    if (modalOverlayReference) {
+                        modalOverlayReference.style.display = 'none';
+                        modalOverlayReference.classList.remove('sheet-open');
                     }
-                    elRef.style.transform = '';
-                    elRef.style.transition = '';
+                    modalElementReference.style.transform = '';
+                    modalElementReference.style.transition = '';
                     const hasOpenModal = document.querySelectorAll('.modal-overlay:not(.d-none):not([style*="display: none"])').length > 0;
                     if (!hasOpenModal) document.body.classList.remove('modal-open');
                 }, duration + 10);
             } else {
                 // Spring back to open position
-                el.style.transition = `transform 0.4s ${SPRING_CURVE}`;
-                el.style.transform = 'translateY(0)';
+                modalElement.style.transition = `transform 0.4s ${SPRING_CURVE}`;
+                modalElement.style.transform = 'translateY(0)';
                 setTimeout(() => {
-                    el.style.transition = '';
+                    modalElement.style.transition = '';
                 }, 420);
             }
             dragState = null;
@@ -205,23 +205,23 @@ export function initBottomSheetGestures() {
 
         /* ── Cart ── */
         if (dragState.type === 'cart') {
-            const { el, currentOffset, points } = dragState;
-            const velocity = calcVelocity(points);
+            const { el: cartElement, currentOffset: verticalOffset, points: trackedPoints } = dragState;
+            const velocity = calcVelocity(trackedPoints);
 
-            if (currentOffset > 100 || velocity > VELOCITY_DISMISS) {
+            if (verticalOffset > 100 || velocity > VELOCITY_DISMISS) {
                 // Dismiss cart
-                el.style.transition = '';
-                el.classList.remove('mobile-aberto');
-                el.style.transform = '';
-            } else if (currentOffset < -50 && !el.classList.contains('mobile-aberto')) {
+                cartElement.style.transition = '';
+                cartElement.classList.remove('mobile-aberto');
+                cartElement.style.transform = '';
+            } else if (verticalOffset < -50 && !cartElement.classList.contains('mobile-aberto')) {
                 // Open cart
-                el.style.transition = '';
-                el.classList.add('mobile-aberto');
-                el.style.transform = '';
+                cartElement.style.transition = '';
+                cartElement.classList.add('mobile-aberto');
+                cartElement.style.transform = '';
             } else {
                 // Snap back
-                el.style.transition = '';
-                el.style.transform = '';
+                cartElement.style.transition = '';
+                cartElement.style.transform = '';
             }
             dragState = null;
             return;

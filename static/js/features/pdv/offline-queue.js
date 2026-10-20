@@ -1,6 +1,6 @@
 // Durable outbox. Confirmations remain as receipts; pending operations are never deleted.
-const DB_NAME = 'motoBarOperacoes';
-const STORE = 'operacoes';
+const NOME_BANCO_OPERACOES = 'motoBarOperacoes';
+const NOME_COLECAO_OPERACOES = 'operacoes';
 
 export function novoIdExterno() {
     if (!globalThis.crypto?.randomUUID) throw new Error('Navegador sem identificador seguro. Utilize HTTPS e um navegador atualizado.');
@@ -9,82 +9,82 @@ export function novoIdExterno() {
 
 async function abrirBanco() {
     if (!globalThis.indexedDB) throw new Error('IndexedDB indisponível. A operação não foi registrada.');
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, 1);
-        request.onupgradeneeded = () => request.result.createObjectStore(STORE, { keyPath: 'id_externo' });
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-        request.onblocked = () => reject(new Error('Armazenamento ocupado. Feche outras abas do PDV.'));
+    return new Promise((resolver, rejeitar) => {
+        const requisicaoAbertura = indexedDB.open(NOME_BANCO_OPERACOES, 1);
+        requisicaoAbertura.onupgradeneeded = () => requisicaoAbertura.result.createObjectStore(NOME_COLECAO_OPERACOES, { keyPath: 'id_externo' });
+        requisicaoAbertura.onsuccess = () => resolver(requisicaoAbertura.result);
+        requisicaoAbertura.onerror = () => rejeitar(requisicaoAbertura.error);
+        requisicaoAbertura.onblocked = () => rejeitar(new Error('Armazenamento ocupado. Feche outras abas do PDV.'));
     });
 }
 
-async function transacao(modo, operacao) {
-    const db = await abrirBanco();
+async function transacao(modoTransacao, executarOperacao) {
+    const bancoOperacoes = await abrirBanco();
     try {
-        return await new Promise((resolve, reject) => {
-            const tx = db.transaction(STORE, modo);
-            let resultado;
-            tx.oncomplete = () => resolve(resultado);
-            tx.onabort = tx.onerror = () => reject(tx.error || new Error('Falha ao persistir operação.'));
-            operacao(tx.objectStore(STORE), value => { resultado = value; });
+        return await new Promise((resolver, rejeitar) => {
+            const transacaoBanco = bancoOperacoes.transaction(NOME_COLECAO_OPERACOES, modoTransacao);
+            let resultadoOperacao;
+            transacaoBanco.oncomplete = () => resolver(resultadoOperacao);
+            transacaoBanco.onabort = transacaoBanco.onerror = () => rejeitar(transacaoBanco.error || new Error('Falha ao persistir operação.'));
+            executarOperacao(transacaoBanco.objectStore(NOME_COLECAO_OPERACOES), valorResultado => { resultadoOperacao = valorResultado; });
         });
-    } finally { db.close(); }
+    } finally { bancoOperacoes.close(); }
 }
 
 export async function listarOperacoes({ incluirConfirmadas = false } = {}) {
-    const todas = await transacao('readonly', (store, done) => {
-        store.getAll().onsuccess = event => done(event.target.result);
+    const todasOperacoes = await transacao('readonly', (colecaoOperacoes, concluir) => {
+        colecaoOperacoes.getAll().onsuccess = eventoConsulta => concluir(eventoConsulta.target.result);
     });
-    return todas.filter(v => incluirConfirmadas || v.estado !== 'confirmado');
+    return todasOperacoes.filter(operacao => incluirConfirmadas || operacao.estado !== 'confirmado');
 }
 
-export function persistirOperacao(payload) {
-    if (!payload.id_externo || !payload.usuario_origem_id || !payload.caixa_id) {
+export function persistirOperacao(dadosOperacao) {
+    if (!dadosOperacao.id_externo || !dadosOperacao.usuario_origem_id || !dadosOperacao.caixa_id) {
         return Promise.reject(new Error('Operação sem identificador, usuário ou caixa de origem.'));
     }
     const registro = {
-        id_externo: payload.id_externo, payload: JSON.parse(JSON.stringify(payload)),
+        id_externo: dadosOperacao.id_externo, payload: JSON.parse(JSON.stringify(dadosOperacao)),
         estado: 'pendente', tentativas: 0, ultimo_erro: null, proxima_tentativa: 0,
         criado_em: new Date().toISOString()
     };
-    return transacao('readwrite', (store, done) => { store.add(registro); done(registro); });
+    return transacao('readwrite', (colecaoOperacoes, concluir) => { colecaoOperacoes.add(registro); concluir(registro); });
 }
 
-function atualizar(id, alterar) {
-    return transacao('readwrite', (store, done) => {
-        store.get(id).onsuccess = event => {
-            const registro = event.target.result;
-            if (!registro || registro.estado === 'confirmado') return done(registro);
-            alterar(registro);
-            store.put(registro);
-            done(registro);
+function atualizar(operacaoId, alterarRegistro) {
+    return transacao('readwrite', (colecaoOperacoes, concluir) => {
+        colecaoOperacoes.get(operacaoId).onsuccess = eventoConsulta => {
+            const registro = eventoConsulta.target.result;
+            if (!registro || registro.estado === 'confirmado') return concluir(registro);
+            alterarRegistro(registro);
+            colecaoOperacoes.put(registro);
+            concluir(registro);
         };
     });
 }
 
-export function validarConfirmacao(payload, ack) {
-    return !!(ack && ['ok', 'duplicado'].includes(ack.status) &&
-        ack.id_externo === payload.id_externo && typeof ack.venda_id === 'string' && ack.venda_id.length > 0 &&
-        ack.caixa_id === payload.caixa_id && ack.usuario_id === payload.usuario_origem_id &&
-        ack.total_calculado !== null && ack.total_calculado !== undefined &&
-        Number.isFinite(Number(ack.total_calculado)) && Number(ack.total_calculado) >= 0);
+export function validarConfirmacao(dadosOperacao, confirmacaoServidor) {
+    return !!(confirmacaoServidor && ['ok', 'duplicado'].includes(confirmacaoServidor.status) &&
+        confirmacaoServidor.id_externo === dadosOperacao.id_externo && typeof confirmacaoServidor.venda_id === 'string' && confirmacaoServidor.venda_id.length > 0 &&
+        confirmacaoServidor.caixa_id === dadosOperacao.caixa_id && confirmacaoServidor.usuario_id === dadosOperacao.usuario_origem_id &&
+        confirmacaoServidor.total_calculado !== null && confirmacaoServidor.total_calculado !== undefined &&
+        Number.isFinite(Number(confirmacaoServidor.total_calculado)) && Number(confirmacaoServidor.total_calculado) >= 0);
 }
 
-export function confirmarOperacao(payload, ack) {
-    if (!validarConfirmacao(payload, ack)) {
-        const error = new Error('Confirmação inválida ou de outra operação. Registro preservado para reconciliação.');
-        error.code = 'INVALID_ACK';
-        return Promise.reject(error);
+export function confirmarOperacao(dadosOperacao, confirmacaoServidor) {
+    if (!validarConfirmacao(dadosOperacao, confirmacaoServidor)) {
+        const erroConfirmacao = new Error('Confirmação inválida ou de outra operação. Registro preservado para reconciliação.');
+        erroConfirmacao.code = 'INVALID_ACK';
+        return Promise.reject(erroConfirmacao);
     }
-    return atualizar(payload.id_externo, registro => {
+    return atualizar(dadosOperacao.id_externo, registro => {
         registro.estado = 'confirmado';
-        registro.confirmacao = ack;
+        registro.confirmacao = confirmacaoServidor;
         registro.confirmado_em = new Date().toISOString();
     });
 }
 
-export function registrarTentativa(id) {
-    return atualizar(id, registro => {
+export function registrarTentativa(operacaoId) {
+    return atualizar(operacaoId, registro => {
         registro.tentativas += 1;
         registro.ultima_tentativa = new Date().toISOString();
         // Crash/reload while awaiting a reply must replay the SAME operation later.
@@ -92,28 +92,28 @@ export function registrarTentativa(id) {
     });
 }
 
-export function registrarFalha(id, error) {
-    return atualizar(id, registro => {
+export function registrarFalha(operacaoId, erroOperacao) {
+    return atualizar(operacaoId, registro => {
         registro.ultimo_erro = {
-            code: error.code || 'UNEXPECTED_ERROR', status: error.status || 0,
-            message: error.message, details: error.details || null,
-            request_id: error.requestId || null, ocorrido_em: new Date().toISOString()
+            code: erroOperacao.code || 'UNEXPECTED_ERROR', status: erroOperacao.status || 0,
+            message: erroOperacao.message, details: erroOperacao.details || null,
+            request_id: erroOperacao.requestId || null, ocorrido_em: new Date().toISOString()
         };
-        registro.estado = [401, 403].includes(error.status) ? 'autenticacao' :
-            error.status === 409 ? 'conflito' :
-                error.retryable && registro.tentativas < 8 ? 'aguardando_reenvio' : 'reconciliacao';
+        registro.estado = [401, 403].includes(erroOperacao.status) ? 'autenticacao' :
+            erroOperacao.status === 409 ? 'conflito' :
+                erroOperacao.retryable && registro.tentativas < 8 ? 'aguardando_reenvio' : 'reconciliacao';
         registro.proxima_tentativa = Date.now() + Math.min(300000, 2000 * 2 ** registro.tentativas) + Math.random() * 1000;
     });
 }
 
-export async function reenviarOperacao(id, usuarioId) {
-    const registro = (await listarOperacoes()).find(v => v.id_externo === id);
+export async function reenviarOperacao(operacaoId, usuarioId) {
+    const registro = (await listarOperacoes()).find(operacao => operacao.id_externo === operacaoId);
     if (!registro || !usuarioId || registro.payload.usuario_origem_id !== usuarioId) {
         throw new Error('Somente o operador de origem pode reenviar esta operação.');
     }
-    return atualizar(id, item => { item.estado = 'pendente'; item.proxima_tentativa = 0; });
+    return atualizar(operacaoId, registroOperacao => { registroOperacao.estado = 'pendente'; registroOperacao.proxima_tentativa = 0; });
 }
 
 export async function possuiPendenciasCaixa(caixaId) {
-    return (await listarOperacoes()).some(v => v.payload.caixa_id === caixaId);
+    return (await listarOperacoes()).some(operacao => operacao.payload.caixa_id === caixaId);
 }

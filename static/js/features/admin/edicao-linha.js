@@ -1,35 +1,35 @@
 /** Estado de edição restrito à linha; cancelar restaura o que foi carregado. */
 export function prepararEdicao(linha) {
-    const salvar = linha.querySelector('[data-action^="salvar-"]');
-    if (!salvar) return;
+    const botaoSalvar = linha.querySelector('[data-action^="salvar-"]');
+    if (!botaoSalvar) return;
     const campos = [...linha.querySelectorAll('[data-campo]')];
     campos.forEach(campo => { campo.disabled = true; });
-    salvar.classList.add('d-none');
-    const editar = document.createElement('button');
-    editar.type = 'button';
-    editar.className = 'btn btn-sm';
-    editar.textContent = 'Editar';
-    const cancelar = document.createElement('button');
-    cancelar.type = 'button';
-    cancelar.className = 'btn btn-sm d-none';
-    cancelar.textContent = 'Cancelar';
-    let valores;
-    const alternar = ativo => {
-        campos.forEach(campo => { campo.disabled = !ativo; });
-        salvar.classList.toggle('d-none', !ativo);
-        cancelar.classList.toggle('d-none', !ativo);
-        editar.classList.toggle('d-none', ativo);
+    botaoSalvar.classList.add('d-none');
+    const botaoEditar = document.createElement('button');
+    botaoEditar.type = 'button';
+    botaoEditar.className = 'btn btn-sm';
+    botaoEditar.textContent = 'Editar';
+    const botaoCancelar = document.createElement('button');
+    botaoCancelar.type = 'button';
+    botaoCancelar.className = 'btn btn-sm d-none';
+    botaoCancelar.textContent = 'Cancelar';
+    let valoresOriginais;
+    const alternar = edicaoAtiva => {
+        campos.forEach(campo => { campo.disabled = !edicaoAtiva; });
+        botaoSalvar.classList.toggle('d-none', !edicaoAtiva);
+        botaoCancelar.classList.toggle('d-none', !edicaoAtiva);
+        botaoEditar.classList.toggle('d-none', edicaoAtiva);
     };
-    editar.addEventListener('click', () => {
-        valores = campos.map(campo => campo.value);
+    botaoEditar.addEventListener('click', () => {
+        valoresOriginais = campos.map(campo => campo.value);
         alternar(true);
         campos[0]?.focus();
     });
-    cancelar.addEventListener('click', () => {
-        campos.forEach((campo, indice) => { campo.value = valores[indice]; });
+    botaoCancelar.addEventListener('click', () => {
+        campos.forEach((campo, indice) => { campo.value = valoresOriginais[indice]; });
         alternar(false);
-        editar.focus();
+        botaoEditar.focus();
     });
-    salvar.before(editar);
-    salvar.after(cancelar);
+    botaoSalvar.before(botaoEditar);
+    botaoSalvar.after(botaoCancelar);
 }

@@ -14,25 +14,25 @@ document.addEventListener('DOMContentLoaded', () => {
     carregarProdutos();
 
     // ── ESC fecha modal aberto ──
-    document.addEventListener('keydown', (e) => {
-        if (e.key !== 'Escape') return;
-        const aberto = document.querySelector('.modal-overlay:not(.d-none)');
-        if (aberto) {
-            aberto.classList.add('closing');
-            setTimeout(() => { aberto.classList.add('d-none'); aberto.classList.remove('closing'); }, 250);
+    document.addEventListener('keydown', (eventoTeclado) => {
+        if (eventoTeclado.key !== 'Escape') return;
+        const modalAberto = document.querySelector('.modal-overlay:not(.d-none)');
+        if (modalAberto) {
+            modalAberto.classList.add('closing');
+            setTimeout(() => { modalAberto.classList.add('d-none'); modalAberto.classList.remove('closing'); }, 250);
         }
     });
 
     // ── Clique no overlay (fora do conteúdo) fecha o modal ──
-    let _adminModalMouseDownOnOverlay = false;
-    document.addEventListener('mousedown', (e) => {
-        _adminModalMouseDownOnOverlay = e.target.classList.contains('modal-overlay');
+    let cliqueIniciadoNaSobreposicao = false;
+    document.addEventListener('mousedown', (eventoMouse) => {
+        cliqueIniciadoNaSobreposicao = eventoMouse.target.classList.contains('modal-overlay');
     });
 
-    document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('modal-overlay') && !e.target.classList.contains('d-none') && _adminModalMouseDownOnOverlay) {
-            e.target.classList.add('closing');
-            setTimeout(() => { e.target.classList.add('d-none'); e.target.classList.remove('closing'); }, 250);
+    document.addEventListener('click', (eventoClique) => {
+        if (eventoClique.target.classList.contains('modal-overlay') && !eventoClique.target.classList.contains('d-none') && cliqueIniciadoNaSobreposicao) {
+            eventoClique.target.classList.add('closing');
+            setTimeout(() => { eventoClique.target.classList.add('d-none'); eventoClique.target.classList.remove('closing'); }, 250);
         }
     });
 });

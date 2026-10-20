@@ -6,11 +6,11 @@ export function criarCsv(vendas) {
         return `"${texto.replace(/"/g, '""')}"`;
     };
     const linhas = [['Data', 'Tipo', 'Pagamento', 'Operador', 'Cliente', 'Valor (R$)', 'Itens']];
-    vendas.forEach(v => linhas.push([
-        v.criado_em ? new Date(v.criado_em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '',
-        v.tipo_venda, v.metodo_pagamento, v.usuario_nome, v.nome_cliente,
-        Number(v.valor_total).toFixed(2).replace('.', ','),
-        (v.itens || []).map(i => `${i.quantidade}x ${i.nome_produto}`).join(', '),
+    vendas.forEach(venda => linhas.push([
+        venda.criado_em ? new Date(venda.criado_em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '',
+        venda.tipo_venda, venda.metodo_pagamento, venda.usuario_nome, venda.nome_cliente,
+        Number(venda.valor_total).toFixed(2).replace('.', ','),
+        (venda.itens || []).map(itemVenda => `${itemVenda.quantidade}x ${itemVenda.nome_produto}`).join(', '),
     ]));
     return '\uFEFF' + linhas.map(linha => linha.map(celula).join(';')).join('\r\n');
 }

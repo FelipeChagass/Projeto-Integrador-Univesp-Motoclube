@@ -1,6 +1,6 @@
 import { API } from '../../shared/api.js';
 import { UIModal } from '../../shared/modals.js';
-import { S, salvarDadosLocais } from './state.js';
+import { estadoPdv, salvarDadosLocais } from './state.js';
 import { esc, formatCurrency } from '../../shared/utils.js';
 import { showToast, fecharModal, abrirModal, atualizarUI, renderizarCatalogo, atualizarEstadoBotoes } from './ui.js';
 import { possuiPendenciasCaixa } from './offline-queue.js';
@@ -8,69 +8,69 @@ import { possuiPendenciasCaixa } from './offline-queue.js';
 /* ─── Reports ─── */
 
 export function abrirMenuRelatorios() {
-    if (!S.operadorAtual) return showToast('Faça login primeiro.');
+    if (!estadoPdv.operadorAtual) return showToast('Faça login primeiro.');
     abrirModal('modal-relatorios');
     document.getElementById('resultado-relatorio').classList.add('d-none');
-    document.getElementById('nome-operador-atual').innerText = S.operadorAtual;
+    document.getElementById('nome-operador-atual').innerText = estadoPdv.operadorAtual;
     const hoje = new Date();
     const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
     document.getElementById('data-inicio').value = primeiroDia.toISOString().split('T')[0];
     document.getElementById('data-fim').value = hoje.toISOString().split('T')[0];
 }
 
-export function gerarRelatorio(tipo) {
+export function gerarRelatorio(tipoRelatorio) {
     document.getElementById('loading').style.display = 'flex';
-    let filtro = {};
-    if (tipo === 'TURNO') {
-        filtro = {
-            operador: S.operadorAtual,
-            inicio: S.inicioTurno ? S.inicioTurno.toString() : new Date().toString(),
-            caixa_id: S.caixaId
+    let filtroRelatorio = {};
+    if (tipoRelatorio === 'TURNO') {
+        filtroRelatorio = {
+            operador: estadoPdv.operadorAtual,
+            inicio: estadoPdv.inicioTurno ? estadoPdv.inicioTurno.toString() : new Date().toString(),
+            caixa_id: estadoPdv.caixaId
         };
     }
-    S.tipoRelatorioAtual = tipo;
-    executarRelatorio(tipo, filtro);
+    estadoPdv.tipoRelatorioAtual = tipoRelatorio;
+    executarRelatorio(tipoRelatorio, filtroRelatorio);
 }
 
 export function gerarRelatorioPeriodo() {
-    const ini = document.getElementById('data-inicio').value;
-    const fim = document.getElementById('data-fim').value;
-    if (!ini || !fim) return showToast('Selecione as datas.');
+    const dataInicio = document.getElementById('data-inicio').value;
+    const dataFim = document.getElementById('data-fim').value;
+    if (!dataInicio || !dataFim) return showToast('Selecione as datas.');
     document.getElementById('loading').style.display = 'flex';
-    S.tipoRelatorioAtual = 'PERIODO';
-    executarRelatorio('PERIODO', { inicio: ini, fim: fim });
+    estadoPdv.tipoRelatorioAtual = 'PERIODO';
+    executarRelatorio('PERIODO', { inicio: dataInicio, fim: dataFim });
 }
 
-export function executarRelatorio(tipo, filtro) {
+export function executarRelatorio(tipoRelatorio, filtroRelatorio) {
     document.getElementById('resultado-relatorio').innerHTML = '';
     document.getElementById('resultado-relatorio').classList.add('d-none');
-    return API.gerarRelatorioCaixa(tipo, filtro)
-        .then(res => {
-            S.dadosRelatorioAtual = res;
+    return API.gerarRelatorioCaixa(tipoRelatorio, filtroRelatorio)
+        .then(dadosRelatorio => {
+            estadoPdv.dadosRelatorioAtual = dadosRelatorio;
             document.getElementById('loading').style.display = 'none';
-            if (!res) return showToast('Erro: O relatório retornou vazio.');
+            if (!dadosRelatorio) return showToast('Erro: O relatório retornou vazio.');
             document.getElementById('resultado-relatorio').classList.remove('d-none');
 
-            const saldoIni = Number(res.abertura) || 0;
-            const dinheiro = Number(res.dinheiro) || 0;
-            const pix = Number(res.pix) || 0;
-            const cartao = Number(res.cartao) || 0;
-            const recebimentoDivida = Number(res.recebimentoDivida) || 0;
-            const vendasFiado = Number(res.vendasFiado) || 0;
-            if (res.totalEntradas == null || !Number.isFinite(Number(res.totalEntradas))) throw new Error('Total do relatório ausente.');
-            const totalEntradas = Number(res.totalEntradas);
-            const totalGeralCaixa = totalEntradas + saldoIni;
+            const saldoInicial = Number(dadosRelatorio.abertura) || 0;
+            const totalDinheiro = Number(dadosRelatorio.dinheiro) || 0;
+            const totalPix = Number(dadosRelatorio.pix) || 0;
+            const totalCartao = Number(dadosRelatorio.cartao) || 0;
+            const recebimentoDivida = Number(dadosRelatorio.recebimentoDivida) || 0;
+            const vendasFiado = Number(dadosRelatorio.vendasFiado) || 0;
+            if (dadosRelatorio.totalEntradas == null || !Number.isFinite(Number(dadosRelatorio.totalEntradas))) throw new Error('Total do relatório ausente.');
+            const totalEntradas = Number(dadosRelatorio.totalEntradas);
+            const totalGeralCaixa = totalEntradas + saldoInicial;
 
             let htmlCupom = `
                 <div class="cupom-visual">
                     <div style="text-align:center; font-weight:bold; margin-bottom:10px; border-bottom:1px dashed #000; padding-bottom:5px;">
-                        RELATÓRIO DE CAIXA<br>${esc(res.periodo)}
+                        RELATÓRIO DE CAIXA<br>${esc(dadosRelatorio.periodo)}
                     </div>
                     <div style="border-bottom:1px dashed #555; padding:5px 0; font-weight:bold; color:var(--accent);">RESUMO FINANCEIRO</div>
-                    <div class="relatorio-linha"><span>(+) Fundo de Caixa:</span><span>${formatCurrency(saldoIni)}</span></div>
-                    <div class="relatorio-linha"><span>(+) Entradas Dinheiro:</span><span>${formatCurrency(dinheiro)}</span></div>
-                    <div class="relatorio-linha"><span>(+) Entradas Pix:</span><span>${formatCurrency(pix)}</span></div>
-                    <div class="relatorio-linha"><span>(+) Entradas Cartão:</span><span>${formatCurrency(cartao)}</span></div>
+                    <div class="relatorio-linha"><span>(+) Fundo de Caixa:</span><span>${formatCurrency(saldoInicial)}</span></div>
+                    <div class="relatorio-linha"><span>(+) Entradas Dinheiro:</span><span>${formatCurrency(totalDinheiro)}</span></div>
+                    <div class="relatorio-linha"><span>(+) Entradas Pix:</span><span>${formatCurrency(totalPix)}</span></div>
+                    <div class="relatorio-linha"><span>(+) Entradas Cartão:</span><span>${formatCurrency(totalCartao)}</span></div>
                     <div class="relatorio-linha"><span>Receb. Dívidas (já incluídos):</span><span>${formatCurrency(recebimentoDivida)}</span></div>
                     <div class="relatorio-linha" style="border-top:1px solid #777; margin-top:5px; padding-top:5px; font-weight:bold; font-size:1.1em; color:var(--success);">
                         <span>(=) TOTAL EM CAIXA:</span><span>${formatCurrency(totalGeralCaixa)}</span>
@@ -78,109 +78,109 @@ export function executarRelatorio(tipo, filtro) {
                     <div style="border-bottom:1px dashed #555; padding:5px 0; margin-top:15px; font-weight:bold; color:var(--danger);">MOVIMENTAÇÃO FIADO</div>
                     <div class="relatorio-linha"><span>(>) Total Vendido Fiado:</span><span>${formatCurrency(vendasFiado)}</span></div>`;
 
-            if (res.produtosVendidos && typeof res.produtosVendidos === 'object') {
-                const keys = Object.keys(res.produtosVendidos);
-                if (keys.length > 0) {
+            if (dadosRelatorio.produtosVendidos && typeof dadosRelatorio.produtosVendidos === 'object') {
+                const nomesProdutosVendidos = Object.keys(dadosRelatorio.produtosVendidos);
+                if (nomesProdutosVendidos.length > 0) {
                     htmlCupom += `<br><div style="text-align:center; font-weight:bold; border-bottom:1px dashed #000;">ITENS VENDIDOS</div>
                         <table style="width:100%; font-size:0.9em; margin-top:5px;">`;
-                    for (const prod in res.produtosVendidos) {
-                        htmlCupom += `<tr><td>${esc(prod)}</td><td style="text-align:right">${res.produtosVendidos[prod]}</td></tr>`;
+                    for (const nomeProduto in dadosRelatorio.produtosVendidos) {
+                        htmlCupom += `<tr><td>${esc(nomeProduto)}</td><td style="text-align:right">${dadosRelatorio.produtosVendidos[nomeProduto]}</td></tr>`;
                     }
                     htmlCupom += '</table>';
                 }
             }
-            if (res.historico && Array.isArray(res.historico) && res.historico.length > 0) {
-                htmlCupom += `<br><div style="text-align:center; font-weight:bold; border-bottom:1px dashed #000; margin-top:10px;">${res.historico_truncado ? 'HISTÓRICO PARCIAL — totais incluem todo o período' : 'HISTÓRICO COMPLETO'}</div>
+            if (dadosRelatorio.historico && Array.isArray(dadosRelatorio.historico) && dadosRelatorio.historico.length > 0) {
+                htmlCupom += `<br><div style="text-align:center; font-weight:bold; border-bottom:1px dashed #000; margin-top:10px;">${dadosRelatorio.historico_truncado ? 'HISTÓRICO PARCIAL — totais incluem todo o período' : 'HISTÓRICO COMPLETO'}</div>
                     <table style="width:100%; font-size:0.8em; margin-top:5px; border-collapse: collapse;">
                     <tr style="background:#ddd; font-weight:bold;"><td style="padding:2px;">Hora</td><td style="padding:2px;">Desc.</td><td style="padding:2px;">Valor</td></tr>`;
-                res.historico.forEach(h => {
-                    const metodoStr = h.metodo || '';
-                    const cor = metodoStr.includes('FIADO') ? 'red' : (h.tipo === 'RECEBIMENTO' ? 'green' : 'inherit');
-                    htmlCupom += `<tr style="border-bottom:1px solid #eee; color:${cor}">
-                        <td style="padding:2px;">${esc(h.hora || '')}</td>
-                        <td style="padding:2px;">${esc(h.descricao || '')}</td>
-                        <td style="padding:2px; text-align:right">${Number(h.valor).toFixed(2)}</td></tr>`;
+                dadosRelatorio.historico.forEach(movimentacao => {
+                    const metodoPagamento = movimentacao.metodo || '';
+                    const corMovimentacao = metodoPagamento.includes('FIADO') ? 'red' : (movimentacao.tipo === 'RECEBIMENTO' ? 'green' : 'inherit');
+                    htmlCupom += `<tr style="border-bottom:1px solid #eee; color:${corMovimentacao}">
+                        <td style="padding:2px;">${esc(movimentacao.hora || '')}</td>
+                        <td style="padding:2px;">${esc(movimentacao.descricao || '')}</td>
+                        <td style="padding:2px; text-align:right">${Number(movimentacao.valor).toFixed(2)}</td></tr>`;
                 });
                 htmlCupom += '</table>';
             }
             htmlCupom += '</div>';
 
-            const resultadoEl = document.getElementById('resultado-relatorio');
-            resultadoEl.innerHTML = `${htmlCupom}<br><button id="btn-imprimir-rel" class="btn-action w-100">IMPRIMIR RELATORIO</button>`;
+            const elementoResultadoRelatorio = document.getElementById('resultado-relatorio');
+            elementoResultadoRelatorio.innerHTML = `${htmlCupom}<br><button id="btn-imprimir-rel" class="btn-action w-100">IMPRIMIR RELATORIO</button>`;
             document.getElementById('btn-imprimir-rel').addEventListener('click', imprimirRelatorioAtual);
 
-            if (tipo === 'TURNO' || tipo === 'DIA') {
-                const btnFechamento = document.createElement('button');
-                btnFechamento.id = 'btn-confirmar-fechamento';
-                btnFechamento.className = 'btn-action w-100 mt-2';
-                btnFechamento.textContent = 'CONFIRMAR FECHAMENTO E SAIR';
-                btnFechamento.addEventListener('click', confirmarFechamentoCaixa);
-                resultadoEl.appendChild(btnFechamento);
+            if (tipoRelatorio === 'TURNO' || tipoRelatorio === 'DIA') {
+                const botaoFechamento = document.createElement('button');
+                botaoFechamento.id = 'btn-confirmar-fechamento';
+                botaoFechamento.className = 'btn-action w-100 mt-2';
+                botaoFechamento.textContent = 'CONFIRMAR FECHAMENTO E SAIR';
+                botaoFechamento.addEventListener('click', confirmarFechamentoCaixa);
+                elementoResultadoRelatorio.appendChild(botaoFechamento);
             }
         })
-        .catch(e => {
+        .catch(erroRelatorio => {
             document.getElementById('loading').style.display = 'none';
-            showToast(`Erro ao gerar relatório: ${e.message || e}`);
+            showToast(`Erro ao gerar relatório: ${erroRelatorio.message || erroRelatorio}`);
         });
 }
 
 /* ─── Cash Register Closing ─── */
 
 export function confirmarFechamentoCaixa() {
-    if (!S.caixaId) return showToast('Nenhum caixa aberto identificado.');
+    if (!estadoPdv.caixaId) return showToast('Nenhum caixa aberto identificado.');
     document.getElementById('input-valor-fechamento').value = '';
     document.getElementById('input-obs-fechamento').value = '';
     abrirModal('modal-fechar-caixa');
     document.getElementById('input-valor-fechamento').focus();
 }
 
-function redirect(url) {
+function redirect(urlDestino) {
     if (typeof globalThis.redirect === 'function') {
-        globalThis.redirect(url);
+        globalThis.redirect(urlDestino);
     } else {
-        window.location.replace(url);
+        window.location.replace(urlDestino);
     }
 }
 
 export async function executarFechamentoCaixa() {
-    const valorInput = document.getElementById('input-valor-fechamento').value;
-    const obsInput = document.getElementById('input-obs-fechamento').value.trim();
-    const valorFechamento = valorInput !== '' ? parseFloat(valorInput) : null;
+    const valorFechamentoInformado = document.getElementById('input-valor-fechamento').value;
+    const observacaoFechamento = document.getElementById('input-obs-fechamento').value.trim();
+    const valorFechamento = valorFechamentoInformado !== '' ? parseFloat(valorFechamentoInformado) : null;
     if (valorFechamento !== null && (isNaN(valorFechamento) || valorFechamento < 0)) {
         return showToast('Informe um valor em caixa válido.');
     }
 
     try {
-        if (await possuiPendenciasCaixa(S.caixaId)) return showToast('Existem operações pendentes deste caixa. Sincronize ou reconcilie antes de fechar.');
-    } catch (error) { return showToast(`Não foi possível verificar pendências: ${error.message}`); }
+        if (await possuiPendenciasCaixa(estadoPdv.caixaId)) return showToast('Existem operações pendentes deste caixa. Sincronize ou reconcilie antes de fechar.');
+    } catch (erroConsultaPendencias) { return showToast(`Não foi possível verificar pendências: ${erroConsultaPendencias.message}`); }
 
-    const loadingEl = document.getElementById('loading');
-    if (loadingEl) loadingEl.style.display = 'flex';
+    const indicadorCarregamento = document.getElementById('loading');
+    if (indicadorCarregamento) indicadorCarregamento.style.display = 'flex';
 
-    return API.fecharCaixa(S.caixaId, valorFechamento, obsInput || null)
-        .then(res => {
-            if (res?.status !== 'ok' || res.caixa_id !== S.caixaId) throw new Error('Servidor não confirmou este fechamento.');
+    return API.fecharCaixa(estadoPdv.caixaId, valorFechamento, observacaoFechamento || null)
+        .then(respostaFechamento => {
+            if (respostaFechamento?.status !== 'ok' || respostaFechamento.caixa_id !== estadoPdv.caixaId) throw new Error('Servidor não confirmou este fechamento.');
             fecharModal('modal-fechar-caixa');
-            S.caixaAberto = false;
-            S.valorAbertura = 0;
-            S.caixaId = null;
-            S.operadorAtual = '';
-            S.usuarioAtual = null;
-            S.inicioTurno = null;
-            S.carrinho = [];
+            estadoPdv.caixaAberto = false;
+            estadoPdv.valorAbertura = 0;
+            estadoPdv.caixaId = null;
+            estadoPdv.operadorAtual = '';
+            estadoPdv.usuarioAtual = null;
+            estadoPdv.inicioTurno = null;
+            estadoPdv.carrinho = [];
             atualizarUI();
             fecharModal('modal-relatorios');
             atualizarEstadoBotoes();
             return API.logout();
         })
         .then(() => {
-            if (loadingEl) loadingEl.style.display = 'none';
+            if (indicadorCarregamento) indicadorCarregamento.style.display = 'none';
             redirect('/login');
         })
-        .catch(e => {
-            if (loadingEl) loadingEl.style.display = 'none';
-            console.error('Erro ao fechar caixa no servidor:', e);
-            showToast(`Erro ao fechar caixa: ${e.message || e}`);
+        .catch(erroFechamentoCaixa => {
+            if (indicadorCarregamento) indicadorCarregamento.style.display = 'none';
+            console.error('Erro ao fechar caixa no servidor:', erroFechamentoCaixa);
+            showToast(`Erro ao fechar caixa: ${erroFechamentoCaixa.message || erroFechamentoCaixa}`);
         });
 }
 
@@ -191,83 +191,83 @@ export function imprimirArea() {
     setTimeout(() => window.print(), 1500);
 }
 
-export function montarImpressao(itens, metodo, cliente) {
-    const area = document.getElementById('area-impressao');
-    let html = '';
-    const data = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    const imgTag = '<div style="text-align:center; margin-bottom:10px"><img src="/static/img/motorhead.svg" style="width:70px; height:70px; "></div>';
-    const clienteEsc = esc(cliente.toUpperCase());
+export function montarImpressao(itensVenda, metodoPagamento, nomeCliente) {
+    const areaImpressao = document.getElementById('area-impressao');
+    let htmlImpressao = '';
+    const horarioImpressao = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const logotipoHtml = '<div style="text-align:center; margin-bottom:10px"><img src="/static/img/motorhead.svg" style="width:70px; height:70px; "></div>';
+    const nomeClienteEscapado = esc(nomeCliente.toUpperCase());
 
-    itens.forEach(item => {
-        const prod = S.produtos.find(p => p.id == item.id);
-        const categoria = prod ? prod.categoria : '';
-        const isComida = (categoria && categoria.toUpperCase() === 'COMIDA');
-        const obsHtml = item.obs ? `<span class="ticket-obs">${esc(item.obs.toUpperCase())}</span>` : '';
-        for (let i = 0; i < item.qtd; i++) {
-            html += `<div class="ticket ${S.config.largura}">${imgTag}
+    itensVenda.forEach(itemVenda => {
+        const produtoEncontrado = estadoPdv.produtos.find(produto => produto.id == itemVenda.id);
+        const categoriaProduto = produtoEncontrado ? produtoEncontrado.categoria : '';
+        const produtoComida = (categoriaProduto && categoriaProduto.toUpperCase() === 'COMIDA');
+        const observacaoHtml = itemVenda.obs ? `<span class="ticket-obs">${esc(itemVenda.obs.toUpperCase())}</span>` : '';
+        for (let indiceUnidade = 0; indiceUnidade < itemVenda.qtd; indiceUnidade++) {
+            htmlImpressao += `<div class="ticket ${estadoPdv.config.largura}">${logotipoHtml}
                 <div class="ticket-content">
-                    <div class="ticket-header">MOTORHEAD • ${esc(data)}</div>
-                    <span class="ticket-item">${esc(item.nome)}</span>
-                    ${obsHtml}
-                    <div class="ticket-info">CLI: <b>${clienteEsc}</b> | ${esc(metodo)}</div>
-                    ${isComida ? '<div style="font-size:0.8em; margin-top:5px">VIA CLIENTE</div>' : ''}
+                    <div class="ticket-header">MOTORHEAD • ${esc(horarioImpressao)}</div>
+                    <span class="ticket-item">${esc(itemVenda.nome)}</span>
+                    ${observacaoHtml}
+                    <div class="ticket-info">CLI: <b>${nomeClienteEscapado}</b> | ${esc(metodoPagamento)}</div>
+                    ${produtoComida ? '<div style="font-size:0.8em; margin-top:5px">VIA CLIENTE</div>' : ''}
                 </div></div>`;
-            if (isComida) {
-                html += `<div class="ticket ${S.config.largura}">${imgTag}
+            if (produtoComida) {
+                htmlImpressao += `<div class="ticket ${estadoPdv.config.largura}">${logotipoHtml}
                     <div class="ticket-content">
-                        <div class="ticket-header">COZINHA • ${esc(data)}</div>
-                        <span class="ticket-item">${esc(item.nome)}</span>
-                        ${obsHtml}
-                        <div class="ticket-info">CLI: <b>${clienteEsc}</b></div>
+                        <div class="ticket-header">COZINHA • ${esc(horarioImpressao)}</div>
+                        <span class="ticket-item">${esc(itemVenda.nome)}</span>
+                        ${observacaoHtml}
+                        <div class="ticket-info">CLI: <b>${nomeClienteEscapado}</b></div>
                         <div style="font-size:0.9em; margin-top:5px; font-weight:bold">VIA COZINHA</div>
                     </div></div>`;
             }
         }
     });
-    area.innerHTML = html;
+    areaImpressao.innerHTML = htmlImpressao;
 }
 
 export function imprimirRelatorioAtual() {
-    if (!S.dadosRelatorioAtual) return;
-    const area = document.getElementById('area-impressao');
-    const saldoIni = Number(S.dadosRelatorioAtual.abertura) || 0;
+    if (!estadoPdv.dadosRelatorioAtual) return;
+    const areaImpressao = document.getElementById('area-impressao');
+    const saldoInicial = Number(estadoPdv.dadosRelatorioAtual.abertura) || 0;
 
-    const dinheiro = Number(S.dadosRelatorioAtual.dinheiro) || 0;
-    const pix = Number(S.dadosRelatorioAtual.pix) || 0;
-    const cartao = Number(S.dadosRelatorioAtual.cartao) || 0;
-    const recebimentoDivida = Number(S.dadosRelatorioAtual.recebimentoDivida) || 0;
-    const totalGeral = Number(S.dadosRelatorioAtual.totalEntradas) + saldoIni;
+    const totalDinheiro = Number(estadoPdv.dadosRelatorioAtual.dinheiro) || 0;
+    const totalPix = Number(estadoPdv.dadosRelatorioAtual.pix) || 0;
+    const totalCartao = Number(estadoPdv.dadosRelatorioAtual.cartao) || 0;
+    const recebimentoDivida = Number(estadoPdv.dadosRelatorioAtual.recebimentoDivida) || 0;
+    const totalGeral = Number(estadoPdv.dadosRelatorioAtual.totalEntradas) + saldoInicial;
     if (!Number.isFinite(totalGeral)) return showToast('Total do relatório inválido.');
 
     let htmlHistorico = '';
-    if (S.dadosRelatorioAtual.historico && S.dadosRelatorioAtual.historico.length > 0) {
+    if (estadoPdv.dadosRelatorioAtual.historico && estadoPdv.dadosRelatorioAtual.historico.length > 0) {
         htmlHistorico = '<br><div style="border-bottom:1px dashed black; font-weight:bold; text-align:center">EXTRATO DETALHADO</div>';
-        S.dadosRelatorioAtual.historico.forEach(h => {
-            const symbol = h.metodo.includes('FIADO') ? '(!)' : '';
-            let horaShow = '';
-            if (h.data) horaShow = h.data.split(' ')[1] || h.data;
-            else if (h.hora) horaShow = h.hora.split(' ')[1] || h.hora;
-            else if (h.dataHora) horaShow = h.dataHora.split(' ')[1] || h.dataHora;
+        estadoPdv.dadosRelatorioAtual.historico.forEach(movimentacao => {
+            const indicadorFiado = movimentacao.metodo.includes('FIADO') ? '(!)' : '';
+            let horarioExibicao = '';
+            if (movimentacao.data) horarioExibicao = movimentacao.data.split(' ')[1] || movimentacao.data;
+            else if (movimentacao.hora) horarioExibicao = movimentacao.hora.split(' ')[1] || movimentacao.hora;
+            else if (movimentacao.dataHora) horarioExibicao = movimentacao.dataHora.split(' ')[1] || movimentacao.dataHora;
             htmlHistorico += `<div style="font-size:0.8em; border-bottom:1px dotted #ccc; margin-bottom:2px;">
-                ${esc(horaShow)} ${esc(h.descricao.substring(0, 15))}... ${symbol}
-                <br><div style="text-align:right">${Number(h.valor).toFixed(2)} (${esc(h.metodo.substring(0, 3))})</div></div>`;
+                ${esc(horarioExibicao)} ${esc(movimentacao.descricao.substring(0, 15))}... ${indicadorFiado}
+                <br><div style="text-align:right">${Number(movimentacao.valor).toFixed(2)} (${esc(movimentacao.metodo.substring(0, 3))})</div></div>`;
         });
     }
-    area.innerHTML = `<div class="sheet-a4">
+    areaImpressao.innerHTML = `<div class="sheet-a4">
         <div class="ticket-header">RELATÓRIO DE CAIXA</div>
-        <div class="ticket-header" style="font-size:1em">${esc(S.dadosRelatorioAtual.periodo)}</div>
+        <div class="ticket-header" style="font-size:1em">${esc(estadoPdv.dadosRelatorioAtual.periodo)}</div>
         <div style="border-bottom:1px solid black; margin:10px 0"></div>
         <div style="text-align:left; font-weight:bold; margin-top:5px;">RESUMO FINANCEIRO</div>
-        <div class="relatorio-linha"><span>(+) Saldo Inicial:</span><span>${formatCurrency(saldoIni)}</span></div>
-        <div class="relatorio-linha"><span>(+) Dinheiro:</span><span>${formatCurrency(dinheiro)}</span></div>
-        <div class="relatorio-linha"><span>(+) Pix:</span><span>${formatCurrency(pix)}</span></div>
-        <div class="relatorio-linha"><span>(+) Cartão:</span><span>${formatCurrency(cartao)}</span></div>
+        <div class="relatorio-linha"><span>(+) Saldo Inicial:</span><span>${formatCurrency(saldoInicial)}</span></div>
+        <div class="relatorio-linha"><span>(+) Dinheiro:</span><span>${formatCurrency(totalDinheiro)}</span></div>
+        <div class="relatorio-linha"><span>(+) Pix:</span><span>${formatCurrency(totalPix)}</span></div>
+        <div class="relatorio-linha"><span>(+) Cartão:</span><span>${formatCurrency(totalCartao)}</span></div>
         <div class="relatorio-linha"><span>Receb. Dívidas (já incluídos):</span><span>${formatCurrency(recebimentoDivida)}</span></div>
         <div style="border-top:1px solid black; margin:5px 0"></div>
         <div class="relatorio-linha" style="font-weight:bold; font-size:1.3em"><span>(=) TOTAL CAIXA:</span><span>${formatCurrency(totalGeral)}</span></div>
         <div style="border-bottom:1px dashed black; margin:10px 0"></div>
         <div style="text-align:left; font-weight:bold;">MOVIMENTAÇÃO FIADO</div>
-        <div class="relatorio-linha"><span>(>) Total Vendido Fiado:</span><span>${formatCurrency(S.dadosRelatorioAtual.vendasFiado)}</span></div>
+        <div class="relatorio-linha"><span>(>) Total Vendido Fiado:</span><span>${formatCurrency(estadoPdv.dadosRelatorioAtual.vendasFiado)}</span></div>
         ${htmlHistorico}
         <br><br><br>
         <div style="border-top:1px solid black; width:60%; margin:0 auto"></div>
@@ -276,24 +276,24 @@ export function imprimirRelatorioAtual() {
     imprimirArea();
 }
 
-export function montarImpressaoFechamento(dados) {
-    const area = document.getElementById('area-impressao');
-    const data = new Date().toLocaleTimeString('pt-BR');
-    const imgTag = '<div style="text-align:center; margin-bottom:10px"><img src="/static/img/motorhead.svg" style="width:70px; height:70px; "></div>';
+export function montarImpressaoFechamento(dadosFechamento) {
+    const areaImpressao = document.getElementById('area-impressao');
+    const horarioImpressao = new Date().toLocaleTimeString('pt-BR');
+    const logotipoHtml = '<div style="text-align:center; margin-bottom:10px"><img src="/static/img/motorhead.svg" style="width:70px; height:70px; "></div>';
     let itensHtml = '';
-    dados.itens.forEach(i => {
-        itensHtml += `<div class="extrato-print-item"><span>${i.qtd}x ${esc(i.produto)}</span><span>${i.valor.toFixed(2)}</span></div>`;
+    dadosFechamento.itens.forEach(itemFechamento => {
+        itensHtml += `<div class="extrato-print-item"><span>${itemFechamento.qtd}x ${esc(itemFechamento.produto)}</span><span>${itemFechamento.valor.toFixed(2)}</span></div>`;
     });
-    area.innerHTML = `<div class="ticket ${S.config.largura}">${imgTag}
+    areaImpressao.innerHTML = `<div class="ticket ${estadoPdv.config.largura}">${logotipoHtml}
         <div class="ticket-content">
             <div class="ticket-header">RECIBO PAGAMENTO</div>
             <div class="ticket-header">MOTORHEAD</div>
             <div style="border-bottom:1px solid black; margin:5px 0"></div>
-            <div>Membro: <b>${esc(dados.nome.toUpperCase())}</b></div>
-            <div>Data: ${esc(data)}</div>
+            <div>Membro: <b>${esc(dadosFechamento.nome.toUpperCase())}</b></div>
+            <div>Data: ${esc(horarioImpressao)}</div>
             <div style="margin-top:10px">${itensHtml}</div>
-            <div class="extrato-print-total">TOTAL PAGO: ${formatCurrency(dados.total)}</div>
-            <div style="text-align:right; font-size:0.9em; margin-top:5px">Forma: ${esc(dados.metodo || 'DINHEIRO')}</div>
+            <div class="extrato-print-total">TOTAL PAGO: ${formatCurrency(dadosFechamento.total)}</div>
+            <div style="text-align:right; font-size:0.9em; margin-top:5px">Forma: ${esc(dadosFechamento.metodo || 'DINHEIRO')}</div>
             <div style="text-align:center; margin-top:10px; font-size:0.8em">Conta Quitada</div>
         </div></div>`;
 }

@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import { jest, describe, test, expect, beforeEach, afterEach } from '@jest/globals';
-import { S } from '../static/js/features/pdv/state.js';
+import { estadoPdv } from '../static/js/features/pdv/state.js';
 
 function mockMatchMedia() {
     window.matchMedia = jest.fn().mockImplementation(() => ({
@@ -19,7 +19,7 @@ function mockMatchMedia() {
 
 /* ── Helpers: minimal DOM for ui.js ── */
 function setupDOM() {
-    S.categoriaCatalogo = 'todos';
+    estadoPdv.categoriaCatalogo = 'todos';
     document.body.innerHTML = `
         <div id="loading" style="display:flex"><div class="spinner"></div></div>
         <div id="toast">...</div>
@@ -40,19 +40,19 @@ test('filtro fixo separa categorias sem alterar produtos ou carrinho', async () 
     setupDOM();
     const { selecionarCategoria } = await import('../static/js/features/pdv/ui.js');
     document.body.insertAdjacentHTML('afterbegin', '<nav id="filtro-catalogo"><button data-categoria="bebida"></button><button data-categoria="comida"></button></nav>');
-    S.produtos = [
+    estadoPdv.produtos = [
         { id: 1, nome: 'Cerveja', categoria: 'bebida', preco_atual: 10, estoque_bar: 5 },
         { id: 2, nome: 'Lanche', categoria: 'comida', preco_atual: 20, estoque_bar: 5 },
     ];
-    S.carrinho = [{ id: 1, qtd: 1 }];
+    estadoPdv.carrinho = [{ id: 1, qtd: 1 }];
     selecionarCategoria('bebida');
     expect(document.querySelectorAll('.card')).toHaveLength(1);
     expect(document.getElementById('grid-produtos').textContent).toContain('Cerveja');
     selecionarCategoria('comida');
     expect(document.getElementById('grid-produtos').textContent).toContain('Lanche');
     expect(document.querySelector('[data-categoria="comida"]').getAttribute('aria-pressed')).toBe('true');
-    expect(S.produtos).toHaveLength(2);
-    expect(S.carrinho).toEqual([{ id: 1, qtd: 1 }]);
+    expect(estadoPdv.produtos).toHaveLength(2);
+    expect(estadoPdv.carrinho).toEqual([{ id: 1, qtd: 1 }]);
     selecionarCategoria('outro');
     expect(document.querySelector('.catalogo-vazio')).not.toBeNull();
 });
@@ -111,23 +111,23 @@ describe('ui.js — atualizarEstadoBotoes()', () => {
     beforeEach(async () => {
         setupDOM();
         mockMatchMedia();
-        S.operadorAtual = '';
-        S.caixaAberto = false;
-        S.usuarioAtual = null;
+        estadoPdv.operadorAtual = '';
+        estadoPdv.caixaAberto = false;
+        estadoPdv.usuarioAtual = null;
         const mod = await import('../static/js/features/pdv/ui.js');
         atualizarEstadoBotoes = mod.atualizarEstadoBotoes;
     });
 
     test('mostra BLOQUEADO quando sem operador', () => {
-        S.operadorAtual = '';
+        estadoPdv.operadorAtual = '';
         atualizarEstadoBotoes();
         const barra = document.getElementById('barra-operador');
         expect(barra.innerText).toContain('BLOQUEADO');
     });
 
     test('mostra nome do operador quando logado', () => {
-        S.operadorAtual = 'Felipe';
-        S.caixaAberto = false;
+        estadoPdv.operadorAtual = 'Felipe';
+        estadoPdv.caixaAberto = false;
         atualizarEstadoBotoes();
         const barra = document.getElementById('barra-operador');
         expect(barra.innerText).toContain('FELIPE');
@@ -135,23 +135,23 @@ describe('ui.js — atualizarEstadoBotoes()', () => {
     });
 
     test('mostra CAIXA ABERTO quando caixa aberto', () => {
-        S.operadorAtual = 'Maria';
-        S.caixaAberto = true;
+        estadoPdv.operadorAtual = 'Maria';
+        estadoPdv.caixaAberto = true;
         atualizarEstadoBotoes();
         const barra = document.getElementById('barra-operador');
         expect(barra.innerText).toContain('ABERTO');
     });
 
     test('mostra botão admin para perfil admin', () => {
-        S.operadorAtual = 'Admin';
-        S.usuarioAtual = { perfil: 'admin' };
+        estadoPdv.operadorAtual = 'Admin';
+        estadoPdv.usuarioAtual = { perfil: 'admin' };
         atualizarEstadoBotoes();
         expect(document.getElementById('btn-admin').classList.contains('d-none')).toBe(false);
     });
 
     test('esconde botão admin para perfil operador', () => {
-        S.operadorAtual = 'Operador';
-        S.usuarioAtual = { perfil: 'operador' };
+        estadoPdv.operadorAtual = 'Operador';
+        estadoPdv.usuarioAtual = { perfil: 'operador' };
         atualizarEstadoBotoes();
         expect(document.getElementById('btn-admin').classList.contains('d-none')).toBe(true);
     });
@@ -162,22 +162,22 @@ describe('ui.js — renderizarCatalogo()', () => {
     beforeEach(async () => {
         setupDOM();
         mockMatchMedia();
-        S.produtos = [];
-        S.carrinho = [];
-        S.modoGerenciaEstoque = false;
+        estadoPdv.produtos = [];
+        estadoPdv.carrinho = [];
+        estadoPdv.modoGerenciaEstoque = false;
         const mod = await import('../static/js/features/pdv/ui.js');
         renderizarCatalogo = mod.renderizarCatalogo;
     });
 
     test('mostra mensagem quando sem produtos', () => {
-        S.produtos = [];
+        estadoPdv.produtos = [];
         renderizarCatalogo();
         const grid = document.getElementById('grid-produtos');
         expect(grid.innerHTML).toContain('Nenhum produto encontrado');
     });
 
     test('renderiza cards para cada produto', () => {
-        S.produtos = [
+        estadoPdv.produtos = [
             { id: 1, nome: 'Cerveja', preco_atual: 10, estoque_bar: 20, estoque_deposito: 50, estoque_min_bar: 5, estoque_min_deposito: 10, url_imagem: '' },
             { id: 2, nome: 'Água', preco_atual: 5, estoque_bar: 15, estoque_deposito: 30, estoque_min_bar: 3, estoque_min_deposito: 5, url_imagem: '' },
         ];
@@ -187,7 +187,7 @@ describe('ui.js — renderizarCatalogo()', () => {
     });
 
     test('cards contêm nome e preço sanitizados', () => {
-        S.produtos = [
+        estadoPdv.produtos = [
             { id: 1, nome: '<script>Evil</script>', preco_atual: 99.9, estoque_bar: 10, estoque_deposito: 20, estoque_min_bar: 2, estoque_min_deposito: 5, url_imagem: '' },
         ];
         renderizarCatalogo();
@@ -198,7 +198,7 @@ describe('ui.js — renderizarCatalogo()', () => {
     });
 
     test('marca card esgotado quando estoque_bar <= 0', () => {
-        S.produtos = [
+        estadoPdv.produtos = [
             { id: 1, nome: 'Esgotado', preco_atual: 10, estoque_bar: 0, estoque_deposito: 5, estoque_min_bar: 1, estoque_min_deposito: 1, url_imagem: '' },
         ];
         renderizarCatalogo();
@@ -208,17 +208,17 @@ describe('ui.js — renderizarCatalogo()', () => {
     });
 
     test('desconta quantidade do carrinho do estoque visível', () => {
-        S.produtos = [
+        estadoPdv.produtos = [
             { id: 1, nome: 'Cerveja', preco_atual: 10, estoque_bar: 5, estoque_deposito: 20, estoque_min_bar: 1, estoque_min_deposito: 5, url_imagem: '' },
         ];
-        S.carrinho = [{ id: 1, nome: 'Cerveja', preco: 10, qtd: 3, obs: '' }];
+        estadoPdv.carrinho = [{ id: 1, nome: 'Cerveja', preco: 10, qtd: 3, obs: '' }];
         renderizarCatalogo();
         const stock = document.querySelector('.card-stock');
         expect(stock.textContent).toContain('Bar: 2');
     });
 
     test('mostra badge ESTOQUE BAIXO quando abaixo do mínimo', () => {
-        S.produtos = [
+        estadoPdv.produtos = [
             { id: 1, nome: 'Pouco', preco_atual: 10, estoque_bar: 2, estoque_deposito: 20, estoque_min_bar: 5, estoque_min_deposito: 3, url_imagem: '' },
         ];
         renderizarCatalogo();
@@ -233,23 +233,23 @@ describe('ui.js — atualizarUI()', () => {
     beforeEach(async () => {
         setupDOM();
         mockMatchMedia();
-        S.produtos = [
+        estadoPdv.produtos = [
             { id: 1, nome: 'Cerveja', preco_atual: 10, estoque_bar: 50, estoque_deposito: 100, estoque_min_bar: 5, estoque_min_deposito: 10, url_imagem: '' },
         ];
-        S.carrinho = [];
-        S.modoGerenciaEstoque = false;
+        estadoPdv.carrinho = [];
+        estadoPdv.modoGerenciaEstoque = false;
         const mod = await import('../static/js/features/pdv/ui.js');
         atualizarUI = mod.atualizarUI;
     });
 
     test('mostra total R$ 0,00 com carrinho vazio', () => {
-        S.carrinho = [];
+        estadoPdv.carrinho = [];
         atualizarUI();
         expect(document.getElementById('total-display').innerText).toBe('R$ 0.00');
     });
 
     test('calcula total correto com múltiplos itens', () => {
-        S.carrinho = [
+        estadoPdv.carrinho = [
             { id: 1, nome: 'Cerveja', preco: 10, qtd: 3, obs: '' },
             { id: 2, nome: 'Água', preco: 5, qtd: 2, obs: '' },
         ];
@@ -258,7 +258,7 @@ describe('ui.js — atualizarUI()', () => {
     });
 
     test('renderiza itens do carrinho no DOM', () => {
-        S.carrinho = [
+        estadoPdv.carrinho = [
             { id: 1, nome: 'Cerveja', preco: 10, qtd: 1, obs: 'Gelada' },
         ];
         atualizarUI();
@@ -269,7 +269,7 @@ describe('ui.js — atualizarUI()', () => {
     });
 
     test('sanitiza observações no carrinho', () => {
-        S.carrinho = [
+        estadoPdv.carrinho = [
             { id: 1, nome: 'Item', preco: 10, qtd: 1, obs: '<img onerror=alert(1)>' },
         ];
         atualizarUI();

@@ -1,86 +1,86 @@
 /**
  * Interações do catálogo/carrinho e abertura da edição do produto selecionado.
- * Usa o estado S e a UI do PDV; persistência de vendas pertence a pagamentos.js.
+ * Usa o estadoPdv e a UI do PDV; persistência de vendas pertence a pagamentos.js.
  */
-import { S } from '../state.js';
+import { estadoPdv } from '../state.js';
 import { showToast, fecharModal, abrirModal, atualizarUI, getQtdCarrinho } from '../ui.js';
 
 /* ─── Cart ─── */
 
-export function adicionarAoCarrinho(id, nome, preco, obs) {
-    const produtoEncontrado = S.produtos.find(x => x.id == id && x.nome == nome);
+export function adicionarAoCarrinho(produtoId, nomeProduto, precoProduto, observacao) {
+    const produtoEncontrado = estadoPdv.produtos.find(produto => produto.id == produtoId && produto.nome == nomeProduto);
     if (!produtoEncontrado) return;
-    const limite = Number(produtoEncontrado.estoque_bar);
-    const noCarrinho = getQtdCarrinho(id);
-    if (noCarrinho + 1 > limite) return showToast('Estoque do Bar insuficiente!');
-    const itemExistente = S.carrinho.find(i => i.id == id && i.nome == nome && i.obs === obs);
+    const limiteEstoqueBar = Number(produtoEncontrado.estoque_bar);
+    const quantidadeNoCarrinho = getQtdCarrinho(produtoId);
+    if (quantidadeNoCarrinho + 1 > limiteEstoqueBar) return showToast('Estoque do Bar insuficiente!');
+    const itemExistente = estadoPdv.carrinho.find(itemCarrinho => itemCarrinho.id == produtoId && itemCarrinho.nome == nomeProduto && itemCarrinho.obs === observacao);
     if (itemExistente) {
         itemExistente.qtd++;
     } else {
-        S.carrinho.push({ id, nome, preco, obs, qtd: 1 });
+        estadoPdv.carrinho.push({ id: produtoId, nome: nomeProduto, preco: precoProduto, obs: observacao, qtd: 1 });
     }
     atualizarUI();
 }
 
-export function incrementarQtd(idx) {
-    const item = S.carrinho[idx];
-    const prod = S.produtos.find(x => x.id == item.id && x.nome == item.nome);
-    const limite = prod ? Number(prod.estoque_bar) : 0;
-    if (getQtdCarrinho(item.id) + 1 > limite) return showToast('Limite do Bar atingido!');
-    item.qtd++;
+export function incrementarQtd(indiceItem) {
+    const itemCarrinho = estadoPdv.carrinho[indiceItem];
+    const produtoEncontrado = estadoPdv.produtos.find(produto => produto.id == itemCarrinho.id && produto.nome == itemCarrinho.nome);
+    const limiteEstoqueBar = produtoEncontrado ? Number(produtoEncontrado.estoque_bar) : 0;
+    if (getQtdCarrinho(itemCarrinho.id) + 1 > limiteEstoqueBar) return showToast('Limite do Bar atingido!');
+    itemCarrinho.qtd++;
     atualizarUI();
 }
 
-export function decrementarQtd(idx) {
-    if (S.carrinho[idx].qtd > 1) {
-        S.carrinho[idx].qtd--;
+export function decrementarQtd(indiceItem) {
+    if (estadoPdv.carrinho[indiceItem].qtd > 1) {
+        estadoPdv.carrinho[indiceItem].qtd--;
     } else {
-        S.carrinho.splice(idx, 1);
+        estadoPdv.carrinho.splice(indiceItem, 1);
     }
     atualizarUI();
 }
 
-export function abrirModalObs(nome) {
-    document.getElementById('modal-prod-nome').innerText = nome;
+export function abrirModalObs(nomeProduto) {
+    document.getElementById('modal-prod-nome').innerText = nomeProduto;
     document.getElementById('custom-obs').value = '';
     abrirModal('modal-obs');
     document.getElementById('custom-obs').focus();
 }
 
 export function confirmarObs() {
-    const custom = document.getElementById('custom-obs').value;
-    if (S.produtoPendente) {
-        adicionarAoCarrinho(S.produtoPendente.id, S.produtoPendente.nome, S.produtoPendente.preco_atual, custom);
+    const observacaoPersonalizada = document.getElementById('custom-obs').value;
+    if (estadoPdv.produtoPendente) {
+        adicionarAoCarrinho(estadoPdv.produtoPendente.id, estadoPdv.produtoPendente.nome, estadoPdv.produtoPendente.preco_atual, observacaoPersonalizada);
     }
     fecharModal('modal-obs');
 }
 
 /* ─── Product Interaction ─── */
 
-export function cliqueProduto(p, isBarZerado) {
-    if (!S.modoGerenciaEstoque && !S.caixaAberto && S.operadorAtual) {
+export function cliqueProduto(produto, estoqueBarZerado) {
+    if (!estadoPdv.modoGerenciaEstoque && !estadoPdv.caixaAberto && estadoPdv.operadorAtual) {
         return showToast('O caixa está fechado! Abra o caixa para realizar vendas.');
     }
-    const cat = String(p.categoria || '').trim().toUpperCase();
-    const isComida = cat === 'COMIDA';
+    const categoriaProduto = String(produto.categoria || '').trim().toUpperCase();
+    const produtoComida = categoriaProduto === 'COMIDA';
 
-    if (S.modoGerenciaEstoque) {
-        S.produtoEdicao = p;
-        S.estoqueOriginalBar = Number(p.estoque_bar);
-        document.getElementById('nome-prod-estoque').innerText = p.nome;
-        document.getElementById('edit-est-bar').value = p.estoque_bar;
-        document.getElementById('edit-est-dep').value = p.estoque_deposito;
-        document.getElementById('edit-min-bar').value = p.estoque_min_bar || 0;
-        document.getElementById('edit-min-dep').value = p.estoque_min_deposito || 0;
+    if (estadoPdv.modoGerenciaEstoque) {
+        estadoPdv.produtoEdicao = produto;
+        estadoPdv.estoqueOriginalBar = Number(produto.estoque_bar);
+        document.getElementById('nome-prod-estoque').innerText = produto.nome;
+        document.getElementById('edit-est-bar').value = produto.estoque_bar;
+        document.getElementById('edit-est-dep').value = produto.estoque_deposito;
+        document.getElementById('edit-min-bar').value = produto.estoque_min_bar || 0;
+        document.getElementById('edit-min-dep').value = produto.estoque_min_deposito || 0;
         abrirModal('modal-estoque');
     } else {
-        if (!S.operadorAtual) return showToast('Faça login primeiro.');
-        if (isBarZerado) return showToast('Produto esgotado no Bar!');
-        if (isComida) {
-            S.produtoPendente = p;
-            abrirModalObs(p.nome);
+        if (!estadoPdv.operadorAtual) return showToast('Faça login primeiro.');
+        if (estoqueBarZerado) return showToast('Produto esgotado no Bar!');
+        if (produtoComida) {
+            estadoPdv.produtoPendente = produto;
+            abrirModalObs(produto.nome);
         } else {
-            adicionarAoCarrinho(p.id, p.nome, p.preco_atual, '');
+            adicionarAoCarrinho(produto.id, produto.nome, produto.preco_atual, '');
         }
     }
 }

@@ -1,5 +1,5 @@
-export function esc(s) {
-    return String(s || '')
+export function esc(texto) {
+    return String(texto || '')
         .replace(/&/g, '&amp;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;')
@@ -10,22 +10,22 @@ export function esc(s) {
 export function sanitizeUrl(url) {
     if (!url) return 'https://placehold.co/150x150/333/FFF?text=Foto';
     try {
-        const parsed = new URL(url, window.location.origin);
-        if (!['http:', 'https:', 'data:'].includes(parsed.protocol)) {
+        const urlAnalisada = new URL(url, window.location.origin);
+        if (!['http:', 'https:', 'data:'].includes(urlAnalisada.protocol)) {
             return 'https://placehold.co/150x150/333/FFF?text=Erro';
         }
         return url;
-    } catch (e) {
+    } catch {
         return 'https://placehold.co/150x150/333/FFF?text=Erro';
     }
 }
 
-export function formatCurrency(v) {
-    return `R$ ${(Number(v) || 0).toFixed(2)}`;
+export function formatCurrency(valorMonetario) {
+    return `R$ ${(Number(valorMonetario) || 0).toFixed(2)}`;
 }
 
 export const LocalDB = {
-    set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { console.warn('Storage Bloqueado'); } },
-    get: (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } },
-    remove: (k) => { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } }
+    set: (chaveArmazenamento, valorArmazenado) => { try { localStorage.setItem(chaveArmazenamento, valorArmazenado); } catch { console.warn('Storage Bloqueado'); } },
+    get: (chaveArmazenamento) => { try { return localStorage.getItem(chaveArmazenamento); } catch { return null; } },
+    remove: (chaveArmazenamento) => { try { localStorage.removeItem(chaveArmazenamento); } catch { /* ignore */ } }
 };

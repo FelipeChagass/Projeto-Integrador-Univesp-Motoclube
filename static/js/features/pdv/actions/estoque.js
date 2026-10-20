@@ -4,29 +4,29 @@
  */
 import { API } from '../../../shared/api.js';
 import { UIModal } from '../../../shared/modals.js';
-import { S, salvarDadosLocais } from '../state.js';
+import { estadoPdv, salvarDadosLocais } from '../state.js';
 import { showToast, fecharModal, renderizarCatalogo, sincronizarTextoModoEstoque } from '../ui.js';
 
 /* ─── Stock Management ─── */
 
 export function alternarModoEstoque() {
-    if (S.modoGerenciaEstoque) {
-        S.modoGerenciaEstoque = false;
-        S.senhaEstoque = null;
-        const btn = document.getElementById('btn-estoque');
-        const carrinhoSec = document.getElementById('carrinho-section');
-        const header = document.getElementById('app-header');
-        if (btn) btn.classList.remove('active');
-        if (carrinhoSec) carrinhoSec.classList.remove('minimizado');
+    if (estadoPdv.modoGerenciaEstoque) {
+        estadoPdv.modoGerenciaEstoque = false;
+        estadoPdv.senhaEstoque = null;
+        const botaoEstoque = document.getElementById('btn-estoque');
+        const secaoCarrinho = document.getElementById('carrinho-section');
+        const cabecalhoAplicacao = document.getElementById('app-header');
+        if (botaoEstoque) botaoEstoque.classList.remove('active');
+        if (secaoCarrinho) secaoCarrinho.classList.remove('minimizado');
         document.body.style.border = 'none';
-        if (header) header.style.borderBottom = '';
+        if (cabecalhoAplicacao) cabecalhoAplicacao.style.borderBottom = '';
         sincronizarTextoModoEstoque();
         showToast('MODO ESTOQUE DESATIVADO');
         renderizarCatalogo();
         return;
     }
-    if (S.usuarioAtual?.perfil === 'admin') {
-        S.senhaEstoque = null;
+    if (estadoPdv.usuarioAtual?.perfil === 'admin') {
+        estadoPdv.senhaEstoque = null;
         ativarModoEstoque();
         return;
     }
@@ -34,46 +34,46 @@ export function alternarModoEstoque() {
         if (!senha) return showToast('Digite a senha do estoque.', 'err');
         try {
             await API.verificarSenhaEstoque(senha);
-            S.senhaEstoque = senha;
+            estadoPdv.senhaEstoque = senha;
             ativarModoEstoque();
-        } catch (error) {
-            showToast(error.message || 'Senha do estoque incorreta.', 'err');
+        } catch (erroValidacaoSenha) {
+            showToast(erroValidacaoSenha.message || 'Senha do estoque incorreta.', 'err');
         }
     });
 }
 
 function ativarModoEstoque() {
-    S.modoGerenciaEstoque = true;
-    const btn = document.getElementById('btn-estoque');
-    const carrinhoSec = document.getElementById('carrinho-section');
-    const header = document.getElementById('app-header');
-    if (btn) btn.classList.add('active');
-    if (carrinhoSec) carrinhoSec.classList.add('minimizado');
+    estadoPdv.modoGerenciaEstoque = true;
+    const botaoEstoque = document.getElementById('btn-estoque');
+    const secaoCarrinho = document.getElementById('carrinho-section');
+    const cabecalhoAplicacao = document.getElementById('app-header');
+    if (botaoEstoque) botaoEstoque.classList.add('active');
+    if (secaoCarrinho) secaoCarrinho.classList.add('minimizado');
     document.body.style.border = '3px solid var(--accent)';
-    if (header) header.style.borderBottom = '3px solid var(--accent)';
+    if (cabecalhoAplicacao) cabecalhoAplicacao.style.borderBottom = '3px solid var(--accent)';
     sincronizarTextoModoEstoque();
     showToast('MODO ESTOQUE ATIVADO');
     renderizarCatalogo();
 }
 
 export async function salvarEdicaoEstoque() {
-    const novoEstBar = Number(document.getElementById('edit-est-bar').value);
-    let novoEstDep = Number(document.getElementById('edit-est-dep').value);
-    const novoMinBar = document.getElementById('edit-min-bar').value;
-    const novoMinDep = document.getElementById('edit-min-dep').value;
-    if (novoEstBar < 0 || novoEstDep < 0) return showToast('Erro: Não é permitido valores negativos.');
-    const diferenca = novoEstBar - S.estoqueOriginalBar;
-    if (diferenca > 0) {
-        if (novoEstDep - diferenca < 0) return showToast('OPERAÇÃO NEGADA: Depósito insuficiente.');
-        novoEstDep -= diferenca;
+    const novoEstoqueBar = Number(document.getElementById('edit-est-bar').value);
+    let novoEstoqueDeposito = Number(document.getElementById('edit-est-dep').value);
+    const novoEstoqueMinimoBar = document.getElementById('edit-min-bar').value;
+    const novoEstoqueMinimoDeposito = document.getElementById('edit-min-dep').value;
+    if (novoEstoqueBar < 0 || novoEstoqueDeposito < 0) return showToast('Erro: Não é permitido valores negativos.');
+    const diferencaEstoqueBar = novoEstoqueBar - estadoPdv.estoqueOriginalBar;
+    if (diferencaEstoqueBar > 0) {
+        if (novoEstoqueDeposito - diferencaEstoqueBar < 0) return showToast('OPERAÇÃO NEGADA: Depósito insuficiente.');
+        novoEstoqueDeposito -= diferencaEstoqueBar;
     }
     try {
-        await API.salvarDadosProduto(S.produtoEdicao.id, novoEstBar, novoEstDep, Number(novoMinBar), Number(novoMinDep), S.estoqueOriginalBar, Number(S.produtoEdicao.estoque_deposito), S.senhaEstoque);
-        S.produtoEdicao.estoque_bar = novoEstBar;
-        S.produtoEdicao.estoque_deposito = novoEstDep;
+        await API.salvarDadosProduto(estadoPdv.produtoEdicao.id, novoEstoqueBar, novoEstoqueDeposito, Number(novoEstoqueMinimoBar), Number(novoEstoqueMinimoDeposito), estadoPdv.estoqueOriginalBar, Number(estadoPdv.produtoEdicao.estoque_deposito), estadoPdv.senhaEstoque);
+        estadoPdv.produtoEdicao.estoque_bar = novoEstoqueBar;
+        estadoPdv.produtoEdicao.estoque_deposito = novoEstoqueDeposito;
         salvarDadosLocais();
         renderizarCatalogo();
         fecharModal('modal-estoque');
         showToast('Estoque atualizado.');
-    } catch (error) { showToast(`Estoque não atualizado: ${error.message}`); }
+    } catch (erroAtualizacaoEstoque) { showToast(`Estoque não atualizado: ${erroAtualizacaoEstoque.message}`); }
 }

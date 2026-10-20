@@ -102,3 +102,49 @@ test('atualizar após edição invalida a consulta que já estava em andamento',
     resolver(dados(999)); await antiga;
     expect(root.querySelector('[data-total-atual]').textContent).toBe('R$ 200.00');
 });
+
+test('resumo e movimentos preservam valores financeiros, rótulos e escape de HTML', async () => {
+    buscar.mockResolvedValueOnce({
+        ...dados(350, [{
+            id: 'movimento-1', descricao: '<img src=x onerror=alert(1)>',
+            tipo: 'debito', origem: 'venda_fiado', situacao: 'parcial',
+            data: '01/02/2026 20:35', valor: 500, valor_abatido: 150, valor_aberto: 350,
+        }]),
+        resumo: {
+            total_periodo: 500, total_pago_periodo: 150, total_aberto_periodo: 350,
+            total_creditos_ajuste_periodo: 25,
+        },
+    });
+
+    await consulta.selecionar('membro-1');
+
+    const resumoPeriodo = root.querySelector('[data-resumo]');
+    expect([...resumoPeriodo.querySelectorAll('strong')].map(valorResumo => valorResumo.textContent))
+        .toEqual(['R$ 500.00', 'R$ 150.00', 'R$ 350.00']);
+    expect(resumoPeriodo.textContent).toContain('Créditos de ajuste no período: R$ 25.00 (não são pagamentos).');
+    const movimento = root.querySelector('[data-itens] article');
+    expect(movimento.textContent).toContain('<img src=x onerror=alert(1)>');
+    expect(movimento.querySelector('img')).toBeNull();
+    expect(movimento.textContent).toContain('Venda pendurada');
+    expect(movimento.textContent).toContain('Parcialmente pago');
+    expect(movimento.textContent).toContain('Abatido: R$ 150.00 · Em aberto: R$ 350.00');
+    expect(root.querySelector('[data-pagina]').textContent).toBe('1–1 de 1');
+});
+
+test('ações administrativas delegadas preservam membro, movimento e ação selecionada', async () => {
+    const administrar = jest.fn();
+    const movimento = { id: 'movimento-1', descricao: 'Venda', tipo: 'debito', valor: 200, situacao: 'em_aberto' };
+    consulta = criarConsultaExtrato(root, { buscar, notificar, administrar });
+    buscar.mockResolvedValueOnce(dados(200, [movimento]));
+
+    await consulta.selecionar('membro-1');
+    root.querySelector('[data-acao="editar"]').click();
+    root.querySelector('[data-acao="excluir"]').click();
+
+    expect(administrar.mock.calls).toEqual([
+        ['membro-1', movimento, 'editar'],
+        ['membro-1', movimento, 'excluir'],
+    ]);
+    root.querySelector('[data-itens] article strong').click();
+    expect(administrar).toHaveBeenCalledTimes(2);
+});

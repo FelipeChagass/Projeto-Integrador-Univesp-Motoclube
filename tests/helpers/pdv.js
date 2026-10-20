@@ -4,7 +4,7 @@
  * loadModules reinicializa o cenário; as asserções permanecem em actions.test.js.
  */
 import { jest } from '@jest/globals';
-import { S } from '../../static/js/features/pdv/state.js';
+import { estadoPdv } from '../../static/js/features/pdv/state.js';
 import { IDBFactory } from 'fake-indexeddb';
 import { readFileSync } from 'node:fs';
 
@@ -109,22 +109,22 @@ export async function loadModules() {
     mockMatchMedia();
     localStorage.clear();
     globalThis.indexedDB = new IDBFactory();
-    S.usuarioAtual = { id: 'operador-test', perfil: 'operador' };
-    S.processandoFila = false;
-    S.produtos = [
+    estadoPdv.usuarioAtual = { id: 'operador-test', perfil: 'operador' };
+    estadoPdv.processandoFila = false;
+    estadoPdv.produtos = [
         { id: 1, nome: 'Cerveja', preco_atual: 10, estoque_bar: 20, estoque_deposito: 50, estoque_min_bar: 5, estoque_min_deposito: 10, url_imagem: '', categoria: 'BEBIDA' },
         { id: 2, nome: 'Hamburguer', preco_atual: 25, estoque_bar: 10, estoque_deposito: 30, estoque_min_bar: 2, estoque_min_deposito: 5, url_imagem: '', categoria: 'COMIDA' },
     ];
-    S.carrinho = [];
-    S.membros = [{ nome: 'João' }, { nome: 'Maria' }];
-    S.operadorAtual = 'Teste';
-    S.caixaAberto = true;
-    S.caixaId = 'cx-test';
-    S.modoGerenciaEstoque = false;
-    S.senhaEstoque = null;
-    S.filaVendas = [];
-    S.enviandoVenda = false;
-    S.config = { imprimir: false, largura: 'ticket-80mm', logo: '/static/img/motorhead.svg' };
+    estadoPdv.carrinho = [];
+    estadoPdv.membros = [{ nome: 'João' }, { nome: 'Maria' }];
+    estadoPdv.operadorAtual = 'Teste';
+    estadoPdv.caixaAberto = true;
+    estadoPdv.caixaId = 'cx-test';
+    estadoPdv.modoGerenciaEstoque = false;
+    estadoPdv.senhaEstoque = null;
+    estadoPdv.filaVendas = [];
+    estadoPdv.enviandoVenda = false;
+    estadoPdv.config = { imprimir: false, largura: 'ticket-80mm', logo: '/static/img/motorhead.svg' };
     ui = await import('../../static/js/features/pdv/ui.js');
     actions = await import('../../static/js/features/pdv/actions.js');
     reports = await import('../../static/js/features/pdv/reports.js');

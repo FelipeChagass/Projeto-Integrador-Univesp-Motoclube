@@ -25,7 +25,7 @@ export function setupEventListeners() {
     document.getElementById('btn-add-produto')?.addEventListener('click', abrirFormNovoProduto);
     document.getElementById('btn-close-form-produto')?.addEventListener('click', fecharFormNovoProduto);
     document.getElementById('novo-upload-zone')?.addEventListener('click', () => document.getElementById('novo-file-input').click());
-    document.getElementById('novo-file-input')?.addEventListener('change', (e) => previewNovoProdutoImagem(e.target));
+    document.getElementById('novo-file-input')?.addEventListener('change', (evento) => previewNovoProdutoImagem(evento.target));
     document.getElementById('btn-remove-preview-produto')?.addEventListener('click', removerNovoPreview);
     document.getElementById('btn-save-novo-produto')?.addEventListener('click', criarNovoProduto);
     document.getElementById('btn-cancel-novo-produto')?.addEventListener('click', fecharFormNovoProduto);
@@ -53,40 +53,40 @@ export function setupEventListeners() {
     document.getElementById('btn-cancel-modal-estoque')?.addEventListener('click', () => fecharModalAdmin('modalAjusteEstoque'));
     document.getElementById('btn-confirmar-ajuste-estoque')?.addEventListener('click', confirmarAjusteEstoque);
 
-    document.getElementById('fileInput')?.addEventListener('change', (e) => uploadImagem(e.target));
+    document.getElementById('fileInput')?.addEventListener('change', (evento) => uploadImagem(evento.target));
 
-    document.getElementById('tabelaProdutos')?.addEventListener('click', (e) => {
-        const btn = e.target.closest('[data-action]');
-        if (!btn) return;
-        const action = btn.dataset.action;
-        const id = parseInt(btn.dataset.id);
-        if (action === 'upload-img') abrirUpload(id);
-        if (action === 'salvar-produto') salvarProduto(id);
-        if (action === 'ajuste-estoque') abrirAjusteEstoque(id);
-        if (action === 'excluir-produto') deletarProduto(id, btn.dataset.nome);
-        if (action === 'reativar-produto') reativarProduto(id);
+    document.getElementById('tabelaProdutos')?.addEventListener('click', (evento) => {
+        const botaoAcao = evento.target.closest('[data-action]');
+        if (!botaoAcao) return;
+        const acao = botaoAcao.dataset.action;
+        const id = parseInt(botaoAcao.dataset.id);
+        if (acao === 'upload-img') abrirUpload(id);
+        if (acao === 'salvar-produto') salvarProduto(id);
+        if (acao === 'ajuste-estoque') abrirAjusteEstoque(id);
+        if (acao === 'excluir-produto') deletarProduto(id, botaoAcao.dataset.nome);
+        if (acao === 'reativar-produto') reativarProduto(id);
     });
 
-    document.getElementById('tabelaMembros')?.addEventListener('click', (e) => {
-        const btn = e.target.closest('[data-action]');
-        if (!btn) return;
-        const action = btn.dataset.action;
-        const id = btn.dataset.id;
-        if (action === 'salvar-membro') salvarMembro(id);
-        if (action === 'ver-extrato') verExtrato(id, btn.dataset.nome);
-        if (action === 'ajuste-saldo') abrirAjusteSaldo(id, btn.dataset.nome);
-        if (action === 'excluir-membro') excluirMembro(id, btn.dataset.nome);
-        if (action === 'reativar-membro') reativarMembro(id);
+    document.getElementById('tabelaMembros')?.addEventListener('click', (evento) => {
+        const botaoAcao = evento.target.closest('[data-action]');
+        if (!botaoAcao) return;
+        const acao = botaoAcao.dataset.action;
+        const id = botaoAcao.dataset.id;
+        if (acao === 'salvar-membro') salvarMembro(id);
+        if (acao === 'ver-extrato') verExtrato(id, botaoAcao.dataset.nome);
+        if (acao === 'ajuste-saldo') abrirAjusteSaldo(id, botaoAcao.dataset.nome);
+        if (acao === 'excluir-membro') excluirMembro(id, botaoAcao.dataset.nome);
+        if (acao === 'reativar-membro') reativarMembro(id);
     });
 
-    document.getElementById('tabelaUsuarios')?.addEventListener('click', (e) => {
-        const btn = e.target.closest('[data-action]');
-        if (!btn) return;
-        const action = btn.dataset.action;
-        const id = btn.dataset.id;
-        if (action === 'salvar-usuario') salvarUsuario(id);
-        if (action === 'toggle-usuario') toggleUsuario(id, btn.dataset.ativo === 'true');
-        if (action === 'excluir-usuario') excluirUsuario(id, btn.dataset.nome || 'usuário');
+    document.getElementById('tabelaUsuarios')?.addEventListener('click', (evento) => {
+        const botaoAcao = evento.target.closest('[data-action]');
+        if (!botaoAcao) return;
+        const acao = botaoAcao.dataset.action;
+        const id = botaoAcao.dataset.id;
+        if (acao === 'salvar-usuario') salvarUsuario(id);
+        if (acao === 'toggle-usuario') toggleUsuario(id, botaoAcao.dataset.ativo === 'true');
+        if (acao === 'excluir-usuario') excluirUsuario(id, botaoAcao.dataset.nome || 'usuário');
     });
 
     // ── Admin Sidebar Mobile ──
@@ -94,10 +94,10 @@ export function setupEventListeners() {
     document.getElementById('admin-sidebar-close')?.addEventListener('click', closeAdminSidebar);
     document.querySelector('#admin-sidebar-mobile .sidebar-backdrop')?.addEventListener('click', closeAdminSidebar);
 
-    document.querySelectorAll('#admin-sidebar-mobile [data-admin-tab]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tab = btn.dataset.adminTab;
-            switchTab(tab);
+    document.querySelectorAll('#admin-sidebar-mobile [data-admin-tab]').forEach(botaoAba => {
+        botaoAba.addEventListener('click', () => {
+            const nomeAba = botaoAba.dataset.adminTab;
+            switchTab(nomeAba);
             closeAdminSidebar();
         });
     });

@@ -1,6 +1,6 @@
 import { LocalDB } from '../../shared/utils.js';
 
-export const S = {
+export const estadoPdv = {
     logoUrl: '/static/img/motorhead.svg',
     produtos: [],
     categoriaCatalogo: 'bebida',
@@ -30,51 +30,51 @@ export const S = {
 };
 
 export function salvarEstadoLocal() {
-    LocalDB.set('motoBarCarrinho', JSON.stringify(S.carrinho));
+    LocalDB.set('motoBarCarrinho', JSON.stringify(estadoPdv.carrinho));
 }
 
 export function salvarDadosLocais() {
-    LocalDB.set('motoBarProdutos', JSON.stringify(S.produtos));
-    LocalDB.set('motoBarMembros', JSON.stringify(S.membros));
-    LocalDB.set('motoBarOperador', S.operadorAtual);
-    LocalDB.set('motoBarInicio', S.inicioTurno ? S.inicioTurno.toString() : '');
-    LocalDB.set('motoBarCarrinho', JSON.stringify(S.carrinho));
-    LocalDB.set('motoBarConfig', JSON.stringify(S.config));
-    LocalDB.set('motoBarCaixaAberto', S.caixaAberto);
-    LocalDB.set('motoBarValorAbertura', S.valorAbertura);
-    if (S.caixaId) LocalDB.set('motoBarCaixaId', S.caixaId);
+    LocalDB.set('motoBarProdutos', JSON.stringify(estadoPdv.produtos));
+    LocalDB.set('motoBarMembros', JSON.stringify(estadoPdv.membros));
+    LocalDB.set('motoBarOperador', estadoPdv.operadorAtual);
+    LocalDB.set('motoBarInicio', estadoPdv.inicioTurno ? estadoPdv.inicioTurno.toString() : '');
+    LocalDB.set('motoBarCarrinho', JSON.stringify(estadoPdv.carrinho));
+    LocalDB.set('motoBarConfig', JSON.stringify(estadoPdv.config));
+    LocalDB.set('motoBarCaixaAberto', estadoPdv.caixaAberto);
+    LocalDB.set('motoBarValorAbertura', estadoPdv.valorAbertura);
+    if (estadoPdv.caixaId) LocalDB.set('motoBarCaixaId', estadoPdv.caixaId);
 }
 
 export function carregarDadosLocais() {
     try {
         const produtosJson = LocalDB.get('motoBarProdutos');
         if (produtosJson) {
-            S.produtos = JSON.parse(produtosJson);
-            if (!Array.isArray(S.produtos)) S.produtos = [];
+            estadoPdv.produtos = JSON.parse(produtosJson);
+            if (!Array.isArray(estadoPdv.produtos)) estadoPdv.produtos = [];
         }
         const membrosJson = LocalDB.get('motoBarMembros');
         if (membrosJson) {
-            S.membros = JSON.parse(membrosJson);
-            if (!Array.isArray(S.membros)) S.membros = [];
+            estadoPdv.membros = JSON.parse(membrosJson);
+            if (!Array.isArray(estadoPdv.membros)) estadoPdv.membros = [];
         }
         const operadorSalvo = LocalDB.get('motoBarOperador');
-        if (operadorSalvo) S.operadorAtual = operadorSalvo;
+        if (operadorSalvo) estadoPdv.operadorAtual = operadorSalvo;
         const inicioSalvo = LocalDB.get('motoBarInicio');
-        if (inicioSalvo) S.inicioTurno = new Date(inicioSalvo);
+        if (inicioSalvo) estadoPdv.inicioTurno = new Date(inicioSalvo);
         const carrinhoJson = LocalDB.get('motoBarCarrinho');
         if (carrinhoJson) {
-            S.carrinho = JSON.parse(carrinhoJson);
-            if (!Array.isArray(S.carrinho)) S.carrinho = [];
+            estadoPdv.carrinho = JSON.parse(carrinhoJson);
+            if (!Array.isArray(estadoPdv.carrinho)) estadoPdv.carrinho = [];
         }
         // The outbox is loaded asynchronously from IndexedDB, never overwritten here.
-        const configJson = LocalDB.get('motoBarConfig');
-        if (configJson) S.config = JSON.parse(configJson);
-        S.caixaAberto = LocalDB.get('motoBarCaixaAberto') === 'true';
+        const configuracoesJson = LocalDB.get('motoBarConfig');
+        if (configuracoesJson) estadoPdv.config = JSON.parse(configuracoesJson);
+        estadoPdv.caixaAberto = LocalDB.get('motoBarCaixaAberto') === 'true';
         const valorAberturaSalvo = LocalDB.get('motoBarValorAbertura');
-        if (valorAberturaSalvo) S.valorAbertura = Number(valorAberturaSalvo);
+        if (valorAberturaSalvo) estadoPdv.valorAbertura = Number(valorAberturaSalvo);
         const caixaIdSalvo = LocalDB.get('motoBarCaixaId');
-        if (caixaIdSalvo) S.caixaId = caixaIdSalvo;
-    } catch (e) {
-        console.error('Erro cache', e);
+        if (caixaIdSalvo) estadoPdv.caixaId = caixaIdSalvo;
+    } catch (erroCarregamento) {
+        console.error('Erro cache', erroCarregamento);
     }
 }

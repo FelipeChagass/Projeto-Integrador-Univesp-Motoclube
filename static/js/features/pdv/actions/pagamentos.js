@@ -2,7 +2,7 @@
  * Pagamento, troco e criação de operações duráveis de venda/recebimento.
  * Persiste na fila antes de limpar o carrinho ou imprimir; sincronizacao.js obtém o ACK.
  */
-import { S, salvarDadosLocais } from '../state.js';
+import { estadoPdv, salvarDadosLocais } from '../state.js';
 import { formatCurrency } from '../../../shared/utils.js';
 import { showToast, fecharModal, abrirModal, atualizarUI, renderizarCatalogo } from '../ui.js';
 import { montarImpressao } from '../reports.js';
@@ -11,55 +11,55 @@ import { processarFilaVendas } from './sincronizacao.js';
 
 /* ─── Payment ─── */
 
-export function iniciarPagamento(metodo) {
-    if (!S.operadorAtual) return showToast('Faça login primeiro.');
-    if (!S.caixaAberto) return showToast('Necessário realizar a Abertura de Caixa!');
-    if (!S.carrinho || !S.carrinho.length) return showToast('Carrinho Vazio!');
-    const visitante = document.getElementById('input-cliente').value;
-    const total = S.carrinho.reduce((acc, i) => acc + (Number(i.preco) * Number(i.qtd)), 0);
-    prepararPagamentoGlobal('VENDA', total, metodo, visitante || 'BALCÃO');
+export function iniciarPagamento(metodoPagamento) {
+    if (!estadoPdv.operadorAtual) return showToast('Faça login primeiro.');
+    if (!estadoPdv.caixaAberto) return showToast('Necessário realizar a Abertura de Caixa!');
+    if (!estadoPdv.carrinho || !estadoPdv.carrinho.length) return showToast('Carrinho Vazio!');
+    const nomeVisitante = document.getElementById('input-cliente').value;
+    const totalCarrinho = estadoPdv.carrinho.reduce((totalAcumulado, itemCarrinho) => totalAcumulado + (Number(itemCarrinho.preco) * Number(itemCarrinho.qtd)), 0);
+    prepararPagamentoGlobal('VENDA', totalCarrinho, metodoPagamento, nomeVisitante || 'BALCÃO');
 }
 
-export function iniciarLiquidacao(metodo) {
-    if (!S.operadorAtual) return showToast('Faça login primeiro.');
-    if (!S.caixaAberto) return showToast('Necessário realizar a Abertura de Caixa!');
-    if (!S.dadosFechamentoAtual || S.dadosFechamentoAtual.total === 0) return showToast('Nada a pagar.');
+export function iniciarLiquidacao(metodoPagamento) {
+    if (!estadoPdv.operadorAtual) return showToast('Faça login primeiro.');
+    if (!estadoPdv.caixaAberto) return showToast('Necessário realizar a Abertura de Caixa!');
+    if (!estadoPdv.dadosFechamentoAtual || estadoPdv.dadosFechamentoAtual.total === 0) return showToast('Nada a pagar.');
     fecharModal('modal-fechar-conta');
-    prepararPagamentoGlobal('DIVIDA', S.dadosFechamentoAtual.total, metodo, S.dadosFechamentoAtual.nome);
+    prepararPagamentoGlobal('DIVIDA', estadoPdv.dadosFechamentoAtual.total, metodoPagamento, estadoPdv.dadosFechamentoAtual.nome);
 }
 
-export function prepararPagamentoGlobal(tipo, total, metodo, dadosExtra) {
-    S.pagamentoPendente = { tipo, valorTotal: total, dados: dadosExtra };
-    if (metodo === 'DINHEIRO') {
-        document.getElementById('valor-total-dinheiro').innerText = `Total: ${formatCurrency(total)}`;
+export function prepararPagamentoGlobal(tipoPagamento, valorTotal, metodoPagamento, dadosPagamento) {
+    estadoPdv.pagamentoPendente = { tipo: tipoPagamento, valorTotal, dados: dadosPagamento };
+    if (metodoPagamento === 'DINHEIRO') {
+        document.getElementById('valor-total-dinheiro').innerText = `Total: ${formatCurrency(valorTotal)}`;
         document.getElementById('valor-recebido').value = '';
         document.getElementById('display-troco').innerText = 'Troco: R$ 0,00';
         document.getElementById('btn-confirmar-dinheiro').style.opacity = '0.5';
         document.getElementById('btn-confirmar-dinheiro').style.pointerEvents = 'none';
         abrirModal('modal-dinheiro');
         document.getElementById('valor-recebido').focus();
-    } else if (metodo === 'CARTAO') {
+    } else if (metodoPagamento === 'CARTAO') {
         abrirModal('modal-cartao');
     } else {
-        executarPagamentoFinal(metodo);
+        executarPagamentoFinal(metodoPagamento);
     }
 }
 
 export function calcularTroco() {
-    const recebido = parseFloat(document.getElementById('valor-recebido').value.replace(',', '.')) || 0;
-    const troco = recebido - S.pagamentoPendente.valorTotal;
-    const trocoDisplay = document.getElementById('display-troco');
-    const btnConfirmar = document.getElementById('btn-confirmar-dinheiro');
+    const valorRecebido = parseFloat(document.getElementById('valor-recebido').value.replace(',', '.')) || 0;
+    const troco = valorRecebido - estadoPdv.pagamentoPendente.valorTotal;
+    const indicadorTroco = document.getElementById('display-troco');
+    const botaoConfirmarDinheiro = document.getElementById('btn-confirmar-dinheiro');
     if (troco >= 0) {
-        trocoDisplay.innerText = `Troco: ${formatCurrency(troco)}`;
-        trocoDisplay.style.color = 'var(--success)';
-        btnConfirmar.style.opacity = '1';
-        btnConfirmar.style.pointerEvents = 'auto';
+        indicadorTroco.innerText = `Troco: ${formatCurrency(troco)}`;
+        indicadorTroco.style.color = 'var(--success)';
+        botaoConfirmarDinheiro.style.opacity = '1';
+        botaoConfirmarDinheiro.style.pointerEvents = 'auto';
     } else {
-        trocoDisplay.innerText = `Faltam: ${formatCurrency(Math.abs(troco))}`;
-        trocoDisplay.style.color = 'var(--danger)';
-        btnConfirmar.style.opacity = '0.5';
-        btnConfirmar.style.pointerEvents = 'none';
+        indicadorTroco.innerText = `Faltam: ${formatCurrency(Math.abs(troco))}`;
+        indicadorTroco.style.color = 'var(--danger)';
+        botaoConfirmarDinheiro.style.opacity = '0.5';
+        botaoConfirmarDinheiro.style.pointerEvents = 'none';
     }
 }
 
@@ -75,83 +75,83 @@ export function finalizarPagamentoCartao(tipoCartao) {
 
 /* ─── Sales ─── */
 
-export async function registrarVendaOtimista(metodo, cliente, membroId = null) {
+export async function registrarVendaOtimista(metodoPagamento, nomeCliente, membroId = null) {
     try {
-        if (S.enviandoVenda) return;
-        if (!S.caixaAberto || !S.caixaId || !S.usuarioAtual?.id || !S.carrinho.length) {
+        if (estadoPdv.enviandoVenda) return;
+        if (!estadoPdv.caixaAberto || !estadoPdv.caixaId || !estadoPdv.usuarioAtual?.id || !estadoPdv.carrinho.length) {
             return showToast('Confirme login, caixa aberto e itens antes de registrar a venda.');
         }
-        S.enviandoVenda = true;
-        cliente = cliente || 'CLIENTE';
-        const total = S.carrinho.reduce((acc, i) => acc + (Number(i.preco) * Number(i.qtd)), 0);
+        estadoPdv.enviandoVenda = true;
+        nomeCliente = nomeCliente || 'CLIENTE';
+        const totalVenda = estadoPdv.carrinho.reduce((totalAcumulado, itemCarrinho) => totalAcumulado + (Number(itemCarrinho.preco) * Number(itemCarrinho.qtd)), 0);
         const vendaId = novoIdExterno();
         const novaVenda = {
             id_externo: vendaId,
-            usuario_origem_id: S.usuarioAtual.id,
+            usuario_origem_id: estadoPdv.usuarioAtual.id,
             membro_id: membroId,
-            itens: JSON.parse(JSON.stringify(S.carrinho)),
-            total, metodo, cliente,
-            caixa_id: S.caixaId,
+            itens: JSON.parse(JSON.stringify(estadoPdv.carrinho)),
+            total: totalVenda, metodo: metodoPagamento, cliente: nomeCliente,
+            caixa_id: estadoPdv.caixaId,
             dataHora: new Date().toISOString()
         };
         // Never clear the cart or print until the durable transaction is committed.
         await persistirOperacao(novaVenda);
-        S.filaVendas = await listarOperacoes();
-        if (S.produtos) {
-            novaVenda.itens.forEach(item => {
-                const prod = S.produtos.find(p => p.id == item.id && p.nome == item.nome);
-                if (prod) prod.estoque_bar = Number(prod.estoque_bar) - item.qtd;
+        estadoPdv.filaVendas = await listarOperacoes();
+        if (estadoPdv.produtos) {
+            novaVenda.itens.forEach(itemVenda => {
+                const produtoEncontrado = estadoPdv.produtos.find(produto => produto.id == itemVenda.id && produto.nome == itemVenda.nome);
+                if (produtoEncontrado) produtoEncontrado.estoque_bar = Number(produtoEncontrado.estoque_bar) - itemVenda.qtd;
             });
         }
         try {
-            if (S.config.imprimir) {
-                montarImpressao(novaVenda.itens, metodo, cliente);
+            if (estadoPdv.config.imprimir) {
+                montarImpressao(novaVenda.itens, metodoPagamento, nomeCliente);
                 setTimeout(() => window.print(), 1000);
             }
-        } catch (e) { console.error('Erro Impressão', e); }
+        } catch (erroImpressao) { console.error('Erro Impressão', erroImpressao); }
 
-        S.carrinho = [];
-        const inputCliente = document.getElementById('input-cliente');
-        if (inputCliente) inputCliente.value = '';
+        estadoPdv.carrinho = [];
+        const campoCliente = document.getElementById('input-cliente');
+        if (campoCliente) campoCliente.value = '';
         salvarDadosLocais();
         renderizarCatalogo();
         atualizarUI();
         showToast('Venda salva neste dispositivo. Aguardando confirmação do servidor.');
         await processarFilaVendas({ notificarFalhas: true });
-    } catch (e) {
-        S.enviandoVenda = false;
-        showToast(`Erro ao registrar venda: ${e.message}`);
-        console.error(e);
-    } finally { S.enviandoVenda = false; }
+    } catch (erroRegistroVenda) {
+        estadoPdv.enviandoVenda = false;
+        showToast(`Erro ao registrar venda: ${erroRegistroVenda.message}`);
+        console.error(erroRegistroVenda);
+    } finally { estadoPdv.enviandoVenda = false; }
 }
 
-export async function executarPagamentoFinal(metodoFinal) {
-    const loadingEl = document.getElementById('loading');
-    if (loadingEl) loadingEl.style.display = 'none';
-    if (S.enviandoVenda) return;
-    S.enviandoVenda = true;
+export async function executarPagamentoFinal(metodoPagamentoFinal) {
+    const indicadorCarregamento = document.getElementById('loading');
+    if (indicadorCarregamento) indicadorCarregamento.style.display = 'none';
+    if (estadoPdv.enviandoVenda) return;
+    estadoPdv.enviandoVenda = true;
 
-    if (S.pagamentoPendente.tipo === 'VENDA') {
-        S.enviandoVenda = false;
-        return registrarVendaOtimista(metodoFinal, S.pagamentoPendente.dados);
-    } else if (S.pagamentoPendente.tipo === 'DIVIDA') {
-        if (loadingEl) loadingEl.style.display = 'flex';
+    if (estadoPdv.pagamentoPendente.tipo === 'VENDA') {
+        estadoPdv.enviandoVenda = false;
+        return registrarVendaOtimista(metodoPagamentoFinal, estadoPdv.pagamentoPendente.dados);
+    } else if (estadoPdv.pagamentoPendente.tipo === 'DIVIDA') {
+        if (indicadorCarregamento) indicadorCarregamento.style.display = 'flex';
         try {
-            if (!S.usuarioAtual?.id || !S.caixaId || !S.dadosFechamentoAtual?.membro_id) throw new Error('Selecione um membro e confirme o caixa.');
-            const existentes = await listarOperacoes();
-            const existente = existentes.find(v => v.payload.tipo_operacao === 'pagamento' && v.payload.membro_id === S.dadosFechamentoAtual.membro_id);
-            if (existente) throw new Error('Já existe um recebimento pendente deste membro. Consulte Operações pendentes para reenviar a mesma operação.');
+            if (!estadoPdv.usuarioAtual?.id || !estadoPdv.caixaId || !estadoPdv.dadosFechamentoAtual?.membro_id) throw new Error('Selecione um membro e confirme o caixa.');
+            const operacoesExistentes = await listarOperacoes();
+            const pagamentoExistente = operacoesExistentes.find(operacao => operacao.payload.tipo_operacao === 'pagamento' && operacao.payload.membro_id === estadoPdv.dadosFechamentoAtual.membro_id);
+            if (pagamentoExistente) throw new Error('Já existe um recebimento pendente deste membro. Consulte Operações pendentes para reenviar a mesma operação.');
             const pagamento = {
                 id_externo: novoIdExterno(), tipo_operacao: 'pagamento',
-                usuario_origem_id: S.usuarioAtual.id, caixa_id: S.caixaId,
-                membro_id: S.dadosFechamentoAtual.membro_id, metodo: metodoFinal,
-                saldo_esperado: S.dadosFechamentoAtual.total,
-                valor: S.pagamentoPendente.valorTotal
+                usuario_origem_id: estadoPdv.usuarioAtual.id, caixa_id: estadoPdv.caixaId,
+                membro_id: estadoPdv.dadosFechamentoAtual.membro_id, metodo: metodoPagamentoFinal,
+                saldo_esperado: estadoPdv.dadosFechamentoAtual.total,
+                valor: estadoPdv.pagamentoPendente.valorTotal
             };
             await persistirOperacao(pagamento);
             fecharModal('modal-fechar-conta');
             await processarFilaVendas({ notificarFalhas: true });
-        } catch (error) { showToast(`Pagamento não confirmado: ${error.message}`); }
-        finally { S.enviandoVenda = false; if (loadingEl) loadingEl.style.display = 'none'; }
+        } catch (erroPagamento) { showToast(`Pagamento não confirmado: ${erroPagamento.message}`); }
+        finally { estadoPdv.enviandoVenda = false; if (indicadorCarregamento) indicadorCarregamento.style.display = 'none'; }
     }
 }

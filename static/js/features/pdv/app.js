@@ -4,7 +4,7 @@
  */
 import { API } from '../../shared/api.js';
 import { UIModal } from '../../shared/modals.js';
-import { S, carregarDadosLocais, salvarDadosLocais } from './state.js';
+import { estadoPdv, carregarDadosLocais, salvarDadosLocais } from './state.js';
 import { showToast, fecharModal, atualizarUI, renderizarCatalogo, selecionarCategoria, atualizarEstadoBotoes, initBottomSheetGestures } from './ui.js';
 import {
     adicionarAoCarrinho, incrementarQtd, decrementarQtd, confirmarObs, cliqueProduto,
@@ -37,26 +37,26 @@ function realizarLogout() {
 
 /* ─── Global Listeners ─── */
 
-document.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape') return;
-    const abertos = document.querySelectorAll('.modal-overlay');
-    for (let i = 0; i < abertos.length; i++) {
-        const d = abertos[i].style.display;
-        if (d && d !== 'none') {
-            fecharModal(abertos[i].id);
+document.addEventListener('keydown', (eventoTeclado) => {
+    if (eventoTeclado.key !== 'Escape') return;
+    const sobreposicoesModais = document.querySelectorAll('.modal-overlay');
+    for (let indiceModal = 0; indiceModal < sobreposicoesModais.length; indiceModal++) {
+        const exibicaoModal = sobreposicoesModais[indiceModal].style.display;
+        if (exibicaoModal && exibicaoModal !== 'none') {
+            fecharModal(sobreposicoesModais[indiceModal].id);
             break;
         }
     }
 });
 
-let _modalMouseDownOnOverlay = false;
-document.addEventListener('mousedown', (e) => {
-    _modalMouseDownOnOverlay = e.target.classList.contains('modal-overlay');
+let cliqueIniciadoNaSobreposicaoModal = false;
+document.addEventListener('mousedown', (eventoMouse) => {
+    cliqueIniciadoNaSobreposicaoModal = eventoMouse.target.classList.contains('modal-overlay');
 });
 
-document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('modal-overlay') && _modalMouseDownOnOverlay) {
-        fecharModal(e.target.id);
+document.addEventListener('click', (eventoClique) => {
+    if (eventoClique.target.classList.contains('modal-overlay') && cliqueIniciadoNaSobreposicaoModal) {
+        fecharModal(eventoClique.target.id);
     }
 });
 
@@ -152,64 +152,64 @@ document.getElementById('btn-cancelar-config').addEventListener('click', () => f
 
 /* ─── Event Delegation ─── */
 
-document.getElementById('filtro-catalogo').addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-categoria]');
-    if (btn) selecionarCategoria(btn.dataset.categoria);
+document.getElementById('filtro-catalogo').addEventListener('click', (eventoClique) => {
+    const botaoCategoria = eventoClique.target.closest('[data-categoria]');
+    if (botaoCategoria) selecionarCategoria(botaoCategoria.dataset.categoria);
 });
 
-document.getElementById('carrinho-lista').addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-action]');
-    if (!btn) return;
-    const idx = parseInt(btn.dataset.idx, 10);
-    if (btn.dataset.action === 'increment') incrementarQtd(idx);
-    else if (btn.dataset.action === 'decrement') decrementarQtd(idx);
+document.getElementById('carrinho-lista').addEventListener('click', (eventoClique) => {
+    const botaoQuantidade = eventoClique.target.closest('[data-action]');
+    if (!botaoQuantidade) return;
+    const indiceItem = parseInt(botaoQuantidade.dataset.idx, 10);
+    if (botaoQuantidade.dataset.action === 'increment') incrementarQtd(indiceItem);
+    else if (botaoQuantidade.dataset.action === 'decrement') decrementarQtd(indiceItem);
 });
 
-document.getElementById('grid-produtos').addEventListener('click', (e) => {
-    const card = e.target.closest('.card');
-    if (!card) return;
-    const produtoId = card.dataset.produtoId;
-    const barZerado = card.dataset.barZerado === 'true';
-    const produto = S.produtos.find(p => p.id == produtoId);
-    if (produto) cliqueProduto(produto, barZerado);
+document.getElementById('grid-produtos').addEventListener('click', (eventoClique) => {
+    const cartaoProduto = eventoClique.target.closest('.card');
+    if (!cartaoProduto) return;
+    const produtoId = cartaoProduto.dataset.produtoId;
+    const estoqueBarZerado = cartaoProduto.dataset.barZerado === 'true';
+    const produto = estadoPdv.produtos.find(produtoCandidato => produtoCandidato.id == produtoId);
+    if (produto) cliqueProduto(produto, estoqueBarZerado);
 });
 
 /* ─── Mobile Cart Badge ─── */
 
 (function initMobileCart() {
-    const lista = document.getElementById('carrinho-lista');
-    const badge = document.getElementById('carrinho-badge-mobile');
-    const section = document.getElementById('carrinho-section');
-    const toggleBtn = document.querySelector('.carrinho-header');
-    if (!lista || !badge || !section || !toggleBtn) return;
+    const listaCarrinho = document.getElementById('carrinho-lista');
+    const indicadorQuantidadeCarrinho = document.getElementById('carrinho-badge-mobile');
+    const secaoCarrinho = document.getElementById('carrinho-section');
+    const botaoAlternarCarrinho = document.querySelector('.carrinho-header');
+    if (!listaCarrinho || !indicadorQuantidadeCarrinho || !secaoCarrinho || !botaoAlternarCarrinho) return;
 
     function atualizarBadge() {
-        let qtd = 0;
+        let quantidadeItens = 0;
         try {
-            if (Array.isArray(S.carrinho)) {
-                for (let i = 0; i < S.carrinho.length; i++) {
-                    qtd += Number(S.carrinho[i].qtd) || 0;
+            if (Array.isArray(estadoPdv.carrinho)) {
+                for (let indiceItem = 0; indiceItem < estadoPdv.carrinho.length; indiceItem++) {
+                    quantidadeItens += Number(estadoPdv.carrinho[indiceItem].qtd) || 0;
                 }
             } else {
-                qtd = lista.querySelectorAll('.item-carrinho').length;
+                quantidadeItens = listaCarrinho.querySelectorAll('.item-carrinho').length;
             }
-        } catch (e) { qtd = 0; }
-        badge.textContent = qtd;
-        if (qtd > 0) {
-            badge.classList.add('show');
-            badge.style.display = '';
+        } catch (erroContagemCarrinho) { quantidadeItens = 0; }
+        indicadorQuantidadeCarrinho.textContent = quantidadeItens;
+        if (quantidadeItens > 0) {
+            indicadorQuantidadeCarrinho.classList.add('show');
+            indicadorQuantidadeCarrinho.style.display = '';
         } else {
-            badge.classList.remove('show');
-            badge.style.display = '';
+            indicadorQuantidadeCarrinho.classList.remove('show');
+            indicadorQuantidadeCarrinho.style.display = '';
         }
     }
 
-    const observer = new MutationObserver(atualizarBadge);
-    observer.observe(lista, { childList: true, subtree: true });
+    const observadorCarrinho = new MutationObserver(atualizarBadge);
+    observadorCarrinho.observe(listaCarrinho, { childList: true, subtree: true });
     atualizarBadge();
 
-    toggleBtn.addEventListener('click', () => {
-        section.classList.toggle('mobile-aberto');
+    botaoAlternarCarrinho.addEventListener('click', () => {
+        secaoCarrinho.classList.toggle('mobile-aberto');
     });
 })();
 
@@ -219,53 +219,53 @@ async function iniciarSistema() {
     try {
         carregarDadosLocais();
         // Cached labels/box ids are never sufficient to authorize a new operation.
-        S.usuarioAtual = null;
-        S.caixaAberto = false;
-        S.filaVendas = await listarOperacoes();
+        estadoPdv.usuarioAtual = null;
+        estadoPdv.caixaAberto = false;
+        estadoPdv.filaVendas = await listarOperacoes();
         atualizarUI();
-        if (S.operadorAtual) atualizarEstadoBotoes();
-        if (S.logoUrl) { const imgP = new Image(); imgP.src = S.logoUrl; }
-    } catch (e) { console.error('Erro init local', e); }
+        if (estadoPdv.operadorAtual) atualizarEstadoBotoes();
+        if (estadoPdv.logoUrl) { const imagemLogotipo = new Image(); imagemLogotipo.src = estadoPdv.logoUrl; }
+    } catch (erroInicializacaoLocal) { console.error('Erro init local', erroInicializacaoLocal); }
 
-    const loadingEl = document.getElementById('loading');
+    const indicadorCarregamento = document.getElementById('loading');
     API._initSupabase()
-        .then(client => {
-            if (!client) { window.location.href = '/login'; return null; }
+        .then(clienteSupabase => {
+            if (!clienteSupabase) { window.location.href = '/login'; return null; }
             return Promise.all([API.getMe(), API.getDadosIniciais(), API.getCaixaAberto()]);
         })
-        .then(results => {
-            if (!results) return;
-            const [resMe, dados, caixaRes] = results;
-            if (!resMe || resMe.status !== 'ok' || !resMe.usuario) {
+        .then(respostasInicializacao => {
+            if (!respostasInicializacao) return;
+            const [respostaUsuario, dadosIniciais, respostaCaixa] = respostasInicializacao;
+            if (!respostaUsuario || respostaUsuario.status !== 'ok' || !respostaUsuario.usuario) {
                 window.location.href = '/login';
                 return;
             }
-            S.usuarioAtual = resMe.usuario;
-            S.operadorAtual = resMe.usuario.nome;
-            S.produtos = (dados && Array.isArray(dados.produtos)) ? dados.produtos : [];
-            S.membros = (dados && Array.isArray(dados.membros)) ? dados.membros : [];
-            if (dados && dados.logoUrl) S.logoUrl = dados.logoUrl;
+            estadoPdv.usuarioAtual = respostaUsuario.usuario;
+            estadoPdv.operadorAtual = respostaUsuario.usuario.nome;
+            estadoPdv.produtos = (dadosIniciais && Array.isArray(dadosIniciais.produtos)) ? dadosIniciais.produtos : [];
+            estadoPdv.membros = (dadosIniciais && Array.isArray(dadosIniciais.membros)) ? dadosIniciais.membros : [];
+            if (dadosIniciais && dadosIniciais.logoUrl) estadoPdv.logoUrl = dadosIniciais.logoUrl;
 
-            if (caixaRes && caixaRes.status === 'ok' && caixaRes.caixa) {
-                S.caixaAberto = true;
-                S.caixaId = caixaRes.caixa.id || null;
-                S.valorAbertura = Number(caixaRes.caixa.valor_abertura) || 0;
+            if (respostaCaixa && respostaCaixa.status === 'ok' && respostaCaixa.caixa) {
+                estadoPdv.caixaAberto = true;
+                estadoPdv.caixaId = respostaCaixa.caixa.id || null;
+                estadoPdv.valorAbertura = Number(respostaCaixa.caixa.valor_abertura) || 0;
             } else {
-                S.caixaAberto = false;
-                S.caixaId = null;
-                S.valorAbertura = 0;
+                estadoPdv.caixaAberto = false;
+                estadoPdv.caixaId = null;
+                estadoPdv.valorAbertura = 0;
             }
 
             salvarDadosLocais();
             renderizarCatalogo();
             atualizarEstadoBotoes();
             processarFilaVendas();
-            if (loadingEl) loadingEl.style.display = 'none';
+            if (indicadorCarregamento) indicadorCarregamento.style.display = 'none';
         })
-        .catch(err => {
-            console.error('Falha na inicialização:', err);
-            if (loadingEl) loadingEl.style.display = 'none';
-            if (S.operadorAtual) {
+        .catch(erroInicializacao => {
+            console.error('Falha na inicialização:', erroInicializacao);
+            if (indicadorCarregamento) indicadorCarregamento.style.display = 'none';
+            if (estadoPdv.operadorAtual) {
                 renderizarCatalogo();
                 atualizarEstadoBotoes();
                 processarFilaVendas();

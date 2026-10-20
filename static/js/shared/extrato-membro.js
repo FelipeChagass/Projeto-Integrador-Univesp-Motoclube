@@ -4,132 +4,132 @@
  */
 import { esc, formatCurrency } from './utils.js';
 
-function dataValida(valor) {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(valor)) return false;
-    const data = new Date(`${valor}T12:00:00Z`);
-    return Number.isFinite(data.getTime()) && data.toISOString().slice(0, 10) === valor && valor >= '0001-01-01';
+function dataValida(dataTexto) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dataTexto)) return false;
+    const data = new Date(`${dataTexto}T12:00:00Z`);
+    return Number.isFinite(data.getTime()) && data.toISOString().slice(0, 10) === dataTexto && dataTexto >= '0001-01-01';
 }
 
-export function periodoExtrato({ modo, inicio, fim }) {
-    if (modo === 'todos') return {};
-    if (modo !== 'datas') throw new Error('Selecione um período válido.');
-    if (!dataValida(inicio) || !dataValida(fim)) throw new Error('Informe início e fim válidos.');
-    if (inicio > fim) throw new Error('O início do período deve ser anterior ou igual ao fim.');
-    return { data_inicio: inicio, data_fim: fim };
+export function periodoExtrato({ modo: modoPeriodo, inicio: dataInicio, fim: dataFim }) {
+    if (modoPeriodo === 'todos') return {};
+    if (modoPeriodo !== 'datas') throw new Error('Selecione um período válido.');
+    if (!dataValida(dataInicio) || !dataValida(dataFim)) throw new Error('Informe início e fim válidos.');
+    if (dataInicio > dataFim) throw new Error('O início do período deve ser anterior ou igual ao fim.');
+    return { data_inicio: dataInicio, data_fim: dataFim };
 }
 
-const situacoes = { quitado: 'Quitado', parcial: 'Parcialmente pago', em_aberto: 'Em aberto',
+const rotulosSituacoes = { quitado: 'Quitado', parcial: 'Parcialmente pago', em_aberto: 'Em aberto',
     pagamento: 'Pagamento recebido', credito: 'Crédito de ajuste', nao_identificado: 'Quitação não identificada' };
-const origens = { venda_fiado: 'Venda pendurada', pagamento: 'Pagamento', ajuste_manual: 'Ajuste manual' };
+const rotulosOrigens = { venda_fiado: 'Venda pendurada', pagamento: 'Pagamento', ajuste_manual: 'Ajuste manual' };
 
-export function criarConsultaExtrato(root, { buscar, notificar, administrar, aoCarregar } = {}) {
-    const el = seletor => root.querySelector(seletor);
-    const form = el('[data-filtros]');
-    const campo = nome => form.elements.namedItem(nome);
-    let membroId = null, geracao = 0, periodo = {}, offset = 0, resposta = null, emCurso = null, ultimaChave = null;
-    const limite = 20;
+export function criarConsultaExtrato(elementoRaiz, { buscar, notificar, administrar, aoCarregar } = {}) {
+    const buscarElemento = seletor => elementoRaiz.querySelector(seletor);
+    const formularioFiltros = buscarElemento('[data-filtros]');
+    const buscarCampoFiltro = nomeCampo => formularioFiltros.elements.namedItem(nomeCampo);
+    let membroId = null, geracaoConsulta = 0, periodoSelecionado = {}, deslocamentoPagina = 0, respostaExtrato = null, chaveConsultaEmCurso = null, ultimaChaveConsulta = null;
+    const limitePagina = 20;
 
     function controles() {
-        const modo = campo('modo').value;
-        for (const nome of ['inicio', 'fim']) el(`[data-campo="${nome}"]`).classList.toggle('d-none', modo !== 'datas');
+        const modoPeriodo = buscarCampoFiltro('modo').value;
+        for (const nomeCampo of ['inicio', 'fim']) buscarElemento(`[data-campo="${nomeCampo}"]`).classList.toggle('d-none', modoPeriodo !== 'datas');
     }
 
     function paginar(carregando = false) {
-        el('[data-anterior]').disabled = carregando || !resposta || offset === 0;
-        el('[data-proxima]').disabled = carregando || !resposta?.paginacao?.tem_mais;
-        el('[data-aplicar]').disabled = !membroId;
-        el('[data-limpar]').disabled = !membroId;
+        buscarElemento('[data-anterior]').disabled = carregando || !respostaExtrato || deslocamentoPagina === 0;
+        buscarElemento('[data-proxima]').disabled = carregando || !respostaExtrato?.paginacao?.tem_mais;
+        buscarElemento('[data-aplicar]').disabled = !membroId;
+        buscarElemento('[data-limpar]').disabled = !membroId;
     }
 
-    function renderizar(data) {
-        el('[data-total-atual]').textContent = formatCurrency(data.total);
-        const r = data.resumo;
-        const cards = r ? [
-            ['Total do período (débitos)', r.total_periodo, ''],
-            ['Pago no período', r.total_pago_periodo, 'extrato-pago'],
-            ['Em aberto no período (hoje)', r.total_aberto_periodo, ''],
+    function renderizar(dadosExtrato) {
+        buscarElemento('[data-total-atual]').textContent = formatCurrency(dadosExtrato.total);
+        const resumoPeriodo = dadosExtrato.resumo;
+        const cartoesResumo = resumoPeriodo ? [
+            ['Total do período (débitos)', resumoPeriodo.total_periodo, ''],
+            ['Pago no período', resumoPeriodo.total_pago_periodo, 'extrato-pago'],
+            ['Em aberto no período (hoje)', resumoPeriodo.total_aberto_periodo, ''],
         ] : [];
-        el('[data-resumo]').innerHTML = cards.map(([titulo, valor, classe]) => `<div class="col-12 col-sm-4"><div class="extrato-resumo-card rounded p-3 h-100"><span class="small d-block">${titulo}</span><strong class="d-block mt-1 ${classe}">${valor == null ? 'Não identificado' : formatCurrency(valor)}</strong></div></div>`).join('');
-        if (r?.total_creditos_ajuste_periodo) el('[data-resumo]').insertAdjacentHTML('beforeend', `<p class="small mb-0">Créditos de ajuste no período: ${formatCurrency(r.total_creditos_ajuste_periodo)} (não são pagamentos).</p>`);
-        el('[data-aviso]').textContent = data.aviso || '';
-        el('[data-aviso]').classList.toggle('d-none', !data.aviso);
-        const formatarData = valor => valor.split('-').reverse().join('/');
-        el('[data-periodo]').textContent = periodo.data_inicio ? `Período: ${formatarData(periodo.data_inicio)} a ${formatarData(periodo.data_fim)}` : 'Todo o histórico';
-        el('[data-estado]').textContent = data.itens.length ? '' : 'Nenhum lançamento encontrado para o período selecionado.';
-        el('[data-itens]').innerHTML = data.itens.map(i => `<article class="extrato-movimento rounded p-3 mb-2">
-            <div class="d-flex flex-wrap justify-content-between gap-2"><strong>${esc(i.descricao || 'Movimentação')}</strong><strong>${formatCurrency(i.valor)}</strong></div>
-            <div class="d-flex flex-wrap justify-content-between gap-2 small mt-2"><span>${esc(i.data)} · ${i.tipo === 'debito' ? 'Débito' : i.tipo === 'credito' ? 'Crédito' : 'Ajuste'} · ${esc(origens[i.origem] || i.origem || '')}</span><span class="${['quitado', 'pagamento', 'credito'].includes(i.situacao) ? 'extrato-pago' : ''}">${esc(situacoes[i.situacao] || 'Quitação não identificada')}</span></div>
-            ${i.valor_aberto != null ? `<p class="small mb-0 mt-2">Abatido: ${formatCurrency(i.valor_abatido)} · Em aberto: ${formatCurrency(i.valor_aberto)}</p>` : ''}
-            ${administrar ? `<div class="d-flex flex-wrap gap-2 mt-2"><button type="button" class="btn btn-sm btn-outline-light" data-movimento="${esc(i.id)}" data-acao="editar">Editar</button><button type="button" class="btn btn-sm btn-del" data-movimento="${esc(i.id)}" data-acao="excluir">Excluir</button></div>` : ''}
+        buscarElemento('[data-resumo]').innerHTML = cartoesResumo.map(([tituloResumo, valorResumo, classeResumo]) => `<div class="col-12 col-sm-4"><div class="extrato-resumo-card rounded p-3 h-100"><span class="small d-block">${tituloResumo}</span><strong class="d-block mt-1 ${classeResumo}">${valorResumo == null ? 'Não identificado' : formatCurrency(valorResumo)}</strong></div></div>`).join('');
+        if (resumoPeriodo?.total_creditos_ajuste_periodo) buscarElemento('[data-resumo]').insertAdjacentHTML('beforeend', `<p class="small mb-0">Créditos de ajuste no período: ${formatCurrency(resumoPeriodo.total_creditos_ajuste_periodo)} (não são pagamentos).</p>`);
+        buscarElemento('[data-aviso]').textContent = dadosExtrato.aviso || '';
+        buscarElemento('[data-aviso]').classList.toggle('d-none', !dadosExtrato.aviso);
+        const formatarData = dataTexto => dataTexto.split('-').reverse().join('/');
+        buscarElemento('[data-periodo]').textContent = periodoSelecionado.data_inicio ? `Período: ${formatarData(periodoSelecionado.data_inicio)} a ${formatarData(periodoSelecionado.data_fim)}` : 'Todo o histórico';
+        buscarElemento('[data-estado]').textContent = dadosExtrato.itens.length ? '' : 'Nenhum lançamento encontrado para o período selecionado.';
+        buscarElemento('[data-itens]').innerHTML = dadosExtrato.itens.map(movimento => `<article class="extrato-movimento rounded p-3 mb-2">
+            <div class="d-flex flex-wrap justify-content-between gap-2"><strong>${esc(movimento.descricao || 'Movimentação')}</strong><strong>${formatCurrency(movimento.valor)}</strong></div>
+            <div class="d-flex flex-wrap justify-content-between gap-2 small mt-2"><span>${esc(movimento.data)} · ${movimento.tipo === 'debito' ? 'Débito' : movimento.tipo === 'credito' ? 'Crédito' : 'Ajuste'} · ${esc(rotulosOrigens[movimento.origem] || movimento.origem || '')}</span><span class="${['quitado', 'pagamento', 'credito'].includes(movimento.situacao) ? 'extrato-pago' : ''}">${esc(rotulosSituacoes[movimento.situacao] || 'Quitação não identificada')}</span></div>
+            ${movimento.valor_aberto != null ? `<p class="small mb-0 mt-2">Abatido: ${formatCurrency(movimento.valor_abatido)} · Em aberto: ${formatCurrency(movimento.valor_aberto)}</p>` : ''}
+            ${administrar ? `<div class="d-flex flex-wrap gap-2 mt-2"><button type="button" class="btn btn-sm btn-outline-light" data-movimento="${esc(movimento.id)}" data-acao="editar">Editar</button><button type="button" class="btn btn-sm btn-del" data-movimento="${esc(movimento.id)}" data-acao="excluir">Excluir</button></div>` : ''}
         </article>`).join('');
-        el('[data-pagina]').textContent = data.itens.length ? `${offset + 1}–${offset + data.itens.length} de ${data.paginacao?.total ?? data.itens.length}` : '';
+        buscarElemento('[data-pagina]').textContent = dadosExtrato.itens.length ? `${deslocamentoPagina + 1}–${deslocamentoPagina + dadosExtrato.itens.length} de ${dadosExtrato.paginacao?.total ?? dadosExtrato.itens.length}` : '';
         paginar();
     }
 
-    async function carregar(forcar = false) {
+    async function carregar(forcarAtualizacao = false) {
         if (!membroId) return;
-        const id = membroId, parametros = { ...periodo, limite, offset };
-        const chave = JSON.stringify([id, parametros]);
-        if (!forcar && (emCurso === chave || (resposta && ultimaChave === chave))) return;
-        const atual = ++geracao;
-        emCurso = chave;
-        resposta = null;
-        el('[data-itens]').replaceChildren();
-        el('[data-resumo]').replaceChildren();
-        el('[data-pagina]').textContent = '';
-        el('[data-aviso]').classList.add('d-none');
-        el('[data-estado]').textContent = 'Carregando lançamentos...';
-        root.setAttribute('aria-busy', 'true');
+        const membroConsultadoId = membroId, parametrosConsulta = { ...periodoSelecionado, limite: limitePagina, offset: deslocamentoPagina };
+        const chaveConsulta = JSON.stringify([membroConsultadoId, parametrosConsulta]);
+        if (!forcarAtualizacao && (chaveConsultaEmCurso === chaveConsulta || (respostaExtrato && ultimaChaveConsulta === chaveConsulta))) return;
+        const geracaoAtual = ++geracaoConsulta;
+        chaveConsultaEmCurso = chaveConsulta;
+        respostaExtrato = null;
+        buscarElemento('[data-itens]').replaceChildren();
+        buscarElemento('[data-resumo]').replaceChildren();
+        buscarElemento('[data-pagina]').textContent = '';
+        buscarElemento('[data-aviso]').classList.add('d-none');
+        buscarElemento('[data-estado]').textContent = 'Carregando lançamentos...';
+        elementoRaiz.setAttribute('aria-busy', 'true');
         paginar(true);
         try {
-            const data = await buscar(id, parametros);
-            if (atual !== geracao) return;
-            if (!data || !Array.isArray(data.itens)) throw new Error('Não foi possível carregar o extrato. Tente novamente.');
-            resposta = data;
-            ultimaChave = chave;
-            renderizar(data);
-            aoCarregar?.(data);
+            const dadosExtrato = await buscar(membroConsultadoId, parametrosConsulta);
+            if (geracaoAtual !== geracaoConsulta) return;
+            if (!dadosExtrato || !Array.isArray(dadosExtrato.itens)) throw new Error('Não foi possível carregar o extrato. Tente novamente.');
+            respostaExtrato = dadosExtrato;
+            ultimaChaveConsulta = chaveConsulta;
+            renderizar(dadosExtrato);
+            aoCarregar?.(dadosExtrato);
         } catch (erro) {
-            if (atual !== geracao) return;
-            ultimaChave = null;
-            el('[data-estado]').textContent = 'Não foi possível carregar o extrato. Use Aplicar filtro para tentar novamente.';
+            if (geracaoAtual !== geracaoConsulta) return;
+            ultimaChaveConsulta = null;
+            buscarElemento('[data-estado]').textContent = 'Não foi possível carregar o extrato. Use Aplicar filtro para tentar novamente.';
             notificar?.(erro.message);
         } finally {
-            if (atual === geracao) { emCurso = null; root.setAttribute('aria-busy', 'false'); paginar(); }
+            if (geracaoAtual === geracaoConsulta) { chaveConsultaEmCurso = null; elementoRaiz.setAttribute('aria-busy', 'false'); paginar(); }
         }
     }
 
     function limpar() {
-        form.reset(); controles(); periodo = {}; offset = 0;
+        formularioFiltros.reset(); controles(); periodoSelecionado = {}; deslocamentoPagina = 0;
     }
-    form.addEventListener('change', event => { if (event.target.name === 'modo') controles(); });
-    form.addEventListener('submit', event => {
-        event.preventDefault();
+    formularioFiltros.addEventListener('change', eventoFormulario => { if (eventoFormulario.target.name === 'modo') controles(); });
+    formularioFiltros.addEventListener('submit', eventoFormulario => {
+        eventoFormulario.preventDefault();
         try {
-            periodo = periodoExtrato(Object.fromEntries(new FormData(form)));
-            offset = 0;
+            periodoSelecionado = periodoExtrato(Object.fromEntries(new FormData(formularioFiltros)));
+            deslocamentoPagina = 0;
             void carregar();
         } catch (erro) { notificar?.(erro.message); }
     });
-    el('[data-limpar]').onclick = () => { limpar(); void carregar(); };
-    el('[data-anterior]').onclick = () => { offset = Math.max(0, offset - limite); void carregar(); };
-    el('[data-proxima]').onclick = () => { offset += limite; void carregar(); };
-    el('[data-itens]').onclick = event => {
-        const btn = event.target.closest('[data-movimento]');
-        const item = resposta?.itens.find(i => i.id === btn?.dataset.movimento);
-        if (item) administrar?.(membroId, item, btn.dataset.acao);
+    buscarElemento('[data-limpar]').onclick = () => { limpar(); void carregar(); };
+    buscarElemento('[data-anterior]').onclick = () => { deslocamentoPagina = Math.max(0, deslocamentoPagina - limitePagina); void carregar(); };
+    buscarElemento('[data-proxima]').onclick = () => { deslocamentoPagina += limitePagina; void carregar(); };
+    buscarElemento('[data-itens]').onclick = eventoClique => {
+        const botaoAcao = eventoClique.target.closest('[data-movimento]');
+        const movimentoSelecionado = respostaExtrato?.itens.find(movimento => movimento.id === botaoAcao?.dataset.movimento);
+        if (movimentoSelecionado) administrar?.(membroId, movimentoSelecionado, botaoAcao.dataset.acao);
     };
     controles(); paginar();
     return {
-        selecionar(id) {
-            ++geracao; membroId = id; resposta = null; emCurso = null; ultimaChave = null;
+        selecionar(membroSelecionadoId) {
+            ++geracaoConsulta; membroId = membroSelecionadoId; respostaExtrato = null; chaveConsultaEmCurso = null; ultimaChaveConsulta = null;
             limpar();
-            root.setAttribute('aria-busy', 'false');
-            el('[data-total-atual]').textContent = '—';
-            el('[data-itens]').replaceChildren(); el('[data-resumo]').replaceChildren();
-            el('[data-aviso]').classList.add('d-none'); el('[data-pagina]').textContent = '';
-            el('[data-periodo]').textContent = 'Todo o histórico';
-            el('[data-estado]').textContent = 'Selecione um membro para consultar.';
+            elementoRaiz.setAttribute('aria-busy', 'false');
+            buscarElemento('[data-total-atual]').textContent = '—';
+            buscarElemento('[data-itens]').replaceChildren(); buscarElemento('[data-resumo]').replaceChildren();
+            buscarElemento('[data-aviso]').classList.add('d-none'); buscarElemento('[data-pagina]').textContent = '';
+            buscarElemento('[data-periodo]').textContent = 'Todo o histórico';
+            buscarElemento('[data-estado]').textContent = 'Selecione um membro para consultar.';
             paginar();
             return carregar();
         },

@@ -7,30 +7,30 @@ import { usuarios, carregarUsuarios } from './usuarios.js';
 import { carregarVendas } from './vendas.js';
 import { carregarConfig } from './configuracoes.js';
 
-export function switchTab(name) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
-    document.getElementById('tab-btn-' + name).classList.add('active');
-    document.getElementById('tab-' + name).classList.add('active');
+export function switchTab(nomeAba) {
+    document.querySelectorAll('.tab-btn').forEach(botaoAba => botaoAba.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(conteudoAba => conteudoAba.classList.remove('active'));
+    document.getElementById('tab-btn-' + nomeAba).classList.add('active');
+    document.getElementById('tab-' + nomeAba).classList.add('active');
 
-    if (name === 'membros' && membros.length === 0) carregarMembros();
-    if (name === 'usuarios' && usuarios.length === 0) carregarUsuarios();
-    if (name === 'vendas') carregarVendas();
-    if (name === 'config') carregarConfig();
+    if (nomeAba === 'membros' && membros.length === 0) carregarMembros();
+    if (nomeAba === 'usuarios' && usuarios.length === 0) carregarUsuarios();
+    if (nomeAba === 'vendas') carregarVendas();
+    if (nomeAba === 'config') carregarConfig();
 }
 
 export function openAdminSidebar() {
-    const sidebar = document.getElementById('admin-sidebar-mobile');
-    if (sidebar) {
-        sidebar.classList.add('open');
+    const menuLateral = document.getElementById('admin-sidebar-mobile');
+    if (menuLateral) {
+        menuLateral.classList.add('open');
         document.body.style.overflow = 'hidden';
     }
 }
 
 export function closeAdminSidebar() {
-    const sidebar = document.getElementById('admin-sidebar-mobile');
-    if (sidebar) {
-        sidebar.classList.remove('open');
+    const menuLateral = document.getElementById('admin-sidebar-mobile');
+    if (menuLateral) {
+        menuLateral.classList.remove('open');
         document.body.style.overflow = '';
     }
 }
