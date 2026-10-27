@@ -12,11 +12,6 @@
         height: 55px;
     }
 
-    .btn-action {
-        font-size: 0.78rem;
-        padding: 10px 12px;
-    }
-
     .card-name {
         font-size: 0.75rem;
     }
@@ -25,20 +20,12 @@
         font-size: 0.9rem;
     }
 
-    .sidebar-panel {
-        width: 260px;
+    .pdv-menu {
+        --bs-offcanvas-width: min(260px, 85vw);
     }
 }
 
-@media (min-width: 769px) {
-    .btn-hamburger {
-        display: none;
-    }
-
-    .sidebar-mobile {
-        display: none !important;
-    }
-
+@media (min-width: 768px) {
     #carrinho-badge-mobile {
         display: none !important;
     }
@@ -46,10 +33,17 @@
 
 @media (hover: none) and (pointer: coarse) {
 
-    .btn-action:hover,
-    .btn-header:hover,
-    .btn:hover,
-    .card:hover {
+    .page-pdv .btn:hover,
+    .pdv-produto-card:hover {
         transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pdv-produto-card,
+    #carrinho-section,
+    .page-pdv .modal-overlay .modal-content {
+        animation: none !important;
+        transition: none !important;
     }
 }

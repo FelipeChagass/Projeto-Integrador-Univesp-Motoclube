@@ -1,5 +1,5 @@
 /* admin: modais no celular (bottom sheet). Ligado em templates/admin.html depois de modais.css. */
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
 
     /* ── Modals (bottom-sheet style) ── */
     .modal-overlay {

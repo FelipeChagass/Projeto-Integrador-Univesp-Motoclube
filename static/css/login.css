@@ -1,4 +1,8 @@
 
+.page-login {
+    min-height: 100dvh;
+}
+
 .login-wrapper {
     padding: 20px;
     background: linear-gradient(135deg, var(--surface-bg) 0%, var(--bg-color) 50%, #000 100%);
@@ -36,53 +40,12 @@
     border: 3px solid var(--accent);
 }
 
-.login-input {
-    padding: 12px 14px;
-    margin-bottom: 12px;
-    border-radius: 8px;
-    border: 1px solid var(--input-border);
-    background: var(--input-bg);
-    color: #fff;
-    font-size: 1rem;
-    transition: border-color 0.2s;
-}
-
-.login-input:focus {
-    outline: none;
-    border-color: var(--accent);
-}
-
-.login-input::placeholder {
-    color: var(--text-muted);
-}
-
-.btn-login-primary {
-    padding: 14px;
-    margin-top: 8px;
-    border: none;
-    border-radius: 8px;
-    background-color: #830000;
-    color: #fff;
-    font-weight: bold;
-    font-size: 1.1rem;
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: background-color 0.2s, transform 0.1s;
-}
-
-.btn-login-primary:hover:not(:disabled) {
-    background-color: var(--accent);
-}
-
-.btn-login-primary:active {
-    transform: scale(0.98);
-}
-
-.btn-login-primary:disabled {
-    background: var(--surface-bg);
-    color: var(--text-muted);
-    cursor: default;
-    transform: none;
+/* Variação histórica do login, usando o contrato de estados do Bootstrap. */
+.login-card .btn-primary {
+    --bs-btn-bg: #830000;
+    --bs-btn-border-color: #830000;
+    --bs-btn-hover-bg: var(--accent);
+    --bs-btn-hover-border-color: var(--accent);
 }
 
 .login-footer {
@@ -143,7 +106,7 @@
 
     .login-card {
         padding: 20px 20px 14vh 20px;
-        height: 100dvh;
+        min-height: 100dvh;
         max-width: 100%;
         border: none;
         border-radius: 0;
@@ -188,9 +151,9 @@
     margin-bottom: 12px;
 }
 
-.senha-wrapper .login-input {
+.senha-wrapper .form-control {
     margin-bottom: 0;
-    padding-right: 48px;
+    padding-right: 60px;
 }
 
 .btn-toggle-senha {
@@ -198,17 +161,14 @@
     right: 10px;
     top: 50%;
     transform: translateY(-50%);
-    background: none;
-    border: none;
-    cursor: pointer;
     padding: 6px;
-    color: var(--text-muted);
+    min-width: 44px;
+    min-height: 44px;
+    --bs-btn-bg: transparent;
+    --bs-btn-border-color: transparent;
+    --bs-btn-color: var(--text-muted);
     line-height: 0;
     transition: color 0.2s;
-}
-
-.btn-toggle-senha:hover {
-    color: var(--text-primary);
 }
 
 .btn-toggle-senha svg {

@@ -1,11 +1,10 @@
 /** Editor de vendas e movimentos; vínculos financeiros sempre passam pela venda. */
 import { authFetch } from "./requests.js";
-import { esc, toast, fecharModalAdmin } from "./ui.js";
+import { esc, toast, abrirModalAdmin, fecharModalAdmin } from "./ui.js";
 import { UIModal } from "../../shared/modals.js";
 import { mensagemErro } from "../../shared/utils.js";
 
 let registroEmEdicao = null;
-let elementoRetornoFoco = null;
 let geracaoConsultaVenda = 0;
 const dinheiro = (valor) => Number(valor).toFixed(2);
 /** Campo do formulário genérico (movimento, venda sem itens); vai dentro de .row g-3. */
@@ -26,12 +25,14 @@ async function atualizar() {
   await atualizarExtratoAberto();
 }
 
-function fechar() {
+function limparEdicaoAoFechar() {
   geracaoConsultaVenda++;
-  fecharModalAdmin("modalEdicaoFinanceira");
   registroEmEdicao = null;
   document.getElementById("btn-salvar-edicao-financeira").disabled = false;
-  elementoRetornoFoco?.focus();
+}
+
+function fechar() {
+  fecharModalAdmin("modalEdicaoFinanceira");
 }
 
 function preencher(titulo, camposHtml, registro, subtitulo = "") {
@@ -55,18 +56,14 @@ function preencher(titulo, camposHtml, registro, subtitulo = "") {
 }
 
 function abrir(titulo, camposHtml, registro, subtitulo = "") {
-  elementoRetornoFoco = document.activeElement;
   fecharModalAdmin("modalExtrato");
   preencher(titulo, camposHtml, registro, subtitulo);
-  document.getElementById("modalEdicaoFinanceira").classList.remove("d-none");
-  document.body.classList.add("modal-open");
-  if (!window.matchMedia?.("(max-width: 768px)").matches) {
-    document
-      .querySelector(
-        "#edicao-financeira-campos input, #edicao-financeira-campos select",
-      )
-      ?.focus();
-  }
+  abrirModalAdmin("modalEdicaoFinanceira", {
+    // Loading de consulta pode ser cancelado; escrita em andamento, não.
+    podeFechar: () =>
+      !registroEmEdicao ||
+      !document.getElementById("btn-salvar-edicao-financeira").disabled,
+  });
 }
 
 const ICONE = (caminhos) =>
@@ -381,6 +378,9 @@ export function administrarMovimento(membroId, movimento, acao) {
 
 export function configurarEdicaoFinanceira() {
   document
+    .getElementById("modalEdicaoFinanceira")
+    ?.addEventListener("admin:fechar", limparEdicaoAoFechar);
+  document
     .querySelectorAll("[data-fechar-edicao]")
     .forEach((botao) => botao.addEventListener("click", fechar));
   const camposEdicao = document.getElementById("edicao-financeira-campos");
@@ -466,7 +466,7 @@ export function configurarEdicaoFinanceira() {
         });
         if (!resposta) return;
         toast((await resposta.json()).mensagem, true);
-        fechar();
+        fecharModalAdmin("modalEdicaoFinanceira", { concluido: true });
         await atualizar();
       } finally {
         botao.disabled = false;

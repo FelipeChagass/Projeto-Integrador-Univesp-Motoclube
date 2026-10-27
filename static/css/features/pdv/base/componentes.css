@@ -8,18 +8,6 @@
     letter-spacing: 0.5px;
 }
 
-.btn-action:disabled,
-.btn-action-pedido:disabled,
-.btn-categoria:disabled,
-.btn-header:disabled {
-    background: var(--surface-bg) !important;
-    color: var(--text-muted) !important;
-    border-color: var(--border-subtle) !important;
-    box-shadow: none !important;
-    transform: none;
-    cursor: default;
-}
-
 .header-logo {
     width: 70px;
     height: 70px;
@@ -29,14 +17,6 @@
     font-size: 2rem;
     text-align: center;
     color: var(--success);
-}
-
-.btn-tipo-cartao {
-    font-size: 1.2rem;
-}
-
-.btn-tipo-credito {
-    font-size: 1.2rem;
 }
 
 .estoque-grid {
@@ -77,10 +57,6 @@
     text-align: center;
 }
 
-.btn-abrir-caixa {
-    color: white !important;
-}
-
 .date-range-row {
     display: flex;
 }
@@ -90,66 +66,7 @@
     padding-top: 16px;
 }
 
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-input[type="number"] {
-    -moz-appearance: textfield;
-    appearance: textfield;
-}
-
-select {
-    appearance: none;
-    -webkit-appearance: none;
-    background-color: var(--card-bg);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23b30000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 14px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    color: var(--text-primary);
-    padding: 10px 36px 10px 12px;
-    font-family: inherit;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: border-color 0.2s;
-}
-
-select:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
-}
-
-select option {
+.page-pdv .form-select option {
     background: var(--card-bg);
     color: var(--text-primary);
-}
-
-.lista-membros-scroll {
-    background-color: var(--input-bg);
-    color: var(--text-primary);
-    border-color: var(--input-border);
-    padding: 12px 36px 12px 12px;
-    font-size: 1.05rem;
-    border-radius: 8px;
-}
-
-
-/* Center button text in "Gestão de Caixa" modal */
-#modal-relatorios .btn-action {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    gap: 8px;
-}
-
-/* Ícone do calendário: já sai claro pelo color-scheme: dark de data-bs-theme="dark". */
-input[type="date"]::-webkit-calendar-picker-indicator {
-    cursor: pointer;
 }

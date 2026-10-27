@@ -1,3 +1,34 @@
+import { elementoVisivel } from "./dialogs.js";
+
+export function fechamentoLegadoBloqueado(modal) {
+  return (
+    !modal ||
+    !elementoVisivel(modal) ||
+    modal.classList.contains("closing") ||
+    modal.matches('[aria-busy="true"]') ||
+    !!modal.querySelector('[aria-busy="true"]') ||
+    [...document.querySelectorAll(".ui-dialogo, .modal.show")].some(
+      elementoVisivel,
+    )
+  );
+}
+
+export function pedirFechamentoModal(modal) {
+  if (fechamentoLegadoBloqueado(modal)) return;
+  const pedido = new CustomEvent("pedido-fechar-modal", {
+    bubbles: true,
+    cancelable: true,
+  });
+  if (!modal.dispatchEvent(pedido)) return;
+  // Admin ainda sem consumidor do evento: o X existente chama o ciclo e suas
+  // travas (podeFechar), nunca ocultar diretamente nem simular confirmação.
+  modal
+    .querySelector(
+      ".modal-cabecalho-fechar, .modal-drag-header button, [data-fechar-edicao]",
+    )
+    ?.click();
+}
+
 export function initBottomSheetGestures() {
   /* ─── Shared State ─── */
   let dragState = null;
@@ -20,11 +51,12 @@ export function initBottomSheetGestures() {
         : touchEvent.target.closest(".modal-drag-header");
       if (modalHeader) {
         const modalContent = modalHeader.closest(".modal-content");
-        if (modalContent) {
+        const overlay = modalContent?.closest(".modal-overlay");
+        if (overlay && !fechamentoLegadoBloqueado(overlay)) {
           dragState = {
             type: "modal",
             el: modalContent,
-            overlay: modalContent.closest(".modal-overlay"),
+            overlay,
             startY: activeTouch.clientY,
             currentOffset: 0,
             activated: false,
@@ -92,6 +124,12 @@ export function initBottomSheetGestures() {
 
       /* ── Modal (header-only drag) ── */
       if (dragState.type === "modal") {
+        if (fechamentoLegadoBloqueado(dragState.overlay)) {
+          dragState.el.style.transform = "";
+          dragState.el.style.transition = "";
+          dragState = null;
+          return;
+        }
         const verticalDisplacement = activeTouch.clientY - dragState.startY;
         if (!dragState.activated) {
           if (Math.abs(verticalDisplacement) < DRAG_THRESHOLD) return;
@@ -195,40 +233,10 @@ export function initBottomSheetGestures() {
       const velocity = calcVelocity(trackedPoints);
       const modalHeight = modalElement.offsetHeight || 400;
       const dismissThreshold = modalHeight * DISMISS_THRESHOLD_RATIO;
-
+      modalElement.style.transform = "";
+      modalElement.style.transition = "";
       if (verticalOffset > dismissThreshold || velocity > VELOCITY_DISMISS) {
-        const remainingDistance = modalHeight - verticalOffset;
-        const speed = Math.max(velocity, 0.8); // minimum speed
-        const duration = Math.min(
-          Math.max(remainingDistance / speed, 150),
-          350,
-        );
-
-        modalElement.style.transition = `transform ${duration}ms ${SPRING_CURVE}`;
-        modalElement.style.transform = "translateY(100%)";
-
-        const modalElementReference = modalElement;
-        const modalOverlayReference = modalOverlay;
-        setTimeout(() => {
-          if (modalOverlayReference) {
-            modalOverlayReference.style.display = "none";
-            modalOverlayReference.classList.remove("sheet-open");
-          }
-          modalElementReference.style.transform = "";
-          modalElementReference.style.transition = "";
-          const hasOpenModal =
-            document.querySelectorAll(
-              '.modal-overlay:not(.d-none):not([style*="display: none"])',
-            ).length > 0;
-          if (!hasOpenModal) document.body.classList.remove("modal-open");
-        }, duration + 10);
-      } else {
-        // Spring back to open position
-        modalElement.style.transition = `transform 0.4s ${SPRING_CURVE}`;
-        modalElement.style.transform = "translateY(0)";
-        setTimeout(() => {
-          modalElement.style.transition = "";
-        }, 420);
+        pedirFechamentoModal(modalOverlay);
       }
       dragState = null;
       return;

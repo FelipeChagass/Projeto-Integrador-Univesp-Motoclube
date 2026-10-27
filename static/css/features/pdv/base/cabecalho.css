@@ -1,6 +1,14 @@
 /* pdv: cabecalho (camada base).
  * Carregado por static/css/ponto_venda.css; preserve a ordem da cascata no manifesto.
  */
+.page-pdv {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+}
+
 #app-header {
     display: flex;
     justify-content: space-between;
@@ -61,56 +69,18 @@
     gap: 6px;
 }
 
-.btn-header {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 7px 14px;
-    background: transparent;
-    color: #fff;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 0.78rem;
-    font-weight: 600;
+.top-buttons .btn {
     text-transform: uppercase;
-    letter-spacing: 0.4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
     white-space: nowrap;
-    font-family: inherit;
 }
 
-.btn-header svg {
-    width: 16px;
-    height: 16px;
+.top-buttons .btn svg {
     color: var(--accent-text);
     stroke-width: 2;
     flex-shrink: 0;
 }
 
-.btn-header:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.25);
-    color: #fff;
-}
-
-.btn-header:active {
-    transform: scale(0.96);
-}
-
-.btn-header.active {
-    background: color-mix(in srgb, var(--accent) 20%, transparent);
-    border-color: var(--edit-mode-color);
-    color: var(--text-primary);
-    box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 30%, transparent);
-}
-
-.btn-header--login {
-    border-color: var(--success);
-    color: var(--success);
-}
-
-.btn-header--login:hover {
-    background: rgba(76, 175, 80, 0.15);
-    color: var(--success);
+#btn-estoque {
+    --bs-btn-active-bg: color-mix(in srgb, var(--accent) 20%, transparent);
+    --bs-btn-active-border-color: var(--edit-mode-color);
 }

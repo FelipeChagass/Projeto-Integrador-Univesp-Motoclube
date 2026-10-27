@@ -16,8 +16,8 @@
                     </h3>
                     <div class="operador-box m-0 d-flex flex-column gap-2 p-3">
                         <p id="nome-operador-atual" class="operador-nome m-0">...</p>
-                        <button class="btn-action m-0" id="btn-pendencias">OPERAÇÕES PENDENTES / RECONCILIAÇÃO</button>
-                        <button class="btn-action m-0" id="btn-trocar-membro">
+                        <button type="button" class="btn btn-escuro btn-lg w-100" id="btn-pendencias">OPERAÇÕES PENDENTES / RECONCILIAÇÃO</button>
+                        <button type="button" class="btn btn-escuro btn-lg w-100" id="btn-trocar-membro">
                             TROCAR MEMBRO (Sair)
                         </button>
                     </div>
@@ -31,7 +31,7 @@
                         </svg>
                         <span>CAIXA</span>
                     </h3>
-                    <button class="btn-action btn-abrir-caixa m-0" id="btn-abrir-caixa-rel">
+                    <button type="button" class="btn btn-escuro btn-lg w-100" id="btn-abrir-caixa-rel">
                         ABRIR CAIXA (INICIO)
                     </button>
                 </section>
@@ -44,7 +44,7 @@
                         </svg>
                         <span>FECHAMENTOS</span>
                     </h3>
-                    <button class="btn-action btn-fechar-dia m-0" id="btn-fechar-dia">
+                    <button type="button" class="btn btn-escuro btn-lg w-100" id="btn-fechar-dia">
                         FECHAR CAIXA TOTAL (DIA)
                     </button>
                 </section>
@@ -58,17 +58,17 @@
                         <span>RELATÓRIO PERÍODO</span>
                     </h3>
                     <div class="date-range-row gap-2 m-0">
-                        <input type="date" id="data-inicio" class="config-input" aria-label="Início do período">
-                        <input type="date" id="data-fim" class="config-input" aria-label="Fim do período">
+                        <input type="date" id="data-inicio" class="form-control form-control-lg" aria-label="Início do período">
+                        <input type="date" id="data-fim" class="form-control form-control-lg" aria-label="Fim do período">
                     </div>
-                    <button class="btn-action btn-gerar-periodo m-0" id="btn-gerar-periodo">
+                    <button type="button" class="btn btn-escuro btn-lg w-100" id="btn-gerar-periodo">
                         GERAR MENSAL/PERIODO
                     </button>
                 </section>
                 <div id="resultado-relatorio" class="resultado-relatorio d-none m-0"></div>
             </div>
             <div class="modal-rodape d-flex gap-2 px-3 px-md-4 pt-3 pb-md-3 flex-shrink-0 flex-column-reverse flex-sm-row">
-                <button class="btn-action m-0 justify-content-center" id="btn-fechar-relatorios">FECHAR JANELA</button>
+                <button type="button" class="btn btn-escuro btn-lg w-100" id="btn-fechar-relatorios">FECHAR JANELA</button>
             </div>
         </div>
     </div>
@@ -79,17 +79,17 @@
                 fechar='data-acionar="btn-cancelar-fechamento-caixa"') }}
             <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
                 <label class="modal-campo d-flex flex-column gap-2 m-0" for="input-valor-fechamento">Total em caixa (R$)
-                    <input type="number" id="input-valor-fechamento" class="input-cliente input-valor-grande"
+                    <input type="number" id="input-valor-fechamento" class="form-control p-3 input-valor-grande"
                         placeholder="0,00" min="0" step="0.01" inputmode="decimal">
                 </label>
                 <label class="modal-campo d-flex flex-column gap-2 m-0" for="input-obs-fechamento">Observações (opcional)
-                    <input type="text" id="input-obs-fechamento" class="input-cliente"
+                    <input type="text" id="input-obs-fechamento" class="form-control p-3"
                         placeholder="Ex: Fechamento do dia, sem ocorrências.">
                 </label>
             </div>
             <div class="modal-rodape d-flex gap-2 px-3 px-md-4 pt-3 pb-md-3 flex-shrink-0 flex-column-reverse flex-sm-row">
-                <button class="btn-action m-0 justify-content-center" id="btn-cancelar-fechamento-caixa">CANCELAR</button>
-                <button class="btn-action btn-acao-primaria btn-fechar-dia m-0 justify-content-center" id="btn-confirmar-fechamento-caixa">CONFIRMAR
+                <button type="button" class="btn btn-escuro btn-lg w-100" id="btn-cancelar-fechamento-caixa">CANCELAR</button>
+                <button type="button" class="btn btn-primary btn-lg w-100" id="btn-confirmar-fechamento-caixa">CONFIRMAR
                     FECHAMENTO</button>
             </div>
         </div>

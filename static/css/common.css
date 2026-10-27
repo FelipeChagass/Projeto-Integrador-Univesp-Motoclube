@@ -1,15 +1,9 @@
-@import url('tokens.css');
 @import url('checkboxes.css');
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background-color: var(--bg-color);
     color: var(--text-primary);
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    overflow: hidden;
-
 }
 
 button:focus-visible {
@@ -137,7 +131,7 @@ body.modal-open {
     align-items: center;
 }
 
-.modal-content {
+.modal-overlay .modal-content {
     background: var(--card-bg);
     border-radius: 14px;
     width: 90%;
@@ -213,116 +207,5 @@ body.modal-open {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
 }
+/* Layout de viewport e impressão pertencem exclusivamente à feature PDV. */
 
-@media print {
-    @page {
-        margin: 0;
-        size: auto;
-    }
-
-    body {
-        visibility: hidden;
-        background: white !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-
-    #area-impressao {
-        display: block !important;
-        visibility: visible;
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        background: white;
-        color: black;
-        z-index: 9999;
-    }
-
-    #app-header,
-    #main-content,
-    .modal-overlay,
-    #loading,
-    #toast {
-        display: none !important;
-    }
-
-    .ticket-80mm {
-        width: 78mm;
-        font-size: 14px;
-        font-family: 'Courier New', monospace;
-        margin: 0 auto;
-    }
-
-    .ticket {
-        position: relative;
-        padding: 20px 10px;
-        margin-bottom: 20px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        border: 2px dashed #000;
-        border-radius: 8px;
-        background: transparent !important;
-        z-index: 1;
-        overflow: hidden;
-        isolation: isolate;
-        page-break-inside: avoid;
-        min-height: 120px;
-    }
-
-    .watermark-logo {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 150px;
-        max-width: 80%;
-        height: auto;
-        opacity: 0.4;
-        z-index: 0;
-        display: block !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-        pointer-events: none;
-    }
-
-    .ticket-content {
-        position: relative;
-        z-index: 2;
-        width: 100%;
-    }
-
-    .ticket-item {
-        font-size: 1.4rem;
-        font-weight: 900;
-        display: block;
-        margin: 8px 0;
-        text-transform: uppercase;
-        line-height: 1.2;
-    }
-
-    .sheet-a4 {
-        width: 100%;
-        max-width: 210mm;
-        margin: 0 auto;
-        font-family: 'Courier New', monospace;
-        font-size: 13px;
-        text-align: left;
-        padding: 15px;
-    }
-
-    .sheet-a4 .watermark-logo {
-        display: none !important;
-    }
-}
-
-#area-impressao {
-    display: none;
-}

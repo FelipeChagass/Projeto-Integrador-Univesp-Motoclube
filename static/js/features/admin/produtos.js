@@ -7,6 +7,7 @@ import { API } from "../../shared/api.js";
 import { UIModal } from "../../shared/modals.js";
 import { BASE, authFetch } from "./requests.js";
 import {
+  abrirModalAdmin,
   fecharModalAdmin,
   esc,
   toast,
@@ -114,13 +115,11 @@ function htmlLinhaCombo(combo) {
 }
 
 export function abrirFormNovoProduto() {
-  document.getElementById("formNovoProduto").classList.remove("d-none");
-  document.body.classList.add("modal-open");
+  abrirModalAdmin("formNovoProduto");
   document.getElementById("novo-nome").focus();
 }
 export function fecharFormNovoProduto() {
-  document.getElementById("formNovoProduto").classList.add("d-none");
-  document.body.classList.remove("modal-open");
+  fecharModalAdmin("formNovoProduto");
 }
 
 export function previaNovoProdutoImagem(campoArquivo) {
@@ -227,8 +226,7 @@ export function abrirAjusteEstoque(id) {
   document.getElementById("ajuste-estoque-min-deposito").value =
     produto.estoque_min_deposito || 0;
   document.getElementById("ajuste-estoque-motivo").value = "";
-  document.getElementById("modalAjusteEstoque").classList.remove("d-none");
-  document.body.classList.add("modal-open");
+  abrirModalAdmin("modalAjusteEstoque");
 }
 
 export async function confirmarAjusteEstoque() {

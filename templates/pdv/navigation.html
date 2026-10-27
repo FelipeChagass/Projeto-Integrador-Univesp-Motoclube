@@ -7,7 +7,7 @@ Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
     </div>
 
     <div class="top-buttons d-flex align-items-center flex-wrap justify-content-end">
-        <button class="btn-header" id="btn-estoque" title="Gerenciar Estoque">
+        <button type="button" class="btn btn-contorno d-inline-flex align-items-center gap-2" id="btn-estoque" title="Gerenciar Estoque">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path
@@ -18,7 +18,7 @@ Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
             <span class="btn-text" id="btn-estoque-text">Estoque</span>
         </button>
 
-        <button class="btn-header" id="btn-gestao" title="Gestão de Caixa">
+        <button type="button" class="btn btn-contorno d-inline-flex align-items-center gap-2" id="btn-gestao" title="Gestão de Caixa">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 3v18h18" />
@@ -26,7 +26,7 @@ Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
             </svg>
             <span class="btn-text">Gestão de Caixa</span>
         </button>
-        <button class="btn-header d-none" id="btn-admin" title="Painel Admin">
+        <button type="button" class="btn btn-contorno d-inline-flex align-items-center gap-2 d-none" id="btn-admin" title="Painel Admin">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -34,7 +34,7 @@ Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
             <span class="btn-text">Admin</span>
         </button>
 
-        <button class="btn-header" id="btn-config" title="Configurações">
+        <button type="button" class="btn btn-contorno d-inline-flex align-items-center gap-2" id="btn-config" title="Configurações">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path
@@ -44,7 +44,7 @@ Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
             <span class="btn-text">Config</span>
         </button>
 
-        <button class="btn-header" id="btn-logout" title="Sair do Sistema">
+        <button type="button" class="btn btn-contorno d-inline-flex align-items-center gap-2" id="btn-logout" title="Sair do Sistema">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -55,7 +55,8 @@ Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
         </button>
     </div>
 
-    <button class="btn-hamburger" id="btn-hamburger">
+    <button type="button" class="btn btn-contorno btn-hamburger d-md-none" id="btn-hamburger"
+        data-bs-toggle="offcanvas" data-bs-target="#sidebar-mobile" aria-controls="sidebar-mobile" aria-label="Abrir menu">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="4" x2="20" y1="6" y2="6" />
@@ -65,14 +66,11 @@ Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
     </button>
 </header>
 
-<div id="sidebar-mobile" class="sidebar-mobile">
-    <div class="sidebar-backdrop">
-    </div>
-    <nav class="sidebar-panel">
-        <div class="sidebar-header">
+<div id="sidebar-mobile" class="offcanvas offcanvas-end pdv-menu" tabindex="-1" aria-labelledby="sidebar-titulo">
+        <div class="offcanvas-header gap-3">
             <img src="{{ url_for('static', filename='img/motorhead.svg') }}" alt="Logo" class="sidebar-logo">
-            <span class="sidebar-title">MENU</span>
-            <button class="sidebar-close" id="sidebar-close-btn">
+            <h2 class="offcanvas-title fs-6 flex-grow-1 m-0" id="sidebar-titulo">Menu</h2>
+            <button type="button" class="btn btn-contorno p-2" id="sidebar-close-btn" data-bs-dismiss="offcanvas" aria-label="Fechar menu">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="4" x2="20" y1="6" y2="6" />
@@ -81,8 +79,8 @@ Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
                 </svg>
             </button>
         </div>
-        <div class="sidebar-body">
-            <button class="sidebar-item" id="sidebar-btn-estoque">
+        <nav class="offcanvas-body d-flex flex-column gap-2" aria-label="Menu do PDV">
+            <button type="button" class="btn btn-menu btn-lg d-flex align-items-center gap-3 text-start w-100" id="sidebar-btn-estoque">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path
@@ -92,7 +90,7 @@ Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
                 </svg>
                 <span id="sidebar-btn-estoque-text">Gerenciar Estoque</span>
             </button>
-            <button class="sidebar-item" id="sidebar-gestao">
+            <button type="button" class="btn btn-menu btn-lg d-flex align-items-center gap-3 text-start w-100" id="sidebar-gestao">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 3v18h18" />
@@ -100,14 +98,14 @@ Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
                 </svg>
                 Gestão de Caixa
             </button>
-            <button class="sidebar-item d-none" id="sidebar-btn-admin">
+            <button type="button" class="btn btn-menu btn-lg d-flex align-items-center gap-3 text-start w-100 d-none" id="sidebar-btn-admin">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 </svg>
                 Painel Admin
             </button>
-            <button class="sidebar-item" id="sidebar-config">
+            <button type="button" class="btn btn-menu btn-lg d-flex align-items-center gap-3 text-start w-100" id="sidebar-config">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="3" />
@@ -116,9 +114,9 @@ Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
                 </svg>
                 Configurações
             </button>
-        </div>
-        <div class="sidebar-footer">
-            <button class="sidebar-item sidebar-item--danger" id="sidebar-logout">
+        </nav>
+        <div class="pdv-menu-rodape px-3 pt-3">
+            <button type="button" class="btn btn-excluir btn-lg d-flex align-items-center gap-3 text-start w-100" id="sidebar-logout">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -128,5 +126,4 @@ Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
                 Sair do Sistema
             </button>
         </div>
-    </nav>
 </div>

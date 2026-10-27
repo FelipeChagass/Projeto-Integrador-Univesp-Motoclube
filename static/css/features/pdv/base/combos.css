@@ -3,15 +3,15 @@
  * Sem foto, a vitrine do card mostra a própria composição do combo.
  * Layout e espaçamento ficam nas classes do Bootstrap (pdv/ui.js e catalogo-carrinho.html).
  */
-.card.card-combo {
+.pdv-produto-card.card-combo {
     border-color: color-mix(in srgb, var(--combo) 35%, transparent);
 }
 
-.card.card-combo:hover {
+.pdv-produto-card.card-combo:hover {
     border-color: color-mix(in srgb, var(--combo) 70%, transparent);
 }
 
-.card.card-combo:active {
+.pdv-produto-card.card-combo:active {
     border-color: var(--combo);
 }
 
@@ -77,18 +77,18 @@
     line-height: 1.25;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
     /* Quatro filtros não cabem com o rótulo; a rolagem fica como reserva. */
     .filtro-catalogo {
         overflow-x: auto;
         scrollbar-width: none;
     }
 
-    .filtro-catalogo .btn-categoria {
+    .filtro-catalogo [data-categoria] {
         width: auto;
     }
 
-    .filtro-catalogo .btn-categoria svg {
+    .filtro-catalogo [data-categoria] svg {
         width: 16px;
         height: 16px;
     }
@@ -99,7 +99,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .card.card-combo:active {
+    .pdv-produto-card.card-combo:active {
         transform: none;
     }
 }

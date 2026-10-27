@@ -85,27 +85,7 @@
     border-top: 1px solid var(--divider-color);
 }
 
-.modal-rodape .btn-action {
-    text-align: center;
-}
-
-.btn-action.btn-acao-primaria {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-}
-
-.btn-action.btn-acao-primaria:hover {
-    background: var(--accent-hover) !important;
-    border-color: var(--accent-hover);
-}
-
-.btn-action.btn-acao-primaria:focus-visible {
-    outline: 2px solid #fff;
-    outline-offset: 2px;
-}
-
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
     .modal-cabecalho {
         border-radius: 16px 16px 0 0;
     }

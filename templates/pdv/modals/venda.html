@@ -7,13 +7,13 @@
                 fechar='data-acionar="btn-cancelar-obs"') }}
             <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
                 <label class="modal-campo d-flex flex-column gap-2 m-0" for="custom-obs">Observação para a cozinha
-                    <input type="text" id="custom-obs" placeholder="Ex: Sem cebola..." class="input-cliente"
+                    <input type="text" id="custom-obs" placeholder="Ex: Sem cebola..." class="form-control p-3"
                         autocomplete="off">
                 </label>
             </div>
             <div class="modal-rodape d-flex gap-2 px-3 px-md-4 pt-3 pb-md-3 flex-shrink-0 flex-column-reverse flex-sm-row">
-                <button class="btn-action m-0 justify-content-center" id="btn-cancelar-obs">CANCELAR</button>
-                <button class="btn-action btn-acao-primaria m-0 justify-content-center" id="btn-confirmar-obs">CONFIRMAR PEDIDO</button>
+                <button type="button" class="btn btn-escuro btn-lg w-100" id="btn-cancelar-obs">CANCELAR</button>
+                <button type="button" class="btn btn-primary btn-lg w-100" id="btn-confirmar-obs">CONFIRMAR PEDIDO</button>
             </div>
         </div>
     </div>
@@ -25,14 +25,14 @@
             <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
                 <div class="valor-pendente m-0" id="valor-total-dinheiro">Total: R$ 0,00</div>
                 <label class="modal-campo d-flex flex-column gap-2 m-0" for="valor-recebido">Valor recebido
-                    <input type="number" id="valor-recebido" class="input-cliente input-valor-grande"
+                    <input type="number" id="valor-recebido" class="form-control p-3 input-valor-grande"
                         placeholder="0,00" inputmode="decimal">
                 </label>
                 <div class="display-troco m-0" id="display-troco">Troco: R$ 0,00</div>
             </div>
             <div class="modal-rodape d-flex gap-2 px-3 px-md-4 pt-3 pb-md-3 flex-shrink-0 flex-column-reverse flex-sm-row">
-                <button class="btn-action m-0 justify-content-center" id="btn-cancelar-dinheiro">CANCELAR</button>
-                <button id="btn-confirmar-dinheiro" class="btn-action btn-acao-primaria m-0 justify-content-center" disabled>CONFIRMAR
+                <button type="button" class="btn btn-escuro btn-lg w-100" id="btn-cancelar-dinheiro">CANCELAR</button>
+                <button type="button" id="btn-confirmar-dinheiro" class="btn btn-primary btn-lg w-100" disabled>CONFIRMAR
                     PAGAMENTO</button>
             </div>
         </div>
@@ -43,12 +43,12 @@
             {{ cabecalho_modal('Pagamento no cartão', 'modal-cartao-titulo', fechar='data-acionar="btn-cancelar-cartao"') }}
             <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
                 <div class="d-grid gap-3">
-                    <button class="btn-action btn-tipo-cartao m-0" id="btn-cartao-debito">DÉBITO</button>
-                    <button class="btn-action btn-tipo-credito m-0" id="btn-cartao-credito">CRÉDITO</button>
+                    <button type="button" class="btn btn-escuro btn-lg w-100" id="btn-cartao-debito">DÉBITO</button>
+                    <button type="button" class="btn btn-escuro btn-lg w-100" id="btn-cartao-credito">CRÉDITO</button>
                 </div>
             </div>
             <div class="modal-rodape d-flex gap-2 px-3 px-md-4 pt-3 pb-md-3 flex-shrink-0 flex-column-reverse flex-sm-row">
-                <button class="btn-action m-0 justify-content-center" id="btn-cancelar-cartao">CANCELAR</button>
+                <button type="button" class="btn btn-escuro btn-lg w-100" id="btn-cancelar-cartao">CANCELAR</button>
             </div>
         </div>
     </div>

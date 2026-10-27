@@ -1,6 +1,8 @@
 /* pdv: responsivo (camada base).
  * Carregado por static/css/ponto_venda.css; preserve a ordem da cascata no manifesto.
  */
+/* Entre md e 850px catálogo + carrinho de 380px não cabem lado a lado.
+ * O carrinho fixo/bottom sheet continua restrito a telas abaixo de md. */
 @media (max-width: 850px) {
     #main-content {
         flex-direction: column;
@@ -27,11 +29,11 @@
         gap: 8px;
     }
 
-    .btn-header span.btn-text {
+    .top-buttons .btn span.btn-text {
         display: none;
     }
 
-    .btn-header {
-        padding: 7px 10px;
+    .top-buttons .btn {
+        --bs-btn-padding-x: 0.5rem;
     }
 }

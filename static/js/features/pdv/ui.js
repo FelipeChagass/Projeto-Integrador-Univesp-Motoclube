@@ -1,5 +1,9 @@
 import { API } from "../../shared/api.js";
 import { UIModal } from "../../shared/modals.js";
+import {
+  elementoVisivel,
+  sincronizarScrollDialogos,
+} from "../../shared/dialogs.js";
 import { estadoPdv, salvarEstadoLocal, salvarDadosLocais } from "./state.js";
 import {
   esc,
@@ -14,11 +18,11 @@ import {
   descricaoCombo,
 } from "../../shared/combos.js";
 
-function viewportIsMobile() {
+export function viewportIsMobile() {
   return (
     typeof window !== "undefined" &&
     typeof window.matchMedia === "function" &&
-    window.matchMedia("(max-width: 768px)").matches
+    window.matchMedia("(max-width: 767.98px)").matches
   );
 }
 
@@ -44,74 +48,133 @@ export function showToast(mensagem, tipoMensagem) {
 
 export function abrirModal(modalId) {
   const elementoModal = document.getElementById(modalId);
-  if (elementoModal) {
-    elementoModal.classList.remove("d-none");
-    elementoModal.classList.remove("closing");
-    elementoModal.style.display = "flex";
-    document.body.classList.add("modal-open");
-
-    // On mobile, animate the sheet in via CSS transition
-    const telaMovel = viewportIsMobile();
-    if (telaMovel) {
-      const conteudoModal = elementoModal.querySelector(".modal-content");
-      if (conteudoModal) {
-        conteudoModal.classList.remove("sheet-dismissing");
-        // Force a reflow so transform: translateY(100%) is applied before transitioning
-        void conteudoModal.offsetHeight;
-        elementoModal.classList.add("sheet-open");
-      }
-    }
+  if (!elementoModal) return;
+  // Estado restrito ao ciclo abrir/fechar, sem acoplar os demais recursos do PDV.
+  const estados = (abrirModal.estados ??= new WeakMap());
+  const anterior = estados.get(elementoModal);
+  anterior?.cancelarTransicao?.();
+  if (elementoModal.matches(".modal.show")) return;
+  const estado = {
+    retorno:
+      anterior && elementoVisivel(elementoModal)
+        ? anterior.retorno
+        : document.activeElement,
+  };
+  estados.set(elementoModal, estado);
+  if (elementoModal.matches(".modal")) {
+    if (!anterior)
+      elementoModal.addEventListener("hidden.bs.modal", () => {
+        sincronizarScrollDialogos();
+        const retorno = estados.get(elementoModal)?.retorno;
+        if (
+          !document.querySelector(".modal.show, .ui-dialogo") &&
+          elementoVisivel(retorno)
+        )
+          retorno.focus();
+      });
+    window.bootstrap.Modal.getOrCreateInstance(elementoModal).show();
+    return;
   }
+  elementoModal.dataset.pdvModalOrdem = String(
+    (abrirModal.sequencia = (abrirModal.sequencia || 0) + 1),
+  );
+  elementoModal.classList.remove("d-none", "closing");
+  elementoModal.style.display = "flex";
+  elementoModal.removeAttribute("aria-hidden");
+  elementoModal.setAttribute("role", "dialog");
+  elementoModal.setAttribute("aria-modal", "true");
+  elementoModal.tabIndex = -1;
+  const conteudo = elementoModal.querySelector(".modal-content");
+  if (conteudo) {
+    conteudo.classList.remove("sheet-dismissing");
+    conteudo.style.transform = "";
+    conteudo.style.transition = "";
+    void conteudo.offsetHeight;
+  }
+  elementoModal.classList.toggle("sheet-open", viewportIsMobile());
+  sincronizarScrollDialogos();
+  // Fixtures sem .modal-overlay também continuam usando o ciclo legado.
+  document.body.classList.add("modal-open");
+  const campo = [
+    ...elementoModal.querySelectorAll(
+      "input, select, textarea, button, [tabindex]",
+    ),
+  ].find(
+    (item) => item.tabIndex >= 0 && !item.disabled && elementoVisivel(item),
+  );
+  (campo || elementoModal).focus();
 }
 
 export function fecharModal(modalId) {
   const elementoModal = document.getElementById(modalId);
-  if (elementoModal) {
-    const telaMovel = viewportIsMobile();
-    const conteudoModal = elementoModal.querySelector(".modal-content");
-
-    if (telaMovel && conteudoModal) {
-      // Animate sheet down from current position
-      elementoModal.classList.remove("sheet-open");
-      conteudoModal.classList.add("sheet-dismissing");
-
-      const aoConcluirTransicao = () => {
-        conteudoModal.removeEventListener("transitionend", aoConcluirTransicao);
-        elementoModal.style.display = "none";
-        conteudoModal.classList.remove("sheet-dismissing");
-        conteudoModal.style.transform = "";
-        conteudoModal.style.transition = "";
-
-        const possuiModalAberto =
-          document.querySelectorAll(
-            '.modal-overlay:not(.d-none):not([style*="display: none"])',
-          ).length > 0;
-        if (!possuiModalAberto) {
-          document.body.classList.remove("modal-open");
-        }
-      };
-      conteudoModal.addEventListener("transitionend", aoConcluirTransicao, {
-        once: true,
-      });
-      // Safety timeout in case transitionend doesn't fire
-      setTimeout(aoConcluirTransicao, 350);
-    } else {
-      // Desktop: use existing closing animation
-      elementoModal.classList.add("closing");
-      setTimeout(() => {
-        elementoModal.style.display = "none";
-        elementoModal.classList.remove("closing");
-
-        const possuiModalAberto =
-          document.querySelectorAll(
-            '.modal-overlay:not(.d-none):not([style*="display: none"])',
-          ).length > 0;
-        if (!possuiModalAberto) {
-          document.body.classList.remove("modal-open");
-        }
-      }, 250);
-    }
+  if (!elementoModal) return;
+  if (elementoModal.matches(".modal")) {
+    window.bootstrap.Modal.getOrCreateInstance(elementoModal).hide();
+    return;
   }
+  if (
+    !elementoVisivel(elementoModal) ||
+    elementoModal.classList.contains("closing")
+  )
+    return;
+  const estados = (abrirModal.estados ??= new WeakMap());
+  const estado = estados.get(elementoModal) || {};
+  estados.set(elementoModal, estado);
+  const conteudo = elementoModal.querySelector(".modal-content");
+  const movel = viewportIsMobile() && conteudo;
+  let concluido = false;
+  let temporizador;
+  estado.cancelarTransicao = () => {
+    concluido = true;
+    clearTimeout(temporizador);
+    conteudo?.removeEventListener("transitionend", concluir);
+  };
+  const concluir = (evento) => {
+    if (
+      concluido ||
+      (evento &&
+        (evento.target !== conteudo ||
+          (evento.propertyName && evento.propertyName !== "transform")))
+    )
+      return;
+    estado.cancelarTransicao();
+    const tinhaFoco = elementoModal.contains(document.activeElement);
+    elementoModal.style.display = "none";
+    elementoModal.classList.remove("closing", "sheet-open");
+    elementoModal.setAttribute("aria-hidden", "true");
+    elementoModal.removeAttribute("aria-modal");
+    if (conteudo) {
+      conteudo.classList.remove("sheet-dismissing");
+      conteudo.style.transform = "";
+      conteudo.style.transition = "";
+    }
+    sincronizarScrollDialogos();
+    if (!tinhaFoco || document.querySelector(".modal.show, .ui-dialogo"))
+      return;
+    const atual = [
+      ...document.querySelectorAll(".modal-overlay, [data-pdv-modal-ordem]"),
+    ]
+      .filter(elementoVisivel)
+      .sort(
+        (a, b) =>
+          Number(a.dataset.pdvModalOrdem || 0) -
+          Number(b.dataset.pdvModalOrdem || 0),
+      )
+      .at(-1);
+    if (
+      elementoVisivel(estado.retorno) &&
+      (!atual || atual.contains(estado.retorno))
+    )
+      estado.retorno.focus();
+    else atual?.focus();
+  };
+  elementoModal.classList.add("closing");
+  elementoModal.classList.remove("sheet-open");
+  if (movel) {
+    conteudo.classList.add("sheet-dismissing");
+    conteudo.addEventListener("transitionend", concluir);
+  }
+  temporizador = setTimeout(concluir, movel ? 350 : 250);
 }
 
 export function atualizarEstadoBotoes() {
@@ -230,6 +293,11 @@ function htmlCartaoCombo(produto, disponivel, comboZerado) {
             </div>`;
 }
 
+function htmlAcionadorProduto(produto) {
+  const rotulo = `${estadoPdv.modoGerenciaEstoque ? "Editar" : "Adicionar"} ${produto.nome}`;
+  return `<button type="button" class="pdv-produto-acionador stretched-link" aria-label="${esc(rotulo)}"><span class="visually-hidden">${esc(rotulo)}</span></button>`;
+}
+
 export function selecionarCategoria(categoria) {
   if (!["todos", "bebida", "comida", "combo", "outro"].includes(categoria))
     return;
@@ -279,14 +347,15 @@ export function renderizarCatalogo() {
     const estoqueBarDisponivel = obterDisponivelBar(produto);
     if (temCategoriaCombo(produto)) {
       const cartaoCombo = document.createElement("div");
-      cartaoCombo.className = "card card-combo";
+      cartaoCombo.className = "card pdv-produto-card card-combo";
       cartaoCombo.dataset.produtoId = produto.id;
       cartaoCombo.dataset.barZerado = estoqueBarDisponivel <= 0;
-      cartaoCombo.innerHTML = htmlCartaoCombo(
-        produto,
-        estoqueBarDisponivel,
-        estoqueBarDisponivel <= 0,
-      );
+      cartaoCombo.innerHTML =
+        htmlCartaoCombo(
+          produto,
+          estoqueBarDisponivel,
+          estoqueBarDisponivel <= 0,
+        ) + htmlAcionadorProduto(produto);
       fragmentoProdutos.appendChild(cartaoCombo);
       return;
     }
@@ -300,7 +369,7 @@ export function renderizarCatalogo() {
       (estoqueBarDisponivel <= estoqueMinimoBar ||
         estoqueDeposito <= estoqueMinimoDeposito);
     const cartaoProduto = document.createElement("div");
-    cartaoProduto.className = `card${estoqueBaixo ? " card-alerta" : ""}`;
+    cartaoProduto.className = `card pdv-produto-card${estoqueBaixo ? " card-alerta" : ""}`;
     cartaoProduto.dataset.produtoId = produto.id;
     cartaoProduto.dataset.barZerado = estoqueBarZerado;
     const urlImagem = sanitizeUrl(produto.url_imagem);
@@ -321,7 +390,7 @@ export function renderizarCatalogo() {
     cartaoProduto.innerHTML = `
             <div class="img-container">
                 ${alertaHtml}${edicaoHtml}
-                <img src="${esc(urlImagem)}" onerror="this.src='https://placehold.co/150x150/333/FFF?text=Erro'">
+                <img src="${esc(urlImagem)}" alt="" onerror="this.src='https://placehold.co/150x150/333/FFF?text=Erro'">
                 ${depositoZeradoHtml}${barZeradoHtml}
             </div>
             <div class="card-info d-flex flex-column justify-content-between text-center">
@@ -332,19 +401,38 @@ export function renderizarCatalogo() {
                     <span>Dep: <b>${estoqueDeposito}</b></span>
                 </div>
             </div>`;
+    cartaoProduto.insertAdjacentHTML(
+      "beforeend",
+      htmlAcionadorProduto(produto),
+    );
     fragmentoProdutos.appendChild(cartaoProduto);
   });
   gradeProdutos.appendChild(fragmentoProdutos);
+}
+
+/** O gesto compartilhado continua dono da classe; o PDV espelha seu estado no botão. */
+export function sincronizarEstadoCarrinho() {
+  const secaoCarrinho = document.getElementById("carrinho-section");
+  const botaoCarrinho = document.getElementById("btn-alternar-carrinho");
+  if (!secaoCarrinho || !botaoCarrinho) return;
+  const telaMovel = viewportIsMobile();
+  if (!telaMovel) secaoCarrinho.classList.remove("mobile-aberto");
+  botaoCarrinho.setAttribute(
+    "aria-expanded",
+    String(!telaMovel || secaoCarrinho.classList.contains("mobile-aberto")),
+  );
 }
 
 export function atualizarUI() {
   const listaCarrinho = document.getElementById("carrinho-lista");
   listaCarrinho.innerHTML = "";
   let totalCarrinho = 0;
+  let quantidadeCarrinho = 0;
   if (Array.isArray(estadoPdv.carrinho)) {
     const fragmentoCarrinho = document.createDocumentFragment();
     estadoPdv.carrinho.forEach((itemCarrinho, indiceItem) => {
       totalCarrinho += Number(itemCarrinho.preco) * Number(itemCarrinho.qtd);
+      quantidadeCarrinho += Number(itemCarrinho.qtd) || 0;
       const observacaoHtml = itemCarrinho.obs
         ? `<div class="item-obs">${esc(itemCarrinho.obs)}</div>`
         : "";
@@ -362,9 +450,9 @@ export function atualizarUI() {
                     ${composicaoHtml}${observacaoHtml}
                 </div>
                 <div class="item-qty-controls">
-                    <button class="btn-qty" data-action="decrement" data-idx="${indiceItem}">-</button>
-                    <span>${itemCarrinho.qtd}</span>
-                    <button class="btn-qty" data-action="increment" data-idx="${indiceItem}">+</button>
+                    <button type="button" class="btn-qty" data-action="decrement" data-idx="${indiceItem}" aria-label="Diminuir quantidade de ${esc(itemCarrinho.nome)}">-</button>
+                    <span>${esc(itemCarrinho.qtd)}</span>
+                    <button type="button" class="btn-qty" data-action="increment" data-idx="${indiceItem}" aria-label="Aumentar quantidade de ${esc(itemCarrinho.nome)}">+</button>
                 </div>`;
       fragmentoCarrinho.appendChild(elementoItemCarrinho);
     });
@@ -372,6 +460,12 @@ export function atualizarUI() {
   }
   document.getElementById("total-display").innerText =
     formatCurrency(totalCarrinho);
+  const indicadorQuantidade = document.getElementById("carrinho-badge-mobile");
+  if (indicadorQuantidade) {
+    indicadorQuantidade.textContent = quantidadeCarrinho;
+    indicadorQuantidade.classList.toggle("show", quantidadeCarrinho > 0);
+  }
+  sincronizarEstadoCarrinho();
   sincronizarTextoModoEstoque();
   renderizarCatalogo();
   salvarEstadoLocal();

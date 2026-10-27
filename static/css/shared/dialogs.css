@@ -1,0 +1,18 @@
+/* Isola o Modal Bootstrap dos estilos bottom-sheet legados das três páginas.
+ * Layout e espaçamentos permanecem nas utilities e componentes Bootstrap. */
+.ui-dialogo {
+    --bs-modal-zindex: 11000;
+}
+
+.ui-dialogo-fundo {
+    --bs-backdrop-zindex: 10990;
+}
+
+.ui-dialogo .modal-content {
+    width: 100%;
+    max-width: none;
+    transform: none;
+    transition: none;
+    background: var(--card-bg, var(--bs-body-bg));
+    color: var(--text-primary, var(--bs-body-color));
+}

@@ -1,12 +1,13 @@
 /* pdv: tablet (adaptações mobile).
  * Carregado por static/css/ponto_venda-mobile.css; preserve a ordem da cascata no manifesto.
  */
+/* Até 900px os rótulos competem com o operador; o menu móvel começa só abaixo de md. */
 @media (max-width: 900px) {
-    .btn-header .btn-text {
+    .top-buttons .btn .btn-text {
         display: none;
     }
 
-    .btn-header svg {
+    .top-buttons .btn svg {
         width: 18px;
         height: 18px;
     }
@@ -21,11 +22,4 @@
         padding: 6px 10px;
     }
 
-    .btn-hamburger {
-        display: none;
-    }
-
-    .sidebar-mobile {
-        display: none;
-    }
 }

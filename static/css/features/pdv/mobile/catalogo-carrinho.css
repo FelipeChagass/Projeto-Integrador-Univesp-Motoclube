@@ -1,7 +1,7 @@
 /* pdv: catalogo-carrinho (adaptações mobile).
  * Carregado por static/css/ponto_venda-mobile.css; preserve a ordem da cascata no manifesto.
  */
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
     #main-content {
         flex-direction: column;
         position: relative;
@@ -28,7 +28,7 @@
         white-space: nowrap;
     }
 
-    .btn-categoria {
+    .filtro-catalogo [data-categoria] {
         flex: 0 1 auto;
         min-width: 0;
         gap: 4px;
@@ -37,7 +37,7 @@
         white-space: nowrap;
     }
 
-    .btn-categoria svg {
+    .filtro-catalogo [data-categoria] svg {
         flex: 0 0 19px;
         width: 19px;
         height: 19px;
@@ -48,13 +48,13 @@
             gap: 4px;
         }
 
-        .btn-categoria {
+        .filtro-catalogo [data-categoria] {
             gap: 3px;
             padding: 5px;
             font-size: 0.68rem;
         }
 
-        .btn-categoria svg {
+        .filtro-catalogo [data-categoria] svg {
             flex-basis: 17px;
             width: 17px;
             height: 17px;
@@ -67,7 +67,7 @@
         gap: 6px;
     }
 
-    .card {
+    .pdv-produto-card {
         border-radius: 8px;
     }
 
@@ -139,7 +139,7 @@
         border-radius: 2px;
     }
 
-    .carrinho-header h3 {
+    .carrinho-header #titulo-carrinho {
         font-size: 0.85rem;
     }
 
@@ -200,10 +200,8 @@
         line-height: 1.1;
     }
 
-    .input-cliente {
-        padding: 12px;
+    .page-pdv .form-control {
         font-size: calc(16px * var(--escala-fonte, 1));
-        margin-bottom: 0;
     }
 
     .grid-pagamento {
@@ -211,13 +209,11 @@
         row-gap: 22px;
     }
 
-    .btn-action-pedido {
+    .pdv-pagamento {
         min-height: 70px;
-        padding: 12px 20px;
-        gap: 12px;
     }
 
-    .btn-action-pedido svg {
+    .pdv-pagamento svg {
         width: 30px;
         height: 30px;
     }
@@ -227,9 +223,7 @@
         height: 24px;
     }
 
-    .btn-action {
+    .page-pdv .modal-overlay .btn-lg {
         min-height: 48px;
-        padding: 12px 14px;
-        font-size: 0.82rem;
     }
 }

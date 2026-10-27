@@ -2,7 +2,7 @@
  * Liga IDs/data-actions dos templates aos handlers de cada recurso.
  * setupEventListeners deve ser chamado uma vez pela entrada admin.js após criar o DOM.
  */
-import { fecharModalAdmin } from "./ui.js";
+import { fecharModalAdmin, configurarModaisAdmin } from "./ui.js";
 import { switchTab } from "./navigation.js";
 import {
   carregarProdutos,
@@ -48,6 +48,7 @@ import {
 } from "./combos.js";
 
 export function setupEventListeners() {
+  configurarModaisAdmin();
   configurarEdicaoFinanceira();
   configurarFormCombo();
   // Abas do cabeçalho e do menu lateral; o offcanvas fecha sozinho (data-bs-dismiss).
@@ -95,17 +96,13 @@ export function setupEventListeners() {
     ?.addEventListener("click", abrirFormNovoMembro);
   document
     .getElementById("btn-close-form-membro")
-    ?.addEventListener("click", () =>
-      document.getElementById("formNovoMembro").classList.add("d-none"),
-    );
+    ?.addEventListener("click", () => fecharModalAdmin("formNovoMembro"));
   document
     .getElementById("btn-save-novo-membro")
     ?.addEventListener("click", criarNovoMembro);
   document
     .getElementById("btn-cancel-novo-membro")
-    ?.addEventListener("click", () =>
-      document.getElementById("formNovoMembro").classList.add("d-none"),
-    );
+    ?.addEventListener("click", () => fecharModalAdmin("formNovoMembro"));
 
   document
     .getElementById("btn-add-usuario")

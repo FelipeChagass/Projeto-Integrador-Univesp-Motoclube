@@ -6,6 +6,8 @@ import { prepararEdicao } from "./edicao-linha.js";
 import { UIModal } from "../../shared/modals.js";
 import { BASE, authFetch } from "./requests.js";
 import {
+  abrirModalAdmin,
+  fecharModalAdmin,
   esc,
   toast,
   mostrarEsqueleto,
@@ -25,8 +27,7 @@ export async function carregarUsuarios() {
 }
 
 export function abrirFormNovoUsuario() {
-  document.getElementById("formNovoUsuario").classList.remove("d-none");
-  document.body.classList.add("modal-open");
+  abrirModalAdmin("formNovoUsuario");
   document.getElementById("novo-user-nome").value = "";
   document.getElementById("novo-user-email").value = "";
   document.getElementById("novo-user-senha").value = "";
@@ -35,8 +36,7 @@ export function abrirFormNovoUsuario() {
 }
 
 export function fecharFormNovoUsuario() {
-  document.getElementById("formNovoUsuario").classList.add("d-none");
-  document.body.classList.remove("modal-open");
+  fecharModalAdmin("formNovoUsuario");
 }
 
 export async function criarNovoUsuario() {

@@ -7,6 +7,7 @@ import { administrarMovimento } from "./financeiro.js";
 import { UIModal } from "../../shared/modals.js";
 import { BASE, authFetch } from "./requests.js";
 import {
+  abrirModalAdmin,
   fecharModalAdmin,
   esc,
   toast,
@@ -75,8 +76,7 @@ export function renderizarMembros() {
 }
 
 export function abrirFormNovoMembro() {
-  document.getElementById("formNovoMembro").classList.remove("d-none");
-  document.body.classList.add("modal-open");
+  abrirModalAdmin("formNovoMembro");
   document.getElementById("novo-membro-nome").value = "";
   document.getElementById("novo-membro-nome").focus();
 }
@@ -92,8 +92,7 @@ export async function criarNovoMembro() {
   const dadosResposta = await resposta.json();
   toast(dadosResposta.mensagem, dadosResposta.status === "ok");
   if (dadosResposta.status === "ok") {
-    document.getElementById("formNovoMembro").classList.add("d-none");
-    document.body.classList.remove("modal-open");
+    fecharModalAdmin("formNovoMembro");
     carregarMembros();
   }
 }
@@ -141,9 +140,7 @@ export async function reativarMembro(id) {
 
 export async function verExtrato(id, nome) {
   document.getElementById("extrato-membro-nome").textContent = nome;
-  document.getElementById("modalExtrato").classList.remove("d-none");
-  document.getElementById("modalExtrato").classList.remove("closing");
-  document.body.classList.add("modal-open");
+  abrirModalAdmin("modalExtrato");
   const conteinerExtrato = document.getElementById("extrato-body");
   if (!consultasExtrato.has(conteinerExtrato))
     consultasExtrato.set(
@@ -169,8 +166,7 @@ export function abrirAjusteSaldo(id, nome) {
   document.getElementById("ajuste-valor").value = "";
   document.getElementById("ajuste-descricao").value = "";
   document.getElementById("ajuste-tipo").value = "credito";
-  document.getElementById("modalAjuste").classList.remove("d-none");
-  document.body.classList.add("modal-open");
+  abrirModalAdmin("modalAjuste");
 }
 
 export async function confirmarAjusteSaldo() {

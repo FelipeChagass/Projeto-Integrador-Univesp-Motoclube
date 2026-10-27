@@ -3,22 +3,11 @@
  * Não consulta a API nem mantém estado dos cadastros.
  */
 
-export function fecharModalAdmin(id) {
-  const modal = document.getElementById(id);
-  if (!modal || modal.classList.contains("d-none")) return;
-  modal.classList.add("closing");
-  setTimeout(() => {
-    modal.classList.add("d-none");
-    modal.classList.remove("closing");
-
-    // Verifica se ainda tem modal aberto
-    const existeModalAberto =
-      document.querySelectorAll(".modal-overlay:not(.d-none)").length > 0;
-    if (!existeModalAberto) {
-      document.body.classList.remove("modal-open");
-    }
-  }, 250);
-}
+export {
+  abrirModalAdmin,
+  fecharModalAdmin,
+  configurarModaisAdmin,
+} from "./dialogos.js";
 
 export function esc(texto) {
   return (texto || "")
