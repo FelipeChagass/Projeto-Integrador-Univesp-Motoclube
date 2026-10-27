@@ -3,8 +3,7 @@
 {% from 'shared/modal.html' import cabecalho_modal %}
     <div id="modal-abertura-caixa" class="modal-overlay">
         <div class="modal-content d-flex flex-column overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-abertura-titulo">
-            {{ cabecalho_modal('Abertura de caixa', 'caixa-aberto', 'modal-abertura-titulo',
-                subtitulo='Informe o fundo de caixa (troco inicial).', fechar='data-acionar="btn-cancelar-abertura"') }}
+            {{ cabecalho_modal('Abertura de caixa', 'modal-abertura-titulo', fechar='data-acionar="btn-cancelar-abertura"') }}
             <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
                 <label class="modal-campo d-flex flex-column gap-2 m-0" for="input-valor-abertura">Fundo de caixa (R$)
                     <input type="number" id="input-valor-abertura" class="input-cliente input-valor-grande"

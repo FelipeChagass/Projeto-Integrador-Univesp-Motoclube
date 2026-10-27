@@ -3,7 +3,7 @@ Incluído por admin.html; manter IDs únicos na página composta. #}
 {% from 'shared/modal.html' import cabecalho_modal %}
 <div class="modal-overlay d-none" id="modalExtrato">
     <div class="modal-content modal-lg modal-extrato d-flex flex-column overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="extrato-titulo">
-        {{ cabecalho_modal('Extrato de saldo devedor', 'extrato', 'extrato-titulo', id_subtitulo='extrato-membro-nome',
+        {{ cabecalho_modal('Extrato de saldo devedor', 'extrato-titulo', id_contexto='extrato-membro-nome',
             fechar='id="btn-close-modal-extrato"', arrastavel=False) }}
         <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
             <div id="extrato-body">{% include 'shared/extrato-membro.html' %}</div>
@@ -13,7 +13,7 @@ Incluído por admin.html; manter IDs únicos na página composta. #}
 
 <div class="modal-overlay d-none" id="modalAjuste">
     <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="ajuste-saldo-titulo">
-        {{ cabecalho_modal('Ajuste de saldo', 'saldo', 'ajuste-saldo-titulo', id_subtitulo='ajuste-membro-nome',
+        {{ cabecalho_modal('Ajuste de saldo', 'ajuste-saldo-titulo', id_contexto='ajuste-membro-nome',
             fechar='id="btn-close-modal-ajuste"', arrastavel=False) }}
         <div class="p-3 p-md-4">
             <div class="row g-3">

@@ -255,8 +255,8 @@ export function renderizarCatalogo() {
   ) {
     gradeProdutos.innerHTML = `
             <div style="grid-column: 1 / -1; text-align:center; padding: 40px; color:var(--text-secondary);">
-                <h3>Nenhum produto encontrado.</h3>
-                <p>Cadastre itens no banco de dados ou verifique a conexão.</p>
+                <h3 class="m-0">Nenhum produto encontrado.</h3>
+                <p class="m-0">Cadastre itens no banco de dados ou verifique a conexão.</p>
             </div>`;
     return;
   }
@@ -271,7 +271,7 @@ export function renderizarCatalogo() {
   });
   if (!produtosFiltrados.length) {
     gradeProdutos.innerHTML =
-      '<p class="catalogo-vazio">Nenhum produto nesta categoria.</p>';
+      '<p class="catalogo-vazio m-0">Nenhum produto nesta categoria.</p>';
     return;
   }
   const fragmentoProdutos = document.createDocumentFragment();

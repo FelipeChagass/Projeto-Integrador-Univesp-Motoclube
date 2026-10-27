@@ -159,7 +159,6 @@
     border: 1px solid var(--input-border);
     color: white;
     border-radius: 8px;
-    box-sizing: border-box;
     font-size: 0.9rem;
     transition: all 0.2s;
 }

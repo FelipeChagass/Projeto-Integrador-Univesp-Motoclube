@@ -129,9 +129,6 @@ function montarEditorItensVenda(venda) {
         <div class="col-12">
             <section class="card edicao-itens-venda overflow-hidden" aria-labelledby="edicao-itens-titulo">
                 <header class="card-header edicao-itens-cabecalho d-flex align-items-center gap-3 px-3 px-md-4 py-3">
-                    <span class="edicao-itens-icone d-flex align-items-center justify-content-center flex-shrink-0" aria-hidden="true">
-                        ${ICONE('<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/>')}
-                    </span>
                     <div class="d-flex flex-column gap-1 flex-grow-1">
                         <h3 class="h6 fw-bold m-0" id="edicao-itens-titulo">Itens da venda</h3>
                         <p class="small text-body-secondary m-0 d-none d-md-block">Altere a quantidade ou o preço. Quantidade zero remove o item.</p>

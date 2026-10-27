@@ -3,8 +3,7 @@
 {% from 'shared/modal.html' import cabecalho_modal %}
     <div id="modal-selecionar-membro" class="modal-overlay">
         <div class="modal-content modal-extrato d-flex flex-column overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-membro-titulo">
-            {{ cabecalho_modal('Selecione o membro', 'membro', 'modal-membro-titulo',
-                subtitulo='Confira o saldo devedor antes de continuar.', fechar='data-acionar="btn-cancelar-membro"') }}
+            {{ cabecalho_modal('Selecione o membro', 'modal-membro-titulo', fechar='data-acionar="btn-cancelar-membro"') }}
             <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
                 <label for="select-membro" class="modal-campo d-flex flex-column gap-2 m-0">Membro da conta
                     <select id="select-membro" class="lista-membros-scroll w-100 m-0">
@@ -23,7 +22,7 @@
 
     <div id="modal-fechar-conta" class="modal-overlay">
         <div class="modal-content d-flex flex-column overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-fechar-conta-titulo">
-            {{ cabecalho_modal('Fechar conta', 'conta', 'modal-fechar-conta-titulo', id_subtitulo='nome-fechar-conta',
+            {{ cabecalho_modal('Fechar conta', 'modal-fechar-conta-titulo', id_contexto='nome-fechar-conta',
                 fechar='data-acionar="btn-cancelar-fechar-conta"') }}
             <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
                 <div id="lista-fechamento" class="extrato-lista m-0">Carregando...</div>

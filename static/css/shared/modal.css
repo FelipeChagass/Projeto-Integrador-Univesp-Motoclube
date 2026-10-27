@@ -11,24 +11,6 @@
     text-align: left;
 }
 
-.modal-cabecalho-icone {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    background: color-mix(in srgb, var(--accent) 14%, transparent);
-    border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
-    color: var(--accent-readable);
-}
-
-.modal-cabecalho-icone svg {
-    width: 20px;
-    height: 20px;
-}
-
-.modal-cabecalho-textos {
-    min-width: 0;
-}
-
 .modal-cabecalho .modal-cabecalho-titulo {
     color: var(--text-primary);
     font-size: 1rem;
@@ -38,16 +20,17 @@
     text-transform: uppercase;
 }
 
-.modal-cabecalho-subtitulo {
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-    font-weight: 500;
-    line-height: 1.4;
+/* Hífen entre o título e o complemento (produto), só quando o complemento tem texto. */
+.modal-cabecalho-complemento:not(:empty)::before {
+    content: " - ";
+}
+
+.modal-contexto {
     overflow-wrap: anywhere;
 }
 
-.modal-cabecalho-subtitulo:empty {
-    display: none !important;
+.modal-contexto:empty {
+    display: none;
 }
 
 .modal-cabecalho-fechar {

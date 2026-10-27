@@ -3,7 +3,7 @@
 {% from 'shared/modal.html' import cabecalho_modal %}
     <div id="modal-obs" class="modal-overlay">
         <div class="modal-content d-flex flex-column overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-obs-titulo">
-            {{ cabecalho_modal('Personalizar pedido', 'observacao', 'modal-obs-titulo', id_subtitulo='modal-prod-nome',
+            {{ cabecalho_modal('Personalizar pedido', 'modal-obs-titulo', id_complemento='modal-prod-nome',
                 fechar='data-acionar="btn-cancelar-obs"') }}
             <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
                 <label class="modal-campo d-flex flex-column gap-2 m-0" for="custom-obs">Observação para a cozinha
@@ -20,8 +20,7 @@
 
     <div id="modal-dinheiro" class="modal-overlay">
         <div class="modal-content d-flex flex-column overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-dinheiro-titulo">
-            {{ cabecalho_modal('Pagamento em dinheiro', 'dinheiro', 'modal-dinheiro-titulo',
-                subtitulo='Informe quanto o cliente entregou para calcular o troco.',
+            {{ cabecalho_modal('Pagamento em dinheiro', 'modal-dinheiro-titulo',
                 fechar='data-acionar="btn-cancelar-dinheiro"') }}
             <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
                 <div class="valor-pendente m-0" id="valor-total-dinheiro">Total: R$ 0,00</div>
@@ -41,8 +40,7 @@
 
     <div id="modal-cartao" class="modal-overlay">
         <div class="modal-content d-flex flex-column overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-cartao-titulo">
-            {{ cabecalho_modal('Pagamento no cartão', 'cartao', 'modal-cartao-titulo',
-                subtitulo='Qual a função do cartão?', fechar='data-acionar="btn-cancelar-cartao"') }}
+            {{ cabecalho_modal('Pagamento no cartão', 'modal-cartao-titulo', fechar='data-acionar="btn-cancelar-cartao"') }}
             <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
                 <div class="d-grid gap-3">
                     <button class="btn-action btn-tipo-cartao m-0" id="btn-cartao-debito">DÉBITO</button>

@@ -28,8 +28,8 @@
                 l.classList.add('d-flex');
                 l.classList.remove('d-none');
                 l.innerHTML = '<div class="bg-white text-danger text-start rounded-3 p-4 mx-auto w-75" role="alert">'
-                    + '<h3 class="mt-0">Erro crítico detectado</h3><p><b>Motivo:</b> ' + escapar(msg) + '</p>'
-                    + '<p class="small">Linha: ' + escapar(line) + '</p>'
+                    + '<h3 class="m-0">Erro crítico detectado</h3><p class="m-0"><b>Motivo:</b> ' + escapar(msg) + '</p>'
+                    + '<p class="small m-0">Linha: ' + escapar(line) + '</p>'
                     + '<button type="button" id="btn-fechar-erro" class="btn btn-dark mt-2">Fechar aviso</button></div>';
                 document.getElementById('btn-fechar-erro').addEventListener('click', function () {
                     l.classList.add('d-none');
@@ -46,7 +46,7 @@
 
     <div id="loading" class="d-flex flex-column justify-content-center align-items-center">
         <div class="spinner"></div>
-        <p class="loading-text">Carregando...</p>
+        <p class="loading-text mb-0">Carregando...</p>
     </div>
 
     <img id="logo-preload" class="d-none" />

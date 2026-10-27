@@ -3,7 +3,7 @@
     "static/css/admin/modais-celular.css": 4,
     "static/css/admin/modais.css": 4,
     "static/css/checkboxes.css": 3,
-    "static/css/common.css": 22,
+    "static/css/common.css": 20,
     "static/css/features/pdv/base/cabecalho.css": 22,
     "static/css/features/pdv/base/carrinho.css": 35,
     "static/css/features/pdv/base/catalogo.css": 33,
@@ -29,7 +29,7 @@
     "static/css/features/pdv/mobile/modais.css": 13,
     "static/css/features/pdv/mobile/navegacao.css": 1,
     "static/css/features/pdv/mobile/variantes.css": 2,
-    "static/css/shared/modal.css": 2
+    "static/css/shared/modal.css": 1
   },
   "seletor-id": {
     "static/css/common.css": 7,
@@ -80,7 +80,6 @@
     "static/js/shared/modals.js": 10
   },
   "style-inline": {
-    "static/js/features/pdv/actions/membros.js": 1,
     "static/js/features/pdv/reports.js": 39,
     "static/js/features/pdv/ui.js": 2
   },

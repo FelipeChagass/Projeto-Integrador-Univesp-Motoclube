@@ -3,8 +3,7 @@
 {% from 'shared/modal.html' import cabecalho_modal %}
     <div id="modal-relatorios" class="modal-overlay">
         <div class="modal-content d-flex flex-column overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-relatorios-titulo">
-            {{ cabecalho_modal('Gestão de caixa', 'relatorio', 'modal-relatorios-titulo',
-                subtitulo='Operador, abertura, fechamento e relatórios.', fechar='data-acionar="btn-fechar-relatorios"') }}
+            {{ cabecalho_modal('Gestão de caixa', 'modal-relatorios-titulo', fechar='data-acionar="btn-fechar-relatorios"') }}
             <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
                 <section class="d-flex flex-column gap-2" aria-labelledby="secao-operador">
                     <h3 class="section-header m-0" id="secao-operador">
@@ -76,8 +75,7 @@
 
     <div id="modal-fechar-caixa" class="modal-overlay">
         <div class="modal-content d-flex flex-column overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-fechar-caixa-titulo">
-            {{ cabecalho_modal('Fechamento de caixa', 'caixa-fechado', 'modal-fechar-caixa-titulo',
-                subtitulo='Informe o total físico em caixa neste momento.',
+            {{ cabecalho_modal('Fechamento de caixa', 'modal-fechar-caixa-titulo',
                 fechar='data-acionar="btn-cancelar-fechamento-caixa"') }}
             <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
                 <label class="modal-campo d-flex flex-column gap-2 m-0" for="input-valor-fechamento">Total em caixa (R$)

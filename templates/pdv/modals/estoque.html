@@ -3,7 +3,7 @@
 {% from 'shared/modal.html' import cabecalho_modal %}
     <div id="modal-estoque" class="modal-overlay">
         <div class="modal-content d-flex flex-column overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-estoque-titulo">
-            {{ cabecalho_modal('Gestão de estoque', 'estoque', 'modal-estoque-titulo', id_subtitulo='nome-prod-estoque',
+            {{ cabecalho_modal('Gestão de estoque', 'modal-estoque-titulo', id_contexto='nome-prod-estoque',
                 fechar='data-acionar="btn-cancelar-estoque"') }}
             <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
                 <div class="estoque-grid gap-3 m-0">

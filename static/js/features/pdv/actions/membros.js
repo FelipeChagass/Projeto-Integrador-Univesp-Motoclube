@@ -137,7 +137,7 @@ export function carregarDadosFechamento(membro) {
       };
       let htmlFechamento = "";
       if (!extratoMembro.itens.length) {
-        htmlFechamento = '<p style="text-align:center">Sem pendências.</p>';
+        htmlFechamento = '<p class="text-center m-0">Sem pendências.</p>';
       } else {
         extratoMembro.itens.forEach((itemExtrato) => {
           htmlFechamento += `<div class="extrato-item">

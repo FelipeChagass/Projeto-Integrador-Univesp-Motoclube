@@ -85,13 +85,9 @@ export async function abrirReconciliacao() {
     // Mesma estrutura de templates/shared/modal.html (cabeçalho, corpo e rodapé).
     modal.innerHTML = `<div class="modal-content modal-reconciliacao-content d-flex flex-column overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="reconciliacao-titulo">
       <header class="modal-cabecalho modal-drag-header px-3 px-md-4 pb-3 pt-2 pt-md-3">
-        <div class="drag-handle" aria-hidden="true"></div>
-        <div class="d-flex align-items-center gap-3">
-          <span class="modal-cabecalho-icone d-flex align-items-center justify-content-center flex-shrink-0" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></span>
-          <div class="modal-cabecalho-textos d-flex flex-column gap-1 flex-grow-1">
-            <h2 class="modal-cabecalho-titulo m-0" id="reconciliacao-titulo">Operações pendentes</h2>
-            <p class="modal-cabecalho-subtitulo m-0">${registros.length} ${registros.length === 1 ? "registro" : "registros"} neste dispositivo</p>
-          </div>
+        <div class="drag-handle d-md-none mx-auto mb-2" aria-hidden="true"></div>
+        <div class="d-flex align-items-center justify-content-between gap-3">
+          <h2 class="modal-cabecalho-titulo flex-grow-1 m-0" id="reconciliacao-titulo">Operações pendentes</h2>
           <button type="button" class="modal-cabecalho-fechar d-flex align-items-center justify-content-center flex-shrink-0 p-0" aria-label="Fechar" data-acionar="fechar-pendencias"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
         </div>
       </header>

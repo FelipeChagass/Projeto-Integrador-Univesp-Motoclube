@@ -43,20 +43,6 @@
     border-bottom-color: var(--header-border);
 }
 
-.edicao-itens-icone {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    background: color-mix(in srgb, var(--accent) 14%, transparent);
-    border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
-    color: var(--accent-readable);
-}
-
-.edicao-itens-icone svg {
-    width: 20px;
-    height: 20px;
-}
-
 .edicao-itens-contagem {
     background: color-mix(in srgb, var(--accent) 14%, transparent);
     color: var(--accent-readable);
