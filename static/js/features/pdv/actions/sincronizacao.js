@@ -4,7 +4,7 @@
  */
 import { API } from "../../../shared/api.js";
 import { estadoPdv } from "../state.js";
-import { formatCurrency } from "../../../shared/utils.js";
+import { mensagemErro, formatCurrency } from "../../../shared/utils.js";
 import {
   showToast,
   fecharModal,
@@ -53,7 +53,7 @@ export async function processarFilaVendas({ notificarFalhas = false } = {}) {
         await registrarFalha(registro.id_externo, erroSincronizacao);
         if (notificarFalhas) {
           showToast(
-            `Operação preservada: ${erroSincronizacao.message}. Consulte Operações pendentes.`,
+            `Operação preservada: ${mensagemErro(erroSincronizacao)}. Consulte Operações pendentes.`,
           );
         } else {
           console.warn(
@@ -66,7 +66,7 @@ export async function processarFilaVendas({ notificarFalhas = false } = {}) {
     }
     estadoPdv.filaVendas = await listarOperacoes();
   } catch (erroFila) {
-    showToast(`Fila indisponível: ${erroFila.message}`);
+    showToast(`Fila indisponível: ${mensagemErro(erroFila)}`);
   } finally {
     estadoPdv.processandoFila = false;
   }
@@ -82,7 +82,28 @@ export async function abrirReconciliacao() {
       modal.className = "modal-overlay";
       document.body.appendChild(modal);
     }
-    modal.innerHTML = `<div class="modal-content modal-reconciliacao-content"><div class="modal-drag-header"><div class="drag-handle"></div></div><div class="modal-scroll-body"><h2>Operações pendentes (${registros.length})</h2><p class="reconciliacao-description">Registros permanecem neste dispositivo até confirmação. Exporte para reconciliar conflitos com o administrador. Não limpe os dados do navegador.</p><div id="lista-pendencias" class="lista-pendencias"></div><div class="reconciliacao-actions"><button class="btn-action" id="exportar-pendencias">EXPORTAR CÓPIA JSON</button><button class="btn-action" id="fechar-pendencias">FECHAR JANELA</button></div></div></div>`;
+    // Mesma estrutura de templates/shared/modal.html (cabeçalho, corpo e rodapé).
+    modal.innerHTML = `<div class="modal-content modal-reconciliacao-content d-flex flex-column overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="reconciliacao-titulo">
+      <header class="modal-cabecalho modal-drag-header px-3 px-md-4 pb-3 pt-2 pt-md-3">
+        <div class="drag-handle" aria-hidden="true"></div>
+        <div class="d-flex align-items-center gap-3">
+          <span class="modal-cabecalho-icone d-flex align-items-center justify-content-center flex-shrink-0" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></span>
+          <div class="modal-cabecalho-textos d-flex flex-column gap-1 flex-grow-1">
+            <h2 class="modal-cabecalho-titulo m-0" id="reconciliacao-titulo">Operações pendentes</h2>
+            <p class="modal-cabecalho-subtitulo m-0">${registros.length} ${registros.length === 1 ? "registro" : "registros"} neste dispositivo</p>
+          </div>
+          <button type="button" class="modal-cabecalho-fechar d-flex align-items-center justify-content-center flex-shrink-0 p-0" aria-label="Fechar" data-acionar="fechar-pendencias"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        </div>
+      </header>
+      <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
+        <p class="reconciliacao-description m-0">Registros permanecem neste dispositivo até confirmação. Exporte para reconciliar conflitos com o administrador. Não limpe os dados do navegador.</p>
+        <div id="lista-pendencias" class="lista-pendencias m-0"></div>
+      </div>
+      <div class="modal-rodape d-flex gap-2 px-3 px-md-4 pt-3 pb-md-3 flex-shrink-0 flex-column-reverse flex-sm-row">
+        <button class="btn-action m-0 justify-content-center" id="fechar-pendencias">FECHAR JANELA</button>
+        <button class="btn-action btn-acao-primaria m-0 justify-content-center" id="exportar-pendencias">EXPORTAR CÓPIA JSON</button>
+      </div>
+    </div>`;
     const listaPendencias = modal.querySelector("#lista-pendencias");
     for (const registro of registros) {
       const linhaPendencia = document.createElement("div");
@@ -91,7 +112,7 @@ export async function abrirReconciliacao() {
       detalhesPendencia.className = "pendencia-detalhes";
       const erro = registro.ultimo_erro;
       const diagnostico = erro
-        ? ` | erro: ${erro.code || "DESCONHECIDO"}${erro.status ? ` (HTTP ${erro.status})` : ""} | ${erro.message || ""}${erro.request_id ? ` | request: ${erro.request_id}` : ""}${erro.ocorrido_em ? ` | em: ${new Date(erro.ocorrido_em).toLocaleString("pt-BR")}` : ""}`
+        ? ` | erro: ${erro.code || "DESCONHECIDO"}${erro.status ? ` (HTTP ${erro.status})` : ""} | ${mensagemErro(erro, "")}${erro.request_id ? ` | request: ${erro.request_id}` : ""}${erro.ocorrido_em ? ` | em: ${new Date(erro.ocorrido_em).toLocaleString("pt-BR")}` : ""}`
         : "";
       detalhesPendencia.textContent = `${registro.id_externo} | ${registro.estado} | tentativas: ${registro.tentativas} | caixa: ${registro.payload.caixa_id || "desconhecido"}${diagnostico}`;
       linhaPendencia.appendChild(detalhesPendencia);
@@ -109,7 +130,7 @@ export async function abrirReconciliacao() {
             await processarFilaVendas({ notificarFalhas: true });
             await abrirReconciliacao();
           } catch (erroReenvio) {
-            showToast(erroReenvio.message);
+            showToast(mensagemErro(erroReenvio));
             botaoReenviar.disabled = false;
           }
         };
@@ -140,12 +161,12 @@ export async function abrirReconciliacao() {
     abrirModal(modal.id);
   } catch (erroReconciliacao) {
     showToast(
-      `Reconciliação indisponível: ${erroReconciliacao.message}. Preserve os dados locais.`,
+      `Reconciliação indisponível: ${mensagemErro(erroReconciliacao)}. Preserve os dados locais.`,
     );
   }
 }
 
-export function sincronizarProdutosBackground() {
+export function sincronizarProdutosEmSegundoPlano() {
   if (
     estadoPdv.filaVendas.length > 0 ||
     document.hidden ||
@@ -162,6 +183,8 @@ export function sincronizarProdutosBackground() {
           if (produtoLocal) {
             produtoLocal.estoque_bar = produtoAtualizado.estoque_bar;
             produtoLocal.estoque_deposito = produtoAtualizado.estoque_deposito;
+            if (produtoAtualizado.itens_combo)
+              produtoLocal.itens_combo = produtoAtualizado.itens_combo;
           }
         });
         renderizarCatalogo();

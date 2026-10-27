@@ -2,7 +2,7 @@
  * Recebe o adaptador HTTP de cada tela. Valores financeiros vêm do backend.
  * A geração da consulta descarta respostas antigas sem bloquear vendas.
  */
-import { esc, formatCurrency } from "./utils.js";
+import { mensagemErro, esc, formatCurrency } from "./utils.js";
 
 function dataValida(dataTexto) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dataTexto)) return false;
@@ -124,7 +124,7 @@ export function criarConsultaExtrato(
             <div class="d-flex flex-wrap justify-content-between gap-2"><strong>${esc(movimento.descricao || "Movimentação")}</strong><strong>${formatCurrency(movimento.valor)}</strong></div>
             <div class="d-flex flex-wrap justify-content-between gap-2 small mt-2"><span>${esc(movimento.data)} · ${movimento.tipo === "debito" ? "Débito" : movimento.tipo === "credito" ? "Crédito" : "Ajuste"} · ${esc(rotulosOrigens[movimento.origem] || movimento.origem || "")}</span><span class="${["quitado", "pagamento", "credito"].includes(movimento.situacao) ? "extrato-pago" : ""}">${esc(rotulosSituacoes[movimento.situacao] || "Quitação não identificada")}</span></div>
             ${movimento.valor_aberto != null ? `<p class="small mb-0 mt-2">Abatido: ${formatCurrency(movimento.valor_abatido)} · Em aberto: ${formatCurrency(movimento.valor_aberto)}</p>` : ""}
-            ${administrar ? `<div class="d-flex flex-wrap gap-2 mt-2"><button type="button" class="btn btn-sm btn-outline-light" data-movimento="${esc(movimento.id)}" data-acao="editar">Editar</button><button type="button" class="btn btn-sm btn-del" data-movimento="${esc(movimento.id)}" data-acao="excluir">Excluir</button></div>` : ""}
+            ${administrar ? `<div class="d-flex flex-wrap gap-2 mt-2"><button type="button" class="btn btn-escuro btn-sm" data-movimento="${esc(movimento.id)}" data-acao="editar">Editar</button><button type="button" class="btn btn-excluir btn-sm" data-movimento="${esc(movimento.id)}" data-acao="excluir">Excluir</button></div>` : ""}
         </article>`,
       )
       .join("");
@@ -178,7 +178,7 @@ export function criarConsultaExtrato(
       ultimaChaveConsulta = null;
       buscarElemento("[data-estado]").textContent =
         "Não foi possível carregar o extrato. Use Aplicar filtro para tentar novamente.";
-      notificar?.(erro.message);
+      notificar?.(mensagemErro(erro));
     } finally {
       if (geracaoAtual === geracaoConsulta) {
         chaveConsultaEmCurso = null;
@@ -206,7 +206,7 @@ export function criarConsultaExtrato(
       deslocamentoPagina = 0;
       void carregar();
     } catch (erro) {
-      notificar?.(erro.message);
+      notificar?.(mensagemErro(erro));
     }
   });
   buscarElemento("[data-limpar]").onclick = () => {

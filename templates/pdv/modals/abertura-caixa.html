@@ -1,17 +1,19 @@
 {# Abertura de caixa; actions/sessao.js só confirma estado após resposta da API.
    Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
+{% from 'shared/modal.html' import cabecalho_modal %}
     <div id="modal-abertura-caixa" class="modal-overlay">
-        <div class="modal-content text-center">
-            <div class="modal-drag-header">
-                <div class="drag-handle"></div>
-                <h2 class="text-white">ABERTURA DE CAIXA</h2>
+        <div class="modal-content d-flex flex-column overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-abertura-titulo">
+            {{ cabecalho_modal('Abertura de caixa', 'caixa-aberto', 'modal-abertura-titulo',
+                subtitulo='Informe o fundo de caixa (troco inicial).', fechar='data-acionar="btn-cancelar-abertura"') }}
+            <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
+                <label class="modal-campo d-flex flex-column gap-2 m-0" for="input-valor-abertura">Fundo de caixa (R$)
+                    <input type="number" id="input-valor-abertura" class="input-cliente input-valor-grande"
+                        placeholder="0,00" inputmode="decimal">
+                </label>
             </div>
-            <div class="modal-scroll-body">
-                <p class="modal-subtitle">Informe o Fundo de Caixa (Troco Inicial):</p>
-                <input type="number" id="input-valor-abertura" class="input-cliente input-valor-grande"
-                    placeholder="0,00">
-                <button class="btn-action" id="btn-confirmar-abertura">ABRIR CAIXA</button>
-                <button class="btn-action" id="btn-cancelar-abertura">CANCELAR</button>
+            <div class="modal-rodape d-flex gap-2 px-3 px-md-4 pt-3 pb-md-3 flex-shrink-0 flex-column-reverse flex-sm-row">
+                <button class="btn-action m-0 justify-content-center" id="btn-cancelar-abertura">CANCELAR</button>
+                <button class="btn-action btn-acao-primaria m-0 justify-content-center" id="btn-confirmar-abertura">ABRIR CAIXA</button>
             </div>
         </div>
     </div>

@@ -1,35 +1,38 @@
 {# Filtros e histórico de vendas; comportamento em admin/vendas.js.
 Incluído por admin.html; manter IDs únicos na página composta. #}
-<section class="tab-content" id="tab-vendas">
-    <div class="container">
-        <div class="toolbar d-flex align-items-center flex-wrap">
-            <div class="filter-group d-flex align-items-center flex-wrap">
-                <label class='text-center'>De:</label><input type="date" id="vendas-data-inicio" class="filter-input">
-                <label class='text-center'>Até:</label><input type="date" id="vendas-data-fim" class="filter-input">
-                <label class='text-center'>Tipo:</label>
-                <select id="vendas-tipo" class="filter-input">
+<section class="tab-pane" id="tab-vendas" role="tabpanel">
+    <div class="container-fluid conteudo-admin mx-auto px-2 px-md-3 px-xl-4 py-3 py-xl-4">
+        <div class="row g-2 align-items-end mb-4">
+            <div class="col-6 col-md-auto"><label class="form-label" for="vendas-data-inicio">De</label>
+                <input type="date" id="vendas-data-inicio" class="form-control"></div>
+            <div class="col-6 col-md-auto"><label class="form-label" for="vendas-data-fim">Até</label>
+                <input type="date" id="vendas-data-fim" class="form-control"></div>
+            <div class="col-12 col-md-auto"><label class="form-label" for="vendas-tipo">Tipo</label>
+                <select id="vendas-tipo" class="form-select">
                     <option value="">Todos os tipos</option>
                     <option value="normal">Normal</option>
                     <option value="fiado">Fiado</option>
                     <option value="recebimento_divida">Recebimento</option>
                 </select>
-                <button class="btn btn-save" id="btn-filtrar-vendas">Filtrar</button>
-                <button type="button" class="btn btn-save" id="btn-exportar-vendas">Exportar CSV</button>
+            </div>
+            <div class="col-12 col-md-auto d-flex flex-column flex-md-row gap-2">
+                <button type="button" class="btn btn-escuro" id="btn-filtrar-vendas">Filtrar</button>
+                <button type="button" class="btn btn-escuro" id="btn-exportar-vendas">Exportar CSV</button>
             </div>
         </div>
-        <div id="vendas-resumo" class="stats-row d-flex flex-wrap"></div>
-        <div class="table-wrapper">
-            <table>
-                <thead>
+        <div id="vendas-resumo" class="d-flex flex-column flex-sm-row gap-3 mb-3"></div>
+        <div class="table-responsive tabela-moldura">
+            <table class="table table-hover align-middle text-start text-md-center mb-0 tabela-cartoes d-block d-md-table">
+                <thead class="text-uppercase text-nowrap">
                     <tr>
-                        <th>Data</th>
-                        <th>Tipo</th>
-                        <th>Método</th>
-                        <th>Operador</th>
-                        <th>Cliente</th>
-                        <th>Valor</th>
-                        <th>Itens</th>
-                        <th>Ações</th>
+                        <th scope="col">Data</th>
+                        <th scope="col">Tipo</th>
+                        <th scope="col">Método</th>
+                        <th scope="col">Operador</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Valor</th>
+                        <th scope="col">Itens</th>
+                        <th scope="col">Ações</th>
                     </tr>
                 </thead>
                 <tbody id="tabelaVendas"></tbody>

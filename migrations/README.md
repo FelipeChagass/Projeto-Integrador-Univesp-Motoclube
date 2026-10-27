@@ -6,6 +6,9 @@ Não executar em produção durante testes. O Alembic lê **somente** `MIGRATION
 
 - `0001_baseline`: reprodução congelada das nove tabelas de `plans/estrutura_banco.txt`, ordenadas por dependência. Exige `auth.users` existente. Recusa schema não vazio.
 - `0002_integridade`: adiciona `vendas.payload_hash` nullable, unicidade parcial de caixa aberto por operador e índices de consulta. Não altera registros históricos nem recria checks/FKs/unicidades já declarados na referência.
+- `0003_edicao_admin`: versão otimista em vendas e movimentações, fechamento calculado do caixa e bloqueio de reenvio de operações excluídas.
+- `0004_combos`: composição dos combos (`combo_itens`) e fotografia dos itens consumidos em cada venda (`itens_venda_componentes`), com RLS ligado e acesso de `anon`/`authenticated` revogado.
+- `0005_integridade_desempenho`: índice único em `lower(nome)` de membros, índices em `vendas(membro_id)`, `movimentacoes_membro(venda_id)` e `itens_venda(produto_id)`, e a tabela `tentativas_senha_estoque`. Nomes de membro repetidos interrompem a migração sem alterar dados: renomeie ou una os cadastros antes. A checagem e a criação do índice bloqueiam escrita em `membros` por alguns instantes.
 
 Índices: `uq_caixas_usuario_aberto`, `ix_vendas_criado_em`, `ix_vendas_caixa_criado`, `ix_vendas_usuario_criado`, `ix_itens_venda_venda_id`, `ix_movimentacoes_membro_criado`.
 A revisão verifica definições equivalentes presentes antes de criar índices; nome igual com definição diferente interrompe a execução.

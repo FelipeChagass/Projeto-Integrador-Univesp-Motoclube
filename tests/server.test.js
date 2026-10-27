@@ -225,13 +225,32 @@ describe("Servidor — Dependências extraídas", () => {
     expect(visited.has("/static/js/shared/modals.js")).toBe(true);
   });
 
-  test("todos os componentes dos manifestos CSS são servidos", async () => {
-    const files = [
-      "admin.css",
-      "admin-mobile.css",
-      "ponto_venda.css",
-      "ponto_venda-mobile.css",
-    ];
+  test("toda folha de estilo ligada nas páginas é servida", async () => {
+    for (const pagina of ["/admin", "/login", "/"]) {
+      const html = await fetchText(BASE + pagina);
+      const folhas = [
+        ...html.body.matchAll(
+          /<link rel="stylesheet" href="(\/static\/css\/[^"]+)">/g,
+        ),
+      ];
+      expect({ pagina, total: folhas.length > 0 }).toEqual({
+        pagina,
+        total: true,
+      });
+      for (const [, caminho] of folhas) {
+        const folha = await fetchText(BASE + caminho);
+        expect({ caminho, status: folha.status }).toEqual({
+          caminho,
+          status: 200,
+        });
+        // Regras ou, nos manifestos do PDV ainda não migrados, @import.
+        expect(/{|@import/.test(folha.body)).toBe(true);
+      }
+    }
+  });
+
+  test("todos os componentes dos manifestos CSS do PDV são servidos", async () => {
+    const files = ["ponto_venda.css", "ponto_venda-mobile.css"];
     for (const filename of files) {
       const path = `/static/css/${filename}`;
       const manifest = await fetchText(BASE + path);

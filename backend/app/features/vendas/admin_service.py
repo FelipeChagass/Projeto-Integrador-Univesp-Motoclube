@@ -64,11 +64,19 @@ def _validar_vinculos(venda, membro, movimentos):
             raise ApiError('VINCULO_INCONSISTENTE', 'Movimentação diverge da venda; reconcilie antes de alterar.', 409)
 
 
+def _destinos_estoque(item):
+    """Combo devolve aos itens fotografados na venda; produto avulso devolve a si mesmo."""
+    if item.componentes:
+        return [(c.produto_id, c.quantidade) for c in item.componentes]
+    return [(item.produto_id, 1)]
+
+
 def _bloquear_produtos(db, venda):
-    """Recarrega os itens e bloqueia seus produtos em ID crescente."""
+    """Recarrega os itens e bloqueia em ID crescente os produtos cujo estoque eles movem."""
     db.expire(venda, ['itens'])
     itens = list(venda.itens)
-    produtos = {p.id: p for p in db.query(Produto).filter(Produto.id.in_([i.produto_id for i in itens if i.produto_id])).order_by(Produto.id).populate_existing().with_for_update().all()}
+    ids = {pid for item in itens for pid, _ in _destinos_estoque(item) if pid}
+    produtos = {p.id: p for p in db.query(Produto).filter(Produto.id.in_(ids)).order_by(Produto.id).populate_existing().with_for_update().all()}
     return itens, produtos
 
 
@@ -86,10 +94,11 @@ def _aplicar_estoque(itens, novos, produtos):
     for item in itens:
         novo = novos.get(item.id)
         delta = item.quantidade - (novo.quantidade if novo else 0)
-        if delta and item.produto_id not in produtos:
-            raise ApiError('PRODUTO_AUSENTE', 'Produto histórico ausente; não é possível reconciliar seu estoque.', 409)
-        if item.produto_id in produtos:
-            deltas[item.produto_id] = deltas.get(item.produto_id, 0) + delta
+        for produto_id, fator in _destinos_estoque(item):
+            if delta and produto_id not in produtos:
+                raise ApiError('PRODUTO_AUSENTE', 'Produto histórico ausente; não é possível reconciliar seu estoque.', 409)
+            if produto_id in produtos:
+                deltas[produto_id] = deltas.get(produto_id, 0) + delta * fator
     for produto_id, delta in deltas.items():
         produto = produtos[produto_id]
         if produto.estoque_bar + delta < 0:

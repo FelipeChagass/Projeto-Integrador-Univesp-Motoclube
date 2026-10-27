@@ -13,6 +13,7 @@ from app.models.usuario import Usuario
 from app.models.venda import Venda
 from app.features.caixa.schemas import AberturaCaixaPayload
 from app.features.caixa.schemas import FechamentoCaixaPayload
+from app.core.schemas import valor_em_reais
 
 
 def bloquear_caixa_autorizado(db, caixa_id, usuario_id, *, permitir_admin=False, exigir_aberto=True):
@@ -47,12 +48,12 @@ def abrir_caixa(db: Session, dados: dict) -> dict:
         existente = db.query(Caixa).filter_by(usuario_abertura_id=entrada.usuario_id, status='aberto').first()
         if existente:
             return {'status': 'ok', 'mensagem': 'Caixa já está aberto.',
-                    'caixa_id': str(existente.id), 'valor_abertura': float(existente.valor_abertura)}
+                    'caixa_id': str(existente.id), 'valor_abertura': valor_em_reais(existente.valor_abertura)}
         caixa = Caixa(usuario_abertura_id=entrada.usuario_id, valor_abertura=entrada.valor_abertura, status='aberto')
         db.add(caixa)
         db.flush()
         return {'status': 'ok', 'mensagem': 'Caixa aberto.', 'caixa_id': str(caixa.id),
-                'valor_abertura': float(caixa.valor_abertura)}
+                'valor_abertura': valor_em_reais(caixa.valor_abertura)}
 
 
 def fechar_caixa(db: Session, dados: dict) -> dict:

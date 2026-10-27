@@ -5,7 +5,11 @@
 import { API } from "../../../shared/api.js";
 import { UIModal } from "../../../shared/modals.js";
 import { estadoPdv, salvarDadosLocais } from "../state.js";
-import { formatCurrency, LocalDB } from "../../../shared/utils.js";
+import {
+  mensagemErro,
+  formatCurrency,
+  LocalDB,
+} from "../../../shared/utils.js";
 import {
   showToast,
   fecharModal,
@@ -90,7 +94,7 @@ export async function confirmarAberturaValor() {
     showToast(`Caixa Aberto: ${formatCurrency(estadoPdv.valorAbertura)}`);
     atualizarEstadoBotoes();
   } catch (erroAberturaCaixa) {
-    showToast(`Caixa não aberto: ${erroAberturaCaixa.message}`);
+    showToast(`Caixa não aberto: ${mensagemErro(erroAberturaCaixa)}`);
   }
 }
 

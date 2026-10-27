@@ -1,7 +1,7 @@
 import { API } from "../../shared/api.js";
 import { UIModal } from "../../shared/modals.js";
 import { estadoPdv, salvarDadosLocais } from "./state.js";
-import { esc, formatCurrency } from "../../shared/utils.js";
+import { mensagemErro, esc, formatCurrency } from "../../shared/utils.js";
 import {
   showToast,
   fecharModal,
@@ -9,8 +9,10 @@ import {
   atualizarUI,
   renderizarCatalogo,
   atualizarEstadoBotoes,
+  mostrarCarregamento,
 } from "./ui.js";
 import { possuiPendenciasCaixa } from "./offline-queue.js";
+import { temCategoriaCombo, descricaoCombo } from "../../shared/combos.js";
 
 /* ─── Reports ─── */
 
@@ -29,7 +31,7 @@ export function abrirMenuRelatorios() {
 }
 
 export function gerarRelatorio(tipoRelatorio) {
-  document.getElementById("loading").style.display = "flex";
+  mostrarCarregamento(true);
   let filtroRelatorio = {};
   if (tipoRelatorio === "TURNO") {
     filtroRelatorio = {
@@ -48,7 +50,7 @@ export function gerarRelatorioPeriodo() {
   const dataInicio = document.getElementById("data-inicio").value;
   const dataFim = document.getElementById("data-fim").value;
   if (!dataInicio || !dataFim) return showToast("Selecione as datas.");
-  document.getElementById("loading").style.display = "flex";
+  mostrarCarregamento(true);
   estadoPdv.tipoRelatorioAtual = "PERIODO";
   executarRelatorio("PERIODO", { inicio: dataInicio, fim: dataFim });
 }
@@ -59,7 +61,7 @@ export function executarRelatorio(tipoRelatorio, filtroRelatorio) {
   return API.gerarRelatorioCaixa(tipoRelatorio, filtroRelatorio)
     .then((dadosRelatorio) => {
       estadoPdv.dadosRelatorioAtual = dadosRelatorio;
-      document.getElementById("loading").style.display = "none";
+      mostrarCarregamento(false);
       if (!dadosRelatorio)
         return showToast("Erro: O relatório retornou vazio.");
       document.getElementById("resultado-relatorio").classList.remove("d-none");
@@ -153,10 +155,8 @@ export function executarRelatorio(tipoRelatorio, filtroRelatorio) {
       }
     })
     .catch((erroRelatorio) => {
-      document.getElementById("loading").style.display = "none";
-      showToast(
-        `Erro ao gerar relatório: ${erroRelatorio.message || erroRelatorio}`,
-      );
+      mostrarCarregamento(false);
+      showToast(`Erro ao gerar relatório: ${mensagemErro(erroRelatorio)}`);
     });
 }
 
@@ -203,12 +203,11 @@ export async function executarFechamentoCaixa() {
       );
   } catch (erroConsultaPendencias) {
     return showToast(
-      `Não foi possível verificar pendências: ${erroConsultaPendencias.message}`,
+      `Não foi possível verificar pendências: ${mensagemErro(erroConsultaPendencias)}`,
     );
   }
 
-  const indicadorCarregamento = document.getElementById("loading");
-  if (indicadorCarregamento) indicadorCarregamento.style.display = "flex";
+  mostrarCarregamento(true);
 
   return API.fecharCaixa(
     estadoPdv.caixaId,
@@ -235,15 +234,13 @@ export async function executarFechamentoCaixa() {
       return API.logout();
     })
     .then(() => {
-      if (indicadorCarregamento) indicadorCarregamento.style.display = "none";
+      mostrarCarregamento(false);
       redirect("/login");
     })
     .catch((erroFechamentoCaixa) => {
-      if (indicadorCarregamento) indicadorCarregamento.style.display = "none";
+      mostrarCarregamento(false);
       console.error("Erro ao fechar caixa no servidor:", erroFechamentoCaixa);
-      showToast(
-        `Erro ao fechar caixa: ${erroFechamentoCaixa.message || erroFechamentoCaixa}`,
-      );
+      showToast(`Erro ao fechar caixa: ${mensagemErro(erroFechamentoCaixa)}`);
     });
 }
 
@@ -272,11 +269,24 @@ export function montarImpressao(itensVenda, metodoPagamento, nomeCliente) {
     const categoriaProduto = produtoEncontrado
       ? produtoEncontrado.categoria
       : "";
+    const itensCombo = temCategoriaCombo(produtoEncontrado)
+      ? produtoEncontrado.itens_combo || []
+      : [];
     const produtoComida =
-      categoriaProduto && categoriaProduto.toUpperCase() === "COMIDA";
-    const observacaoHtml = itemVenda.obs
-      ? `<span class="ticket-obs">${esc(itemVenda.obs.toUpperCase())}</span>`
+      (categoriaProduto && categoriaProduto.toUpperCase() === "COMIDA") ||
+      itensCombo.some(
+        (itemCombo) =>
+          String(itemCombo.categoria || "").toUpperCase() === "COMIDA",
+      );
+    // O ticket do combo é a ficha de entrega: o bar precisa ver cada item.
+    const composicaoHtml = itensCombo.length
+      ? `<span class="ticket-obs">${esc(descricaoCombo(itensCombo).toUpperCase())}</span>`
       : "";
+    const observacaoHtml =
+      composicaoHtml +
+      (itemVenda.obs
+        ? `<span class="ticket-obs">${esc(itemVenda.obs.toUpperCase())}</span>`
+        : "");
     for (
       let indiceUnidade = 0;
       indiceUnidade < itemVenda.qtd;

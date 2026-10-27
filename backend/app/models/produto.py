@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from sqlalchemy import Column, BigInteger, String, Integer, Boolean, DateTime, Numeric, CheckConstraint, Identity, text
 from sqlalchemy.orm import relationship
 from app.core.database import Base
+from app.core.schemas import valor_em_reais
 
 
 class Produto(Base):
@@ -33,18 +34,43 @@ class Produto(Base):
     # Relacionamentos
     itens_venda = relationship('ItemVenda', back_populates='produto')
     ajustes_estoque = relationship('AjusteEstoque', back_populates='produto')
+    itens_combo = relationship('ComboItem', foreign_keys='ComboItem.combo_id', back_populates='combo',
+                               cascade='all, delete-orphan', order_by='ComboItem.produto_id')
 
-    def is_comida(self):
+    def tem_categoria_comida(self):
         """Verifica se o produto é estritamente da categoria comida pelo BD."""
         if not self.categoria:
             return False
         return self.categoria.strip().upper() == 'COMIDA'
 
+    def tem_categoria_combo(self):
+        """Combo não tem estoque próprio: vende e devolve os itens da composição."""
+        return bool(self.categoria) and self.categoria.strip().upper() == 'COMBO'
+
+    def disponibilidade_combo(self, campo='estoque_bar'):
+        """Quantos combos o estoque atual dos itens permite montar; item inativo zera."""
+        if not self.itens_combo:
+            return 0
+        return min((getattr(i.produto, campo) // i.quantidade) if i.produto.ativo else 0
+                   for i in self.itens_combo)
+
     def to_dict(self):
+        if self.tem_categoria_combo():
+            return {
+                **self._campos_base(),
+                'estoque_bar': self.disponibilidade_combo('estoque_bar'),
+                'estoque_deposito': self.disponibilidade_combo('estoque_deposito'),
+                'estoque_min_bar': 0,
+                'estoque_min_deposito': 0,
+                'itens_combo': [item.to_dict() for item in self.itens_combo],
+            }
+        return self._campos_base()
+
+    def _campos_base(self):
         return {
             'id': self.id,
             'nome': self.nome,
-            'preco_atual': float(self.preco_atual),
+            'preco_atual': valor_em_reais(self.preco_atual),
             'estoque_bar': self.estoque_bar,
             'estoque_deposito': self.estoque_deposito,
             'url_imagem': self.url_imagem or '',

@@ -1,0 +1,73 @@
+/* admin: painel — cabeçalho, menu lateral (offcanvas), resumo de vendas.
+ * Layout e espaçamento no markup (Bootstrap: d-flex, gap-*, p-*). Aqui só aparência e tamanho.
+ */
+.cabecalho-admin {
+    background: var(--surface-bg);
+    border-bottom: 1px solid var(--header-border);
+}
+
+.logo-admin {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+}
+
+/* Item flex só encolhe abaixo do conteúdo com min-width: 0; sem isso o text-truncate
+ * do título não corta e o botão do menu vai para a linha de baixo. */
+.marca-admin {
+    min-width: 0;
+}
+
+.titulo-admin {
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: 0.125rem;
+    color: var(--accent-readable);
+}
+
+/* Largura máxima do conteúdo das abas (container-fluid cresce sem limite). */
+.conteudo-admin {
+    max-width: 1600px;
+}
+
+.menu-lateral-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    object-fit: cover;
+}
+
+.menu-lateral-titulo {
+    font-size: 0.9375rem;
+    font-weight: 800;
+    letter-spacing: 0.125rem;
+    color: var(--accent-readable);
+}
+
+.resumo-numero {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--accent-readable);
+}
+
+/* Tablet: as abas ficam só com ícone e dividem a linha com o título. */
+@media (max-width: 991.98px) {
+    .titulo-admin {
+        font-size: 1rem;
+    }
+}
+
+/* Celular: título menor para caber ao lado do botão do menu em 360 px. */
+@media (max-width: 767.98px) {
+    .logo-admin {
+        width: 44px;
+        height: 44px;
+    }
+
+    .titulo-admin {
+        font-size: 0.875rem;
+        letter-spacing: 0.0625rem;
+    }
+}

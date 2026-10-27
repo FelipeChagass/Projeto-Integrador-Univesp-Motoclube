@@ -296,7 +296,7 @@ describe("actions.js — Membros", () => {
 
   test("erro na consulta não impede confirmar membro para Pendurar", async () => {
     estadoPdv.membros = [{ id: "membro-a", nome: "Ana" }];
-    actions.popularSelectMembros("select-membro");
+    actions.popularSeletorMembros("select-membro");
     document.getElementById("select-membro").value = "membro-a";
     API.buscarExtratoMembro.mockRejectedValueOnce(new Error("Indisponível"));
     await actions.verificarDividaSelecionada();
@@ -306,13 +306,13 @@ describe("actions.js — Membros", () => {
     expect(document.getElementById("select-membro").value).toBe("membro-a");
   });
 
-  test("popularSelectMembros preenche o select", () => {
+  test("popularSeletorMembros preenche o select", () => {
     estadoPdv.membros = [
       { id: "a", nome: "Ana" },
       { id: "b", nome: "Bruno" },
       { id: "c", nome: "Carlos" },
     ];
-    actions.popularSelectMembros("select-membro");
+    actions.popularSeletorMembros("select-membro");
     const options = document.querySelectorAll("#select-membro option");
     // 3 membros + 1 default option = 4
     expect(options.length).toBe(4);

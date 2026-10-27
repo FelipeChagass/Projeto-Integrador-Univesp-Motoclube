@@ -11,8 +11,18 @@ import {
   renderizarCatalogo,
   sincronizarTextoModoEstoque,
 } from "../ui.js";
+import { mensagemErro } from "../../../shared/utils.js";
 
 /* ─── Stock Management ─── */
+
+/** Moldura vermelha na página e no cabeçalho enquanto o modo estoque está ativo (utilities). */
+function marcarModoEstoque(ativo) {
+  for (const classe of ["border", "border-3", "border-primary"])
+    document.body.classList.toggle(classe, ativo);
+  const cabecalho = document.getElementById("app-header");
+  for (const classe of ["border-bottom", "border-3", "border-primary"])
+    cabecalho?.classList.toggle(classe, ativo);
+}
 
 export function alternarModoEstoque() {
   if (estadoPdv.modoGerenciaEstoque) {
@@ -20,11 +30,9 @@ export function alternarModoEstoque() {
     estadoPdv.senhaEstoque = null;
     const botaoEstoque = document.getElementById("btn-estoque");
     const secaoCarrinho = document.getElementById("carrinho-section");
-    const cabecalhoAplicacao = document.getElementById("app-header");
     if (botaoEstoque) botaoEstoque.classList.remove("active");
     if (secaoCarrinho) secaoCarrinho.classList.remove("minimizado");
-    document.body.style.border = "none";
-    if (cabecalhoAplicacao) cabecalhoAplicacao.style.borderBottom = "";
+    marcarModoEstoque(false);
     sincronizarTextoModoEstoque();
     showToast("MODO ESTOQUE DESATIVADO");
     renderizarCatalogo();
@@ -43,7 +51,7 @@ export function alternarModoEstoque() {
       ativarModoEstoque();
     } catch (erroValidacaoSenha) {
       showToast(
-        erroValidacaoSenha.message || "Senha do estoque incorreta.",
+        mensagemErro(erroValidacaoSenha, "Senha do estoque incorreta."),
         "err",
       );
     }
@@ -54,12 +62,9 @@ function ativarModoEstoque() {
   estadoPdv.modoGerenciaEstoque = true;
   const botaoEstoque = document.getElementById("btn-estoque");
   const secaoCarrinho = document.getElementById("carrinho-section");
-  const cabecalhoAplicacao = document.getElementById("app-header");
   if (botaoEstoque) botaoEstoque.classList.add("active");
   if (secaoCarrinho) secaoCarrinho.classList.add("minimizado");
-  document.body.style.border = "3px solid var(--accent)";
-  if (cabecalhoAplicacao)
-    cabecalhoAplicacao.style.borderBottom = "3px solid var(--accent)";
+  marcarModoEstoque(true);
   sincronizarTextoModoEstoque();
   showToast("MODO ESTOQUE ATIVADO");
   renderizarCatalogo();
@@ -99,6 +104,8 @@ export async function salvarEdicaoEstoque() {
     fecharModal("modal-estoque");
     showToast("Estoque atualizado.");
   } catch (erroAtualizacaoEstoque) {
-    showToast(`Estoque não atualizado: ${erroAtualizacaoEstoque.message}`);
+    showToast(
+      `Estoque não atualizado: ${mensagemErro(erroAtualizacaoEstoque)}`,
+    );
   }
 }

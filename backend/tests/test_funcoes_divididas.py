@@ -448,7 +448,7 @@ def test_criar_venda_fiada_grava_registros_e_respeita_ordem_de_locks(pg, seed):
         assert resultado == {
             'status': 'ok', 'id_externo': payload.id_externo, 'venda_id': str(venda.id),
             'caixa_id': str(seed['boxes'][0]), 'usuario_id': str(seed['users'][0]),
-            'total_calculado': 31.03, 'mensagem': 'Operação confirmada.'}
+            'total_calculado': Decimal('31.03'), 'mensagem': 'Operação confirmada.'}
         assert (venda.tipo_venda, venda.metodo_pagamento, venda.nome_cliente, venda.membro_id, venda.valor_total) == (
             'fiado', 'fiado', 'Membro sintético', seed['member'], Decimal('31.03'))
         itens = sorted((i.nome_produto, i.quantidade, i.preco_unitario, i.preco_total, i.observacoes) for i in venda.itens)

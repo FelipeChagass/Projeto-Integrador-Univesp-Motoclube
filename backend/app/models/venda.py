@@ -10,6 +10,7 @@ from sqlalchemy import Column, String, Integer, BigInteger, DateTime, Numeric, F
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.core.database import Base
+from app.core.schemas import valor_em_reais
 
 
 class Venda(Base):
@@ -21,6 +22,7 @@ class Venda(Base):
         Index('ix_vendas_criado_em', 'criado_em'),
         Index('ix_vendas_caixa_criado', 'caixa_id', 'criado_em'),
         Index('ix_vendas_usuario_criado', 'usuario_id', 'criado_em'),
+        Index('ix_vendas_membro_id', 'membro_id'),
     )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text('gen_random_uuid()'))
@@ -60,7 +62,7 @@ class Venda(Base):
             'tipo_venda': self.tipo_venda,
             'metodo_pagamento': self.metodo_pagamento,
             'nome_cliente': self.nome_cliente,
-            'valor_total': float(self.valor_total),
+            'valor_total': valor_em_reais(self.valor_total),
             'observacoes': self.observacoes,
             'criado_em': self.criado_em.isoformat() if self.criado_em else None,
             'itens': [item.to_dict() for item in self.itens] if self.itens else [],
@@ -80,6 +82,7 @@ class ItemVenda(Base):
         CheckConstraint('preco_unitario >= 0', name='itens_venda_preco_unitario_check'),
         CheckConstraint('preco_total >= 0', name='itens_venda_preco_total_check'),
         Index('ix_itens_venda_venda_id', 'venda_id'),
+        Index('ix_itens_venda_produto_id', 'produto_id'),
     )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text('gen_random_uuid()'))
@@ -94,6 +97,9 @@ class ItemVenda(Base):
     # Relacionamentos
     venda = relationship('Venda', back_populates='itens')
     produto = relationship('Produto', back_populates='itens_venda')
+    # Composição do combo no momento da venda: o estorno não depende do cadastro atual.
+    componentes = relationship('ItemVendaComponente', back_populates='item_venda',
+                               cascade='all, delete-orphan', passive_deletes=True)
 
     def to_dict(self):
         return {
@@ -101,7 +107,21 @@ class ItemVenda(Base):
             'produto_id': self.produto_id,
             'nome_produto': self.nome_produto,
             'quantidade': self.quantidade,
-            'preco_unitario': float(self.preco_unitario),
-            'preco_total': float(self.preco_total),
+            'preco_unitario': valor_em_reais(self.preco_unitario),
+            'preco_total': valor_em_reais(self.preco_total),
             'observacoes': self.observacoes,
         }
+
+
+class ItemVendaComponente(Base):
+    __tablename__ = 'itens_venda_componentes'
+    __table_args__ = (
+        CheckConstraint('quantidade > 0', name='itens_venda_componentes_quantidade_check'),
+        Index('ix_itens_venda_componentes_produto_id', 'produto_id'),
+    )
+
+    item_venda_id = Column(UUID(as_uuid=True), ForeignKey('itens_venda.id', ondelete='CASCADE'), primary_key=True)
+    produto_id = Column(BigInteger, ForeignKey('produtos.id'), primary_key=True)
+    quantidade = Column(Integer, nullable=False)  # Unidades por combo vendido.
+
+    item_venda = relationship('ItemVenda', back_populates='componentes')

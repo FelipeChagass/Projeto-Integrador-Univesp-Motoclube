@@ -4,7 +4,7 @@
  */
 import { API } from "../../../shared/api.js";
 import { estadoPdv } from "../state.js";
-import { esc, formatCurrency } from "../../../shared/utils.js";
+import { mensagemErro, esc, formatCurrency } from "../../../shared/utils.js";
 import { showToast, fecharModal, abrirModal } from "../ui.js";
 import { registrarVendaOtimista } from "./pagamentos.js";
 import { criarConsultaExtrato } from "../../../shared/extrato-membro.js";
@@ -45,7 +45,7 @@ export function abrirModalMembros(tipoContexto) {
   const previaDivida = document.getElementById("preview-divida");
   if (previaDivida) {
     previaDivida.innerText = "";
-    previaDivida.style.color = "var(--text-secondary)";
+    previaDivida.classList.add("text-body-secondary");
   }
   abrirModal("modal-selecionar-membro");
   buscarMembrosFrescos("select-membro");
@@ -60,16 +60,16 @@ export function buscarMembrosFrescos(seletorMembrosId) {
       estadoPdv.membros = Array.isArray(membrosRecebidos)
         ? membrosRecebidos
         : [];
-      popularSelectMembros(seletorMembrosId);
+      popularSeletorMembros(seletorMembrosId);
     })
     .catch((erroBuscaMembros) => {
       console.error("Erro ao buscar membros:", erroBuscaMembros);
       estadoPdv.membros = [];
-      popularSelectMembros(seletorMembrosId);
+      popularSeletorMembros(seletorMembrosId);
     });
 }
 
-export function popularSelectMembros(seletorMembrosId) {
+export function popularSeletorMembros(seletorMembrosId) {
   const seletorMembros = document.getElementById(seletorMembrosId);
   seletorMembros.innerHTML = "";
   const opcaoPadrao = document.createElement("option");
@@ -112,7 +112,7 @@ export function confirmarSelecaoMembro() {
       carregarDadosFechamento(membro);
     else showToast("Ação indefinida.");
   } catch (erroSelecaoMembro) {
-    showToast(`Erro na seleção: ${erroSelecaoMembro.message}`);
+    showToast(`Erro na seleção: ${mensagemErro(erroSelecaoMembro)}`);
   }
 }
 

@@ -12,8 +12,9 @@ import uuid
 from flask import Flask, render_template, g, request
 from flask_cors import CORS
 from app.core.config import Config, validate_config
-from app.core.database import init_db
+from app.core.database import encerrar_sessao_da_requisicao, init_db
 from app.core.errors import register_error_handlers
+from app.core.serializacao import ProvedorJson
 
 
 def create_app(test_config=None):
@@ -22,12 +23,16 @@ def create_app(test_config=None):
     static_dir = os.path.join(frontend_dir, 'static')
 
     app = Flask(__name__, static_folder=static_dir, static_url_path='/static', template_folder=templates_dir)
+    app.json = ProvedorJson(app)
     app.config.from_object(Config)
     if test_config:
         app.config.update(test_config)
     validate_config(app.config)
+    # Sem nível explícito o logger herda WARNING fora do debug e os logs de requisição somem.
+    app.logger.setLevel(app.config['LOG_LEVEL'])
     init_db(app)
     register_error_handlers(app)
+    app.teardown_request(encerrar_sessao_da_requisicao)
 
     @app.before_request
     def start_timer():
@@ -84,11 +89,11 @@ def create_app(test_config=None):
         return render_template('ponto_venda.html')
 
     @app.route('/login')
-    def login_page():
+    def pagina_login():
         return render_template('login.html')
 
     @app.route('/admin')
-    def admin_page():
+    def pagina_admin():
         return render_template('admin.html')
 
 

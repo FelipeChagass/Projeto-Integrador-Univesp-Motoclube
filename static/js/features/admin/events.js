@@ -3,17 +3,13 @@
  * setupEventListeners deve ser chamado uma vez pela entrada admin.js após criar o DOM.
  */
 import { fecharModalAdmin } from "./ui.js";
-import {
-  switchTab,
-  openAdminSidebar,
-  closeAdminSidebar,
-} from "./navigation.js";
+import { switchTab } from "./navigation.js";
 import {
   carregarProdutos,
   abrirFormNovoProduto,
   fecharFormNovoProduto,
-  previewNovoProdutoImagem,
-  removerNovoPreview,
+  previaNovoProdutoImagem,
+  removerNovaPrevia,
   criarNovoProduto,
   deletarProduto,
   reativarProduto,
@@ -39,30 +35,27 @@ import {
   fecharFormNovoUsuario,
   criarNovoUsuario,
   salvarUsuario,
-  toggleUsuario,
+  alternarUsuario,
   excluirUsuario,
 } from "./usuarios.js";
 import { carregarVendas, exportarVendasCsv } from "./vendas.js";
 import { salvarConfig } from "./configuracoes.js";
 import { configurarEdicaoFinanceira } from "./financeiro.js";
+import {
+  configurarFormCombo,
+  abrirEdicaoItensCombo,
+  desativarCombo,
+} from "./combos.js";
 
 export function setupEventListeners() {
   configurarEdicaoFinanceira();
-  document
-    .getElementById("tab-btn-produtos")
-    ?.addEventListener("click", () => switchTab("produtos"));
-  document
-    .getElementById("tab-btn-membros")
-    ?.addEventListener("click", () => switchTab("membros"));
-  document
-    .getElementById("tab-btn-usuarios")
-    ?.addEventListener("click", () => switchTab("usuarios"));
-  document
-    .getElementById("tab-btn-vendas")
-    ?.addEventListener("click", () => switchTab("vendas"));
-  document
-    .getElementById("tab-btn-config")
-    ?.addEventListener("click", () => switchTab("config"));
+  configurarFormCombo();
+  // Abas do cabeçalho e do menu lateral; o offcanvas fecha sozinho (data-bs-dismiss).
+  document.querySelectorAll("[data-admin-tab]").forEach((botaoAba) => {
+    botaoAba.addEventListener("click", () =>
+      switchTab(botaoAba.dataset.adminTab),
+    );
+  });
 
   document
     .getElementById("mostrarProdutosInativos")
@@ -85,11 +78,11 @@ export function setupEventListeners() {
   document
     .getElementById("novo-file-input")
     ?.addEventListener("change", (evento) =>
-      previewNovoProdutoImagem(evento.target),
+      previaNovoProdutoImagem(evento.target),
     );
   document
     .getElementById("btn-remove-preview-produto")
-    ?.addEventListener("click", removerNovoPreview);
+    ?.addEventListener("click", removerNovaPrevia);
   document
     .getElementById("btn-save-novo-produto")
     ?.addEventListener("click", criarNovoProduto);
@@ -164,6 +157,16 @@ export function setupEventListeners() {
     .getElementById("fileInput")
     ?.addEventListener("change", (evento) => uploadImagem(evento.target));
 
+  // Foto quebrada some da miniatura. "error" não borbulha: escuta na captura.
+  document.getElementById("tabelaProdutos")?.addEventListener(
+    "error",
+    (evento) => {
+      if (evento.target.matches?.("img.img-thumb"))
+        evento.target.classList.add("d-none");
+    },
+    true,
+  );
+
   document
     .getElementById("tabelaProdutos")
     ?.addEventListener("click", (evento) => {
@@ -177,6 +180,9 @@ export function setupEventListeners() {
       if (acao === "excluir-produto")
         deletarProduto(id, botaoAcao.dataset.nome);
       if (acao === "reativar-produto") reativarProduto(id);
+      if (acao === "editar-combo") abrirEdicaoItensCombo(id);
+      if (acao === "desativar-combo")
+        desativarCombo(id, botaoAcao.dataset.nome);
     });
 
   document
@@ -202,29 +208,8 @@ export function setupEventListeners() {
       const id = botaoAcao.dataset.id;
       if (acao === "salvar-usuario") salvarUsuario(id);
       if (acao === "toggle-usuario")
-        toggleUsuario(id, botaoAcao.dataset.ativo === "true");
+        alternarUsuario(id, botaoAcao.dataset.ativo === "true");
       if (acao === "excluir-usuario")
         excluirUsuario(id, botaoAcao.dataset.nome || "usuário");
-    });
-
-  // ── Admin Sidebar Mobile ──
-  document
-    .getElementById("admin-btn-hamburger")
-    ?.addEventListener("click", openAdminSidebar);
-  document
-    .getElementById("admin-sidebar-close")
-    ?.addEventListener("click", closeAdminSidebar);
-  document
-    .querySelector("#admin-sidebar-mobile .sidebar-backdrop")
-    ?.addEventListener("click", closeAdminSidebar);
-
-  document
-    .querySelectorAll("#admin-sidebar-mobile [data-admin-tab]")
-    .forEach((botaoAba) => {
-      botaoAba.addEventListener("click", () => {
-        const nomeAba = botaoAba.dataset.adminTab;
-        switchTab(nomeAba);
-        closeAdminSidebar();
-      });
     });
 }

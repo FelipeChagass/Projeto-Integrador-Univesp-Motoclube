@@ -41,7 +41,8 @@ beforeEach(() => {
         <div id="modalExtrato" class="modal-overlay d-none"></div>
         <div id="modalEdicaoFinanceira" class="modal-overlay d-none">
             <form id="form-edicao-financeira" class="modal-content modal-lg">
-                <h3 id="edicao-financeira-titulo"></h3>
+                <h2 id="edicao-financeira-titulo"></h2>
+                <p id="edicao-financeira-subtitulo"></p>
                 <div id="edicao-financeira-campos" class="form-grid"></div>
                 <button type="button" data-fechar-edicao>Cancelar</button>
                 <button id="btn-salvar-edicao-financeira" type="submit">Salvar</button>
@@ -78,7 +79,7 @@ test("abre editor com loading sem aguardar a API e preenche quando a venda chega
     document.querySelector(".edicao-item-produto strong").textContent,
   ).toBe(venda.itens[0].nome_produto);
   expect(
-    document.querySelector(".edicao-item-preco-rotulo").textContent,
+    document.querySelector(".edicao-item-preco").closest("td").dataset.label,
   ).toContain("Preço");
   expect(document.getElementById("btn-salvar-edicao-financeira").disabled).toBe(
     false,

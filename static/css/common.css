@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import url('tokens.css');
 @import url('checkboxes.css');
 
@@ -51,10 +50,6 @@ textarea::placeholder {
     height: 100%;
     background: var(--bg-color);
     z-index: 10000;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
     color: white;
     font-family: sans-serif;
     transition: opacity 0.5s;
@@ -189,25 +184,15 @@ body.modal-open {
     }
 }
 
-/* ─── Bottom Sheet Component ─── */
-.modal-drag-header {
-    display: none;
-    /* Desktop: hidden — only shown as bottom sheet on mobile */
-}
-
-.drag-handle {
-    display: none;
-}
-
+/* ─── Bottom Sheet Component ───
+ * O cabeçalho (templates/shared/modal.html) aparece em todas as larguras; a alça só no
+ * celular, por d-md-none no markup. Layout e espaçamento ficam nas classes do Bootstrap.
+ */
 @media (max-width: 768px) {
     .modal-drag-header {
-        display: block;
-        flex-shrink: 0;
-        padding: 12px 20px 8px;
         cursor: grab;
         user-select: none;
         -webkit-user-select: none;
-        text-align: center;
         touch-action: none;
     }
 
@@ -216,12 +201,10 @@ body.modal-open {
     }
 
     .drag-handle {
-        display: block;
         width: 40px;
         height: 4px;
         background: rgba(255, 255, 255, 0.35);
         border-radius: 2px;
-        margin: 0 auto 12px;
         transition: width 0.2s, background 0.2s;
     }
 
@@ -231,31 +214,10 @@ body.modal-open {
     }
 }
 
+/* Rolagem e crescimento vêm de flex-grow-1 overflow-auto no markup. */
 .modal-scroll-body {
-    flex: 1;
-    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    padding: 1.5rem 1.5rem 1.6rem;
-}
-
-/* Desktop modal titles */
-.modal-scroll-body h2,
-.modal-scroll-body h3 {
-    margin: 0 0 1rem 0;
-    font-size: 1.1rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--accent-readable);
-}
-
-@media (max-width: 768px) {
-
-    .modal-scroll-body h2,
-    .modal-scroll-body h3 {
-        color: var(--text-primary);
-    }
 }
 
 @media print {

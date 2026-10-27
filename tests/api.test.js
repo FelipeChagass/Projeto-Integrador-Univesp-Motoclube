@@ -110,3 +110,43 @@ test("logout removes local session data without changing the IndexedDB outbox", 
   expect(localStorage.getItem("motoBarUsuario")).toBeNull();
   expect((await listarOperacoes())[0].payload).toEqual(payload);
 });
+
+test.each([
+  [
+    { code: "invalid_credentials", message: "Invalid login credentials" },
+    "E-mail ou senha incorretos.",
+  ],
+  [{ message: "Invalid login credentials" }, "E-mail ou senha incorretos."],
+  [
+    { message: "Email not confirmed" },
+    "E-mail ainda não confirmado. Confirme o cadastro antes de entrar.",
+  ],
+  [
+    { code: "over_request_rate_limit", message: "Request rate limit reached" },
+    "Muitas tentativas seguidas. Aguarde um momento e tente de novo.",
+  ],
+  [
+    { message: "Failed to fetch" },
+    "Sem conexão com o servidor de login. Verifique a internet.",
+  ],
+  [
+    { status: 502, message: "Bad gateway" },
+    "O serviço de login está indisponível. Tente novamente em instantes.",
+  ],
+  [
+    { message: "Something unexpected" },
+    "Não foi possível entrar. Tente novamente.",
+  ],
+])("erro de login %j é exibido em português", async (erro, esperado) => {
+  window.supabase = {
+    createClient: () => ({
+      auth: { signInWithPassword: async () => ({ data: {}, error: erro }) },
+    }),
+  };
+  await API.logout();
+  await API._initSupabase();
+  expect(await API.login("a@b.test", "x")).toEqual({
+    status: "erro",
+    mensagem: esperado,
+  });
+});

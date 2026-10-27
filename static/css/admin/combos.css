@@ -1,0 +1,77 @@
+/* admin: combos. Ligado em templates/admin.html.
+ * Latão marca o que é combo; o vermelho continua reservado a ações e alertas.
+ * Layout e espaçamento ficam nas classes do Bootstrap (templates/admin/produtos.html e
+ * admin/combos.js); aqui só cor, tipografia e tamanho.
+ */
+.btn-add-combo > svg {
+    color: var(--combo);
+}
+
+/* Filete de latão antes do título do formulário de combo. */
+.form-combo .card-header h3::before {
+    content: "";
+    width: 4px;
+    height: 1.1em;
+    border-radius: 2px;
+    background: var(--combo);
+}
+
+/* fieldset e item flex: sem largura mínima o select longo estoura a linha. */
+.combo-itens-campo,
+.combo-item-produto {
+    min-width: 0;
+}
+
+.combo-item-remover {
+    width: 44px;
+    height: 44px;
+}
+
+.combo-item-remover:focus-visible {
+    outline: 2px solid var(--combo);
+    outline-offset: 2px;
+}
+
+.combo-item-qtd {
+    width: 92px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.combo-resumo {
+    background: var(--combo-surface);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.combo-resumo b {
+    color: var(--combo);
+    font-variant-numeric: tabular-nums;
+}
+
+.combo-resumo-aviso {
+    color: var(--text-secondary);
+}
+
+.badge-combo {
+    background: var(--combo);
+    color: var(--combo-ink);
+    border: 1px solid var(--combo);
+}
+
+.td-combo-itens {
+    font-size: 0.8125rem;
+    line-height: 1.3;
+    color: var(--text-secondary);
+}
+
+.td-combo-alerta {
+    font-size: 0.75rem;
+    color: var(--warning-border);
+}
+
+@media (max-width: 767.98px) {
+    .combo-item-qtd {
+        width: 76px;
+    }
+}

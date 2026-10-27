@@ -11,6 +11,7 @@ from flask import Blueprint, jsonify, g
 from app.core.database import session_scope
 from app.core.errors import json_object
 from app.features.produtos import service as produto_service
+from app.features.produtos import images as imagem_service
 from app.features.auth.middleware import requer_login, requer_admin
 
 bp = Blueprint('produtos', __name__, url_prefix='/api/produtos')
@@ -54,7 +55,7 @@ def atualizar_estoque():
 def verificar_senha_estoque():
     dados = json_object()
     if g.usuario_dict.get('perfil') != 'admin':
-        produto_service.validar_senha_estoque(dados.get('senha'))
+        produto_service.validar_senha_estoque(dados.get('senha'), g.usuario_id)
     return jsonify({'status': 'ok'})
 
 
@@ -103,5 +104,6 @@ def deletar(produto_id):
     Soft-delete de um produto (marca ativo=False). Restrito a admins.
     """
     with session_scope() as db:
-        resultado = produto_service.deletar_produto(db, produto_id)
-        return jsonify(resultado)
+        resultado, url_imagem = produto_service.excluir_produto_e_imagem(db, produto_id)
+    imagem_service.descartar_imagem(produto_id, url_imagem)
+    return jsonify(resultado)

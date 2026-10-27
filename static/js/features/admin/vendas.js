@@ -3,8 +3,15 @@
  * Usa requests/ui; limites de consulta são definidos pela API, não pelo DOM.
  */
 import { BASE, authFetch } from "./requests.js";
-import { esc, mostrarSkeleton, toast } from "./ui.js";
+import {
+  esc,
+  mostrarEsqueleto,
+  toast,
+  CLASSES_TABELA as T,
+  badge,
+} from "./ui.js";
 import { criarCsv } from "./csv.js";
+import { mensagemErro } from "../../shared/utils.js";
 
 function filtrosVendas(limite) {
   const campoDataInicio = document.getElementById("vendas-data-inicio");
@@ -66,14 +73,14 @@ export async function exportarVendasCsv() {
     linkDownload.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch (erro) {
-    toast(erro.message || "Não foi possível exportar as vendas.", false);
+    toast(mensagemErro(erro, "Não foi possível exportar as vendas."), false);
   } finally {
     botao.disabled = false;
   }
 }
 
 export async function carregarVendas() {
-  mostrarSkeleton("tabelaVendas", 6);
+  mostrarEsqueleto("tabelaVendas");
   const parametrosConsulta = filtrosVendas(200);
 
   const resposta = await authFetch(
@@ -88,15 +95,17 @@ export async function carregarVendas() {
     0,
   );
   const resumoVendas = document.getElementById("vendas-resumo");
-  resumoVendas.innerHTML = `
-        <div class="stat-card"><span class="stat-number">${vendas.length}</span><span class="stat-label">Vendas</span></div>
-        <div class="stat-card"><span class="stat-number">R$ ${total.toFixed(2)}</span><span class="stat-label">Total</span></div>
-    `;
+  const cartaoResumo = (valor, rotulo) =>
+    `<div class="card flex-fill flex-sm-grow-0 px-4 py-3 text-center text-sm-start"><span class="resumo-numero">${valor}</span><span class="small text-uppercase mt-1">${rotulo}</span></div>`;
+  resumoVendas.innerHTML =
+    cartaoResumo(vendas.length, "Vendas") +
+    cartaoResumo(`R$ ${total.toFixed(2)}`, "Total");
 
   const corpoTabela = document.getElementById("tabelaVendas");
   corpoTabela.innerHTML = "";
   vendas.forEach((venda) => {
     const linhaVenda = document.createElement("tr");
+    linhaVenda.className = T.linha;
     const dataFormatada = venda.criado_em
       ? new Date(venda.criado_em).toLocaleString("pt-BR")
       : "—";
@@ -106,23 +115,23 @@ export async function carregarVendas() {
           (itemVenda) => `${itemVenda.quantidade}x ${itemVenda.nome_produto}`,
         )
         .join(", ") || "—";
-    const classeIndicadorTipo =
+    const tomTipo =
       venda.tipo_venda === "fiado"
-        ? "badge-warn"
+        ? "aviso"
         : venda.tipo_venda === "recebimento_divida"
-          ? "badge-info"
-          : "badge-active";
+          ? "info"
+          : "sucesso";
     linhaVenda.innerHTML = `
-            <td class="td-data" data-label="Data">${dataFormatada}</td>
-            <td data-label="Tipo"><span class="badge ${classeIndicadorTipo}">${venda.tipo_venda}</span></td>
-            <td data-label="Método">${venda.metodo_pagamento}</td>
-            <td data-label="Operador">${esc(venda.usuario_nome || "—")}</td>
-            <td data-label="Cliente">${esc(venda.nome_cliente || "—")}</td>
-            <td class="fw-semibold" data-label="Valor">R$ ${venda.valor_total.toFixed(2)}</td>
-            <td class="td-itens" data-label="Itens">${esc(descricaoItens)}</td>
-            <td data-label="Ações"><div class="btn-group">
-                <button type="button" class="btn btn-sm" data-venda-acao="editar" data-id="${venda.id}">Editar</button>
-                <button type="button" class="btn btn-del btn-sm" data-venda-acao="excluir" data-id="${venda.id}">Excluir</button>
+            <td class="${T.celula}" data-label="Data">${dataFormatada}</td>
+            <td class="${T.celula}" data-label="Tipo">${badge(venda.tipo_venda, tomTipo)}</td>
+            <td class="${T.celula}" data-label="Método">${venda.metodo_pagamento}</td>
+            <td class="${T.celula}" data-label="Operador">${esc(venda.usuario_nome || "—")}</td>
+            <td class="${T.celula}" data-label="Cliente">${esc(venda.nome_cliente || "—")}</td>
+            <td class="${T.celula} fw-semibold" data-label="Valor">R$ ${venda.valor_total.toFixed(2)}</td>
+            <td class="${T.celula}" data-label="Itens">${esc(descricaoItens)}</td>
+            <td class="${T.celulaAcoes}"><div class="${T.acoes}">
+                <button type="button" class="btn btn-escuro flex-fill" data-venda-acao="editar" data-id="${venda.id}">Editar</button>
+                <button type="button" class="btn btn-excluir flex-fill" data-venda-acao="excluir" data-id="${venda.id}">Excluir</button>
             </div></td>`;
     corpoTabela.appendChild(linhaVenda);
   });

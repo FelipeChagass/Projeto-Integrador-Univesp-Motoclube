@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 
+from flask import g, has_request_context
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, declarative_base
 
@@ -60,17 +61,48 @@ def init_db(app):
 Base = declarative_base()
 
 
+def sessao_da_requisicao():
+    """Sessão única da requisição HTTP; None fora de uma requisição (scripts e testes de serviço).
+
+    O middleware lê o perfil nela e deixa a conexão aberta para a rota usar a mesma:
+    um checkout do pool (e um pre-ping) por requisição, em vez de dois.
+    """
+    if not has_request_context():
+        return None
+    db = g.get('_sessao_db')
+    if db is None:
+        db = g._sessao_db = SessionLocal()
+    return db
+
+
+def encerrar_sessao_da_requisicao(_erro=None):
+    """Registrado em teardown_request: devolve a conexão mesmo se a rota não abriu escopo."""
+    db = g.pop('_sessao_db', None)
+    if db is not None:
+        db.close()
+
+
 @contextmanager
 def session_scope():
-    """Abre/fecha a sessão; a unidade de trabalho confirma a operação."""
-    db = SessionLocal()
+    """Abre/fecha a sessão; a unidade de trabalho confirma a operação.
+
+    Dentro de uma requisição reaproveita a sessão dela. Só o escopo mais externo
+    fecha a sessão, liberando a conexão antes de chamadas externas (Storage, Auth).
+    """
+    compartilhada = sessao_da_requisicao()
+    db = compartilhada if compartilhada is not None else SessionLocal()
+    profundidade = db.info.get('profundidade_escopo', 0)
+    db.info['profundidade_escopo'] = profundidade + 1
     try:
         yield db
     except BaseException:
         db.rollback()
         raise
     finally:
-        db.close()
+        db.info['profundidade_escopo'] = profundidade
+        if profundidade == 0:
+            db.info.pop('profundidade_escopo', None)
+            db.close()
 
 
 @contextmanager

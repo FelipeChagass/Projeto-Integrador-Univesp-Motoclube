@@ -14,7 +14,10 @@ export function initBottomSheetGestures() {
     (touchEvent) => {
       const activeTouch = touchEvent.touches[0];
 
-      const modalHeader = touchEvent.target.closest(".modal-drag-header");
+      // Tocar no X (ou em outro controle) do cabeçalho não inicia o arrasto.
+      const modalHeader = touchEvent.target.closest("button, a, input, select")
+        ? null
+        : touchEvent.target.closest(".modal-drag-header");
       if (modalHeader) {
         const modalContent = modalHeader.closest(".modal-content");
         if (modalContent) {
@@ -46,8 +49,10 @@ export function initBottomSheetGestures() {
         return;
       }
 
-      // Priority 3: Sidebar panel
-      const sidebarPanel = touchEvent.target.closest(".sidebar-panel");
+      // Priority 3: Sidebar panel (PDV) ou menu lateral em Offcanvas do Bootstrap (admin)
+      const sidebarPanel = touchEvent.target.closest(
+        ".sidebar-panel, .offcanvas.offcanvas-end.show",
+      );
       if (sidebarPanel) {
         dragState = {
           type: "sidebar",
@@ -149,12 +154,16 @@ export function initBottomSheetGestures() {
     /* ── Sidebar ── */
     if (dragState.type === "sidebar") {
       dragState.el.style.transition = "";
-      if (dragState.currentOffsetX > 80) {
+      const fechar = dragState.currentOffsetX > 80;
+      dragState.el.style.transform = "";
+      if (fechar && dragState.el.classList.contains("offcanvas")) {
+        // O Bootstrap anima a partir da posição do dedo, tira o backdrop e devolve o foco.
+        window.bootstrap?.Offcanvas.getOrCreateInstance(dragState.el).hide();
+      } else if (fechar) {
         const mobileMenu = dragState.el.closest(".sidebar-mobile");
         if (mobileMenu) mobileMenu.classList.remove("open");
         document.body.style.overflow = "";
       }
-      dragState.el.style.transform = "";
       dragState = null;
       return;
     }

@@ -23,7 +23,8 @@ const { setupEventListeners } =
   await import("../static/js/features/admin/events.js");
 const { switchTab } = await import("../static/js/features/admin/navigation.js");
 const { authFetch } = await import("../static/js/features/admin/requests.js");
-const { esc } = await import("../static/js/features/admin/ui.js");
+const { esc, mostrarEsqueleto } =
+  await import("../static/js/features/admin/ui.js");
 const { criarCsv } = await import("../static/js/features/admin/csv.js");
 
 const product = {
@@ -95,7 +96,7 @@ beforeEach(() => {
         ${["produtos", "membros", "usuarios", "vendas", "config"]
           .map(
             (name) =>
-              `<button id="tab-btn-${name}" class="tab-btn"></button><section id="tab-${name}" class="tab-content"></section>`,
+              `<button data-admin-tab="${name}" class="btn"></button><section id="tab-${name}" class="tab-pane"></section>`,
           )
           .join("")}
     `;
@@ -169,7 +170,7 @@ test("extrato administrativo mantém membro ao filtrar, limpar e mostrar períod
   ).replace(/\{#[\s\S]*?#\}/g, "");
   document.body.insertAdjacentHTML(
     "beforeend",
-    `<div id="modalExtrato" class="d-none"><h3 id="extrato-titulo"></h3><div id="extrato-body">${partial}</div></div>`,
+    `<div id="modalExtrato" class="d-none"><h2 id="extrato-titulo">Extrato de saldo devedor</h2><p id="extrato-membro-nome"></p><div id="extrato-body">${partial}</div></div>`,
   );
   request.mockResolvedValue({
     total: 350,
@@ -193,8 +194,8 @@ test("extrato administrativo mantém membro ao filtrar, limpar e mostrar períod
     "/admin/membros/membro-a/extrato?data_inicio=2026-02-01&data_fim=2026-02-28&limite=20&offset=0",
     undefined,
   );
-  expect(document.getElementById("extrato-titulo").textContent).toBe(
-    "Extrato — Ana",
+  expect(document.getElementById("extrato-membro-nome").textContent).toBe(
+    "Ana",
   );
   expect(document.getElementById("extrato-body").textContent).toContain(
     "Nenhum lançamento encontrado para o período selecionado.",
@@ -326,4 +327,15 @@ test("falha na segunda página não baixa um CSV parcial", async () => {
   await vendas.exportarVendasCsv();
   expect(URL.createObjectURL).not.toHaveBeenCalled();
   expect(document.getElementById("btn-exportar-vendas").disabled).toBe(false);
+});
+
+test("esqueleto de carregamento ocupa todas as colunas do cabeçalho", () => {
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `<table><thead><tr>${"<th></th>".repeat(8)}</tr></thead><tbody id="tabela-esqueleto"></tbody></table>`,
+  );
+  mostrarEsqueleto("tabela-esqueleto");
+  const linhas = document.querySelectorAll("#tabela-esqueleto tr");
+  expect(linhas.length).toBeGreaterThan(0);
+  for (const linha of linhas) expect(linha.children.length).toBe(8);
 });

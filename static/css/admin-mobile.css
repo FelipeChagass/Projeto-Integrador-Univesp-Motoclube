@@ -1,8 +1,0 @@
-/* Ordem de carregamento preservada: altere os componentes, não este manifesto. */
-@import url('features/admin/mobile/tablet.css');
-@import url('features/admin/mobile/navegacao.css');
-@import url('features/admin/mobile/layout-formularios.css');
-@import url('features/admin/mobile/tabelas.css');
-@import url('features/admin/mobile/modais.css');
-@import url('features/admin/mobile/vendas.css');
-@import url('features/admin/mobile/variantes.css');

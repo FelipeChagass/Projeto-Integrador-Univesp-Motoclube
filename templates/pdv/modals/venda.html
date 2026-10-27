@@ -1,48 +1,56 @@
 {# Observações e métodos de pagamento; actions/carrinho.js e pagamentos.js.
    Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
+{% from 'shared/modal.html' import cabecalho_modal %}
     <div id="modal-obs" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-drag-header">
-                <div class="drag-handle"></div>
-                <h3>Personalizar</h3>
+        <div class="modal-content d-flex flex-column overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-obs-titulo">
+            {{ cabecalho_modal('Personalizar pedido', 'observacao', 'modal-obs-titulo', id_subtitulo='modal-prod-nome',
+                fechar='data-acionar="btn-cancelar-obs"') }}
+            <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
+                <label class="modal-campo d-flex flex-column gap-2 m-0" for="custom-obs">Observação para a cozinha
+                    <input type="text" id="custom-obs" placeholder="Ex: Sem cebola..." class="input-cliente"
+                        autocomplete="off">
+                </label>
             </div>
-            <div class="modal-scroll-body">
-                <p id="modal-prod-nome" class="modal-prod-nome-accent"></p>
-                <input type="text" id="custom-obs" placeholder="Ex: Sem cebola..." class="input-cliente mt-1 mb-1">
-                <button class="btn-action w-100" id="btn-confirmar-obs">CONFIRMAR PEDIDO</button>
-                <button class="btn-action" id="btn-cancelar-obs">CANCELAR</button>
+            <div class="modal-rodape d-flex gap-2 px-3 px-md-4 pt-3 pb-md-3 flex-shrink-0 flex-column-reverse flex-sm-row">
+                <button class="btn-action m-0 justify-content-center" id="btn-cancelar-obs">CANCELAR</button>
+                <button class="btn-action btn-acao-primaria m-0 justify-content-center" id="btn-confirmar-obs">CONFIRMAR PEDIDO</button>
             </div>
         </div>
     </div>
 
     <div id="modal-dinheiro" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-drag-header">
-                <div class="drag-handle"></div>
-                <h3>Pagamento em Dinheiro</h3>
+        <div class="modal-content d-flex flex-column overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-dinheiro-titulo">
+            {{ cabecalho_modal('Pagamento em dinheiro', 'dinheiro', 'modal-dinheiro-titulo',
+                subtitulo='Informe quanto o cliente entregou para calcular o troco.',
+                fechar='data-acionar="btn-cancelar-dinheiro"') }}
+            <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
+                <div class="valor-pendente m-0" id="valor-total-dinheiro">Total: R$ 0,00</div>
+                <label class="modal-campo d-flex flex-column gap-2 m-0" for="valor-recebido">Valor recebido
+                    <input type="number" id="valor-recebido" class="input-cliente input-valor-grande"
+                        placeholder="0,00" inputmode="decimal">
+                </label>
+                <div class="display-troco m-0" id="display-troco">Troco: R$ 0,00</div>
             </div>
-            <div class="modal-scroll-body">
-                <div class="valor-pendente" id="valor-total-dinheiro">Total: R$ 0,00</div>
-                <label class="text-white">Valor Recebido:</label>
-                <input type="number" id="valor-recebido" class="input-cliente input-valor-grande" placeholder="0,00">
-                <div class="display-troco" id="display-troco">Troco: R$ 0,00</div>
-                <button id="btn-confirmar-dinheiro" class="btn-action btn-disabled-initial">CONFIRMAR PAGAMENTO</button>
-                <button class="btn-action" id="btn-cancelar-dinheiro">CANCELAR</button>
+            <div class="modal-rodape d-flex gap-2 px-3 px-md-4 pt-3 pb-md-3 flex-shrink-0 flex-column-reverse flex-sm-row">
+                <button class="btn-action m-0 justify-content-center" id="btn-cancelar-dinheiro">CANCELAR</button>
+                <button id="btn-confirmar-dinheiro" class="btn-action btn-acao-primaria m-0 justify-content-center" disabled>CONFIRMAR
+                    PAGAMENTO</button>
             </div>
         </div>
     </div>
 
     <div id="modal-cartao" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-drag-header">
-                <div class="drag-handle"></div>
-                <h3>Selecione o Tipo</h3>
+        <div class="modal-content d-flex flex-column overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-cartao-titulo">
+            {{ cabecalho_modal('Pagamento no cartão', 'cartao', 'modal-cartao-titulo',
+                subtitulo='Qual a função do cartão?', fechar='data-acionar="btn-cancelar-cartao"') }}
+            <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
+                <div class="d-grid gap-3">
+                    <button class="btn-action btn-tipo-cartao m-0" id="btn-cartao-debito">DÉBITO</button>
+                    <button class="btn-action btn-tipo-credito m-0" id="btn-cartao-credito">CRÉDITO</button>
+                </div>
             </div>
-            <div class="modal-scroll-body">
-                <p class="modal-subtitle-muted">Qual a função do cartão?</p>
-                <button class="btn-action btn-tipo-cartao" id="btn-cartao-debito">DÉBITO</button>
-                <button class="btn-action btn-tipo-credito" id="btn-cartao-credito">CRÉDITO</button>
-                <button class="btn-action" id="btn-cancelar-cartao">CANCELAR</button>
+            <div class="modal-rodape d-flex gap-2 px-3 px-md-4 pt-3 pb-md-3 flex-shrink-0 flex-column-reverse flex-sm-row">
+                <button class="btn-action m-0 justify-content-center" id="btn-cancelar-cartao">CANCELAR</button>
             </div>
         </div>
     </div>

@@ -126,3 +126,22 @@ test("storage failure prevents accepting a sale", async () => {
     "indisponível",
   );
 });
+
+test("falha do IndexedDB chega em português, não como DOMException em inglês", async () => {
+  globalThis.indexedDB = {
+    open: () => {
+      const requisicao = {};
+      setTimeout(() => {
+        requisicao.error = new DOMException(
+          "The quota has been exceeded.",
+          "QuotaExceededError",
+        );
+        requisicao.onerror();
+      });
+      return requisicao;
+    },
+  };
+  await expect(queue.listarOperacoes()).rejects.toThrow(
+    "Sem espaço no armazenamento do navegador. Libere espaço e tente de novo.",
+  );
+});

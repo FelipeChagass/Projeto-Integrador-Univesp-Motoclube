@@ -10,6 +10,7 @@ from sqlalchemy import Column, String, DateTime, Numeric, ForeignKey, Text, Chec
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.core.database import Base
+from app.core.schemas import valor_em_reais
 
 
 class MovimentacaoMembro(Base):
@@ -19,6 +20,7 @@ class MovimentacaoMembro(Base):
         CheckConstraint("origem IN ('venda_fiado','pagamento','ajuste_manual')", name='movimentacoes_membro_origem_check'),
         CheckConstraint('valor >= 0', name='movimentacoes_membro_valor_check'),
         Index('ix_movimentacoes_membro_criado', 'membro_id', 'criado_em'),
+        Index('ix_movimentacoes_membro_venda_id', 'venda_id'),
     )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text('gen_random_uuid()'))
@@ -44,6 +46,6 @@ class MovimentacaoMembro(Base):
             'tipo_movimentacao': self.tipo_movimentacao,
             'origem': self.origem,
             'descricao': self.descricao,
-            'valor': float(self.valor),
+            'valor': valor_em_reais(self.valor),
             'criado_em': self.criado_em.isoformat() if self.criado_em else None,
         }

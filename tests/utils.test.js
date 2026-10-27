@@ -7,6 +7,7 @@ import {
   sanitizeUrl,
   formatCurrency,
   LocalDB,
+  mensagemErro,
 } from "../static/js/shared/utils.js";
 
 describe("utils.js — esc()", () => {
@@ -125,5 +126,28 @@ describe("utils.js — LocalDB", () => {
     LocalDB.set("k", "v1");
     LocalDB.set("k", "v2");
     expect(LocalDB.get("k")).toBe("v2");
+  });
+});
+
+describe("utils.js — mensagemErro()", () => {
+  test("preserva mensagens do servidor e do app", () => {
+    expect(mensagemErro(new Error("Estoque insuficiente."))).toBe(
+      "Estoque insuficiente.",
+    );
+    expect(mensagemErro("Já em português.")).toBe("Já em português.");
+  });
+
+  test.each([
+    new TypeError("Cannot read properties of undefined (reading 'id')"),
+    new SyntaxError("Unexpected token < in JSON at position 0"),
+    new DOMException("The transaction was aborted.", "AbortError"),
+  ])("exceção nativa em inglês vira a mensagem padrão: %s", (erro) => {
+    expect(mensagemErro(erro)).toBe("Erro inesperado. Tente novamente.");
+    expect(mensagemErro(erro, "Falha ao salvar.")).toBe("Falha ao salvar.");
+  });
+
+  test("valor sem mensagem usa o padrão", () => {
+    expect(mensagemErro(null)).toBe("Erro inesperado. Tente novamente.");
+    expect(mensagemErro({})).toBe("Erro inesperado. Tente novamente.");
   });
 });

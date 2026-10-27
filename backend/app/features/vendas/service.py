@@ -2,6 +2,8 @@
 
 Ordem global de locks: chave externa PostgreSQL → caixa → membro → produtos
 em ID crescente. A confirmação somente chega ao chamador após o commit.
+Combos entram na mesma ordem: o combo e todos os seus itens são bloqueados
+juntos, e o estoque baixado é sempre o dos itens.
 """
 import hashlib
 import json
@@ -15,10 +17,12 @@ from app.core.locks import bloquear_id_externo
 from app.models.membro import Membro
 from app.models.movimentacao_membro import MovimentacaoMembro
 from app.models.produto import Produto
-from app.models.venda import ItemVenda, Venda, OperacaoExcluida
+from app.models.venda import ItemVenda, ItemVendaComponente, Venda, OperacaoExcluida
+from app.features.produtos.combos import composicoes
 from app.features.vendas.schemas import PagamentoDividaPayload
 from app.features.vendas.schemas import VendaNormalPayload
 from app.features.caixa.service import bloquear_caixa_autorizado
+from app.core.schemas import valor_em_reais
 
 
 def _assinatura(dados, tipo: str) -> str:
@@ -46,11 +50,11 @@ def _confirmacao(venda: Venda, status='ok') -> dict:
     resposta = {
         'status': status, 'id_externo': venda.id_externo, 'venda_id': str(venda.id),
         'caixa_id': str(venda.caixa_id), 'usuario_id': str(venda.usuario_id),
-        'total_calculado': float(venda.valor_total),
+        'total_calculado': valor_em_reais(venda.valor_total),
         'mensagem': 'Operação confirmada.' if status == 'ok' else 'Operação já confirmada.',
     }
     if venda.tipo_venda == 'recebimento_divida':
-        resposta['valor_pago'] = float(venda.valor_total)
+        resposta['valor_pago'] = valor_em_reais(venda.valor_total)
     return resposta
 
 
@@ -86,21 +90,47 @@ def _quantidades_por_produto(itens) -> dict:
     return quantidades
 
 
-def _bloquear_produtos_disponiveis(db, quantidades: dict) -> dict:
-    """Bloqueia os produtos em ID crescente e valida existência, atividade e estoque na ordem enviada."""
-    produtos = db.query(Produto).filter(Produto.id.in_(quantidades)).order_by(
+def _demanda_estoque(quantidades: dict, receitas: dict) -> dict:
+    """Unidades de cada produto de estoque consumidas: avulsos somados aos itens dos combos."""
+    demanda = {}
+    for pid, qtd in quantidades.items():
+        for item_id, fator in receitas.get(pid, {pid: 1}).items():
+            demanda[item_id] = demanda.get(item_id, 0) + qtd * fator
+    return demanda
+
+
+def _bloquear_produtos_disponiveis(db, quantidades: dict) -> tuple[dict, dict]:
+    """Bloqueia vendidos e itens de combos em ID crescente; valida na ordem enviada.
+
+    A composição é lida antes (para saber o que bloquear) e relida depois do lock
+    do combo, que serializa com a edição de itens.
+    """
+    previstas = composicoes(db, quantidades)
+    ids = set(quantidades) | {item for receita in previstas.values() for item in receita}
+    produtos = db.query(Produto).filter(Produto.id.in_(ids)).order_by(
         Produto.id).populate_existing().with_for_update().all()
     por_id = {p.id: p for p in produtos}
-    for pid, qtd in quantidades.items():
+    receitas = composicoes(db, quantidades)
+    if any(item not in por_id for receita in receitas.values() for item in receita):
+        raise ApiError('COMBO_ALTERADO', 'Combo alterado durante a venda; tente novamente.', 409, retryable=True)
+    for pid in quantidades:
         produto = por_id.get(pid)
         if not produto:
             raise ApiError('PRODUTO_NAO_ENCONTRADO', 'Produto não encontrado.', 404, {'produto_id': pid})
         if not produto.ativo:
             raise ApiError('PRODUTO_INATIVO', 'Produto inativo.', 409, {'produto_id': pid})
+        if produto.tem_categoria_combo() and not receitas.get(pid):
+            raise ApiError('COMBO_SEM_ITENS', 'Combo sem itens cadastrados.', 409, {'produto_id': pid})
+        if not produto.tem_categoria_combo():
+            receitas.pop(pid, None)
+    for pid, qtd in _demanda_estoque(quantidades, receitas).items():
+        produto = por_id[pid]
+        if not produto.ativo:
+            raise ApiError('PRODUTO_INATIVO', f'Item do combo inativo: {produto.nome}.', 409, {'produto_id': pid})
         if produto.estoque_bar < qtd:
             raise ApiError('ESTOQUE_INSUFICIENTE', 'Estoque insuficiente.', 409,
                            {'produto_id': pid, 'disponivel': produto.estoque_bar, 'solicitado': qtd})
-    return por_id
+    return por_id, receitas
 
 
 def _precos_atuais(por_id: dict) -> dict:
@@ -110,7 +140,7 @@ def _precos_atuais(por_id: dict) -> dict:
 
 
 def _registrar_venda(db, dados: VendaNormalPayload, assinatura: str, tipo: str, membro, por_id: dict,
-                     precos: dict, total: Decimal) -> Venda:
+                     receitas: dict, precos: dict, total: Decimal) -> Venda:
     venda = Venda(id_externo=dados.id_externo, payload_hash=assinatura,
                   usuario_id=dados.usuario_id, caixa_id=dados.caixa_id,
                   membro_id=membro.id if membro else None, tipo_venda=tipo,
@@ -121,12 +151,14 @@ def _registrar_venda(db, dados: VendaNormalPayload, assinatura: str, tipo: str, 
     for item in dados.itens:
         db.add(ItemVenda(venda_id=venda.id, produto_id=item.id, nome_produto=por_id[item.id].nome,
                          quantidade=item.qtd, preco_unitario=precos[item.id],
-                         preco_total=precos[item.id] * item.qtd, observacoes=item.obs))
+                         preco_total=precos[item.id] * item.qtd, observacoes=item.obs,
+                         componentes=[ItemVendaComponente(produto_id=pid, quantidade=fator)
+                                      for pid, fator in sorted(receitas.get(item.id, {}).items())]))
     return venda
 
 
-def _baixar_estoque(por_id: dict, quantidades: dict) -> None:
-    for pid, qtd in quantidades.items():
+def _baixar_estoque(por_id: dict, demanda: dict) -> None:
+    for pid, qtd in demanda.items():
         por_id[pid].estoque_bar -= qtd
 
 
@@ -147,11 +179,11 @@ def _criar_venda(db: Session, dados: VendaNormalPayload) -> dict:
         bloquear_caixa_autorizado(db, dados.caixa_id, dados.usuario_id)
         membro = _bloquear_membro(db, dados.membro_id) if tipo == 'fiado' else None
         quantidades = _quantidades_por_produto(dados.itens)
-        por_id = _bloquear_produtos_disponiveis(db, quantidades)
+        por_id, receitas = _bloquear_produtos_disponiveis(db, quantidades)
         precos = _precos_atuais(por_id)
         total = sum((precos[pid] * qtd for pid, qtd in quantidades.items()), Decimal('0.00'))
-        venda = _registrar_venda(db, dados, assinatura, tipo, membro, por_id, precos, total)
-        _baixar_estoque(por_id, quantidades)
+        venda = _registrar_venda(db, dados, assinatura, tipo, membro, por_id, receitas, precos, total)
+        _baixar_estoque(por_id, _demanda_estoque(quantidades, receitas))
         if membro:
             _debitar_membro(db, membro, venda, dados.usuario_id, total)
         db.flush()
@@ -173,7 +205,7 @@ def registrar_pagamento_divida(db: Session, dados: PagamentoDividaPayload) -> di
         saldo = Decimal(membro.saldo_devedor)
         if saldo != dados.saldo_esperado:
             raise ApiError('SALDO_ALTERADO', 'Saldo mudou; atualize o extrato antes de confirmar.', 409,
-                           {'saldo_atual': float(saldo)})
+                           {'saldo_atual': valor_em_reais(saldo)})
         valor = dados.valor if dados.valor is not None else saldo
         if valor <= 0:
             raise ApiError('SEM_DIVIDA', 'Membro não possui dívida pendente.', 409)

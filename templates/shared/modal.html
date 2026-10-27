@@ -1,0 +1,46 @@
+{# Cabeçalho único dos modais do PDV e da administração; cores em static/css/shared/modal.css,
+   espaçamento pelas utilidades do Bootstrap.
+   arrastavel=True mantém .modal-drag-header (alça e gesto de bottom sheet no celular, shared/gestures.js).
+   fechar recebe os atributos do botão X: um id já ligado em JS, data-fechar-edicao ou
+   data-acionar="<id do Cancelar>", que repete o Cancelar do modal (pdv/app.js). Valores fixos do template. #}
+{% set ICONES_MODAL = {
+    'observacao': '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/>',
+    'dinheiro': '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/>',
+    'cartao': '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/>',
+    'caixa-aberto': '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>',
+    'caixa-fechado': '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+    'configuracao': '<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M2 14h4M10 8h4M18 16h4"/>',
+    'estoque': '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/>',
+    'membro': '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+    'conta': '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+    'relatorio': '<path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/>',
+    'extrato': '<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 17.5v-11"/>',
+    'saldo': '<path d="M12 3v18M7 21h10M3 7h18"/><path d="m6 7-3 7a3 3 0 0 0 6 0Z"/><path d="m18 7-3 7a3 3 0 0 0 6 0Z"/>',
+    'editar': '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"/>',
+} %}
+
+{% macro cabecalho_modal(titulo, icone, id_titulo, subtitulo='', id_subtitulo='', fechar='', arrastavel=True) -%}
+<header class="modal-cabecalho flex-shrink-0 px-3 px-md-4 pb-3 {% if arrastavel %}modal-drag-header pt-2 pt-md-3{% else %}pt-3{% endif %}">
+    {% if arrastavel %}<div class="drag-handle d-md-none mx-auto mb-2" aria-hidden="true"></div>{% endif %}
+    <div class="d-flex align-items-center gap-3">
+        <span class="modal-cabecalho-icone d-flex align-items-center justify-content-center flex-shrink-0" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                stroke-linejoin="round">{{ ICONES_MODAL[icone]|safe }}</svg>
+        </span>
+        <div class="modal-cabecalho-textos d-flex flex-column gap-1 flex-grow-1">
+            <h2 class="modal-cabecalho-titulo m-0" id="{{ id_titulo }}">{{ titulo }}</h2>
+            <p class="modal-cabecalho-subtitulo m-0"{% if id_subtitulo %} id="{{ id_subtitulo }}"{% endif %}>{{ subtitulo }}</p>
+        </div>
+        {% if fechar %}
+        <button type="button" class="modal-cabecalho-fechar d-flex align-items-center justify-content-center flex-shrink-0 p-0"
+            aria-label="Fechar" {{ fechar|safe }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                aria-hidden="true">
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+            </svg>
+        </button>
+        {% endif %}
+    </div>
+</header>
+{%- endmacro %}

@@ -6,7 +6,14 @@ import { administrarMovimento } from "./financeiro.js";
  */
 import { UIModal } from "../../shared/modals.js";
 import { BASE, authFetch } from "./requests.js";
-import { fecharModalAdmin, esc, toast, mostrarSkeleton } from "./ui.js";
+import {
+  fecharModalAdmin,
+  esc,
+  toast,
+  mostrarEsqueleto,
+  CLASSES_TABELA as T,
+  badgeStatus,
+} from "./ui.js";
 import { criarConsultaExtrato } from "../../shared/extrato-membro.js";
 import { API } from "../../shared/api.js";
 
@@ -28,7 +35,7 @@ export function atualizarExtratoAberto() {
 }
 
 export async function carregarMembros() {
-  mostrarSkeleton("tabelaMembros", 4);
+  mostrarEsqueleto("tabelaMembros");
   const resposta = await authFetch(`${BASE}/api/admin/membros`);
   if (!resposta) return;
   const dadosResposta = await resposta.json();
@@ -38,25 +45,29 @@ export async function carregarMembros() {
   membros = (dadosResposta.membros || []).filter(
     (membro) => incluirInativos || membro.ativo,
   );
-  renderMembros();
+  renderizarMembros();
 }
 
-export function renderMembros() {
+export function renderizarMembros() {
   const corpoTabela = document.getElementById("tabelaMembros");
   corpoTabela.innerHTML = "";
   membros.forEach((membro) => {
     const linhaMembro = document.createElement("tr");
-    if (!membro.ativo) linhaMembro.classList.add("row-inactive");
-    const classeSaldo = membro.saldo_devedor > 0 ? "saldo-devedor" : "saldo-ok";
+    linhaMembro.className = T.linha;
+    if (!membro.ativo) linhaMembro.classList.add("opacity-50");
+    const classeSaldo =
+      membro.saldo_devedor > 0
+        ? "text-danger fw-bold"
+        : "text-success fw-semibold";
     linhaMembro.innerHTML = `
-            <td data-label="Nome"><input value="${esc(membro.nome)}" data-mid="${membro.id}" data-campo="nome"></td>
-            <td class="${classeSaldo}" data-label="Saldo Devedor">R$ ${membro.saldo_devedor.toFixed(2)}</td>
-            <td class="col-status" data-label="Status">${membro.ativo ? '<span class="badge badge-active">Ativo</span>' : '<span class="badge badge-inactive">Inativo</span>'}</td>
-            <td data-label="Ações"><div class="btn-group">
-                <button class="btn btn-save btn-sm" data-action="salvar-membro" data-id="${membro.id}">Salvar</button>
-                <button class="btn btn-sm" data-action="ver-extrato" data-id="${membro.id}" data-nome="${esc(membro.nome)}">Extrato</button>
-                <button class="btn btn-warn btn-sm" data-action="ajuste-saldo" data-id="${membro.id}" data-nome="${esc(membro.nome)}">Ajuste</button>
-                <button class="btn btn-del btn-sm" data-action="excluir-membro" data-id="${membro.id}" data-nome="${esc(membro.nome)}">Excluir</button> ${!membro.ativo ? `<button class="btn btn-reativar btn-sm" data-action="reativar-membro" data-id="${membro.id}">Reativar</button>` : ""}
+            <td class="${T.celula}" data-label="Nome"><input class="${T.campo}" value="${esc(membro.nome)}" data-mid="${membro.id}" data-campo="nome" aria-label="Nome"></td>
+            <td class="${T.celula} ${classeSaldo}" data-label="Saldo Devedor">R$ ${membro.saldo_devedor.toFixed(2)}</td>
+            <td class="${T.celulaStatus}" data-label="Status">${badgeStatus(membro.ativo)}</td>
+            <td class="${T.celulaAcoes}"><div class="${T.acoes}">
+                <button class="btn btn-escuro flex-fill" data-action="salvar-membro" data-id="${membro.id}">Salvar</button>
+                <button class="btn btn-escuro flex-fill" data-action="ver-extrato" data-id="${membro.id}" data-nome="${esc(membro.nome)}">Extrato</button>
+                <button class="btn btn-escuro flex-fill" data-action="ajuste-saldo" data-id="${membro.id}" data-nome="${esc(membro.nome)}">Ajuste</button>
+                <button class="btn btn-excluir flex-fill" data-action="excluir-membro" data-id="${membro.id}" data-nome="${esc(membro.nome)}">Excluir</button> ${!membro.ativo ? `<button class="btn btn-escuro flex-fill" data-action="reativar-membro" data-id="${membro.id}">Reativar</button>` : ""}
             </div></td>`;
     prepararEdicao(linhaMembro);
     corpoTabela.appendChild(linhaMembro);
@@ -129,7 +140,7 @@ export async function reativarMembro(id) {
 }
 
 export async function verExtrato(id, nome) {
-  document.getElementById("extrato-titulo").textContent = `Extrato — ${nome}`;
+  document.getElementById("extrato-membro-nome").textContent = nome;
   document.getElementById("modalExtrato").classList.remove("d-none");
   document.getElementById("modalExtrato").classList.remove("closing");
   document.body.classList.add("modal-open");

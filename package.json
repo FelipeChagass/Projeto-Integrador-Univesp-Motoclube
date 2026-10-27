@@ -6,7 +6,9 @@
   "scripts": {
     "format": "prettier --write \"**/*.{js,mjs,cjs}\"",
     "format:check": "prettier --check \"**/*.{js,mjs,cjs}\"",
-    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --verbose"
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --verbose",
+    "arquitetura:limites": "node scripts/arquitetura.mjs --gravar",
+    "arquitetura": "node scripts/arquitetura.mjs"
   },
   "repository": {
     "type": "git",
@@ -25,7 +27,10 @@
     "setupFiles": [
       "<rootDir>/tests/setup.js"
     ],
-    "transform": {}
+    "transform": {},
+    "roots": [
+      "<rootDir>/tests"
+    ]
   },
   "devDependencies": {
     "@jest/globals": "^30.3.0",
@@ -33,6 +38,6 @@
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
     "jest-location-mock": "^3.0.0",
-    "prettier": "3.9.10"
+    "prettier": "^3.9.10"
   }
 }

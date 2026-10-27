@@ -9,11 +9,11 @@ export function prepararEdicao(linha) {
   botaoSalvar.classList.add("d-none");
   const botaoEditar = document.createElement("button");
   botaoEditar.type = "button";
-  botaoEditar.className = "btn btn-sm";
+  botaoEditar.className = "btn btn-escuro flex-fill";
   botaoEditar.textContent = "Editar";
   const botaoCancelar = document.createElement("button");
   botaoCancelar.type = "button";
-  botaoCancelar.className = "btn btn-sm d-none";
+  botaoCancelar.className = "btn btn-escuro flex-fill d-none";
   botaoCancelar.textContent = "Cancelar";
   let valoresOriginais;
   const alternar = (edicaoAtiva) => {

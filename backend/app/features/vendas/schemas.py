@@ -14,9 +14,12 @@ def normalizar_metodo(valor: str) -> str:
         'cartao_debito': 'cartao_debito', 'cartao_credito': 'cartao_credito',
         'cartão - débito': 'cartao_debito', 'cartao - debito': 'cartao_debito',
         'cartão - crédito': 'cartao_credito', 'cartao - credito': 'cartao_credito',
-        'cartao': 'cartao_debito',
     }
-    resultado = mapa.get(valor.strip().lower())
+    chave = valor.strip().lower()
+    # "Cartão" sozinho não diz se é débito ou crédito; registrar como débito distorceria o caixa.
+    if chave in ('cartao', 'cartão'):
+        raise ValueError('Informe se o cartão é de débito ou de crédito.')
+    resultado = mapa.get(chave)
     if not resultado:
         raise ValueError('Método de pagamento inválido.')
     return resultado

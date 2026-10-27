@@ -7,6 +7,32 @@ export function esc(texto) {
     .replace(/>/g, "&gt;");
 }
 
+const ERROS_NATIVOS = [
+  "TypeError",
+  "ReferenceError",
+  "SyntaxError",
+  "RangeError",
+  "EvalError",
+  "URIError",
+];
+
+/**
+ * Texto de erro seguro para a tela. Mensagens do servidor e do próprio app já
+ * estão em português; exceções nativas do navegador (TypeError, DOMException...)
+ * vêm em inglês e não ajudam o operador, então viram a mensagem padrão.
+ */
+export function mensagemErro(
+  erro,
+  padrao = "Erro inesperado. Tente novamente.",
+) {
+  if (typeof erro === "string") return erro || padrao;
+  if (!erro || !erro.message) return padrao;
+  const nativo =
+    ERROS_NATIVOS.includes(erro.name) ||
+    (typeof DOMException !== "undefined" && erro instanceof DOMException);
+  return nativo ? padrao : erro.message;
+}
+
 export function sanitizeUrl(url) {
   if (!url) return "https://placehold.co/150x150/333/FFF?text=Foto";
   try {

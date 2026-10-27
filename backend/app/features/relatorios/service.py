@@ -3,13 +3,15 @@ from datetime import date, datetime, time, timedelta, timezone
 from decimal import Decimal
 from uuid import UUID
 
-from sqlalchemy import func
+from sqlalchemy import case, func
 from sqlalchemy.orm import selectinload
 
 from app.core.errors import ApiError
 from app.core.tempo import FUSO
 from app.models.caixa import Caixa
+from app.models.produto import Produto
 from app.models.venda import Venda, ItemVenda
+from app.core.schemas import valor_em_reais
 
 
 def _intervalo(tipo, dados, agora):
@@ -107,10 +109,20 @@ def _abertura(db, caixa, inicio, fim, operador, admin):
 
 
 def _produtos_vendidos(db, filtros):
-    produtos = db.query(ItemVenda.nome_produto, func.sum(ItemVenda.quantidade)).join(
-        Venda, Venda.id == ItemVenda.venda_id).filter(*filtros, Venda.tipo_venda.in_(['normal', 'fiado'])).group_by(
-            ItemVenda.nome_produto).all()
-    return {nome: int(qtd) for nome, qtd in produtos}
+    """Quantidade por produto (ID), rotulada com o nome atual: renomear não divide as vendas.
+
+    Itens sem produto (histórico de produto excluído) agrupam pelo nome gravado na venda.
+    Rótulos repetidos recebem o ID para não somar produtos diferentes.
+    """
+    nome_avulso = case((ItemVenda.produto_id.is_(None), ItemVenda.nome_produto), else_=None)
+    linhas = db.query(ItemVenda.produto_id, func.coalesce(func.max(Produto.nome), func.max(ItemVenda.nome_produto)),
+                      func.sum(ItemVenda.quantidade)).join(Venda, Venda.id == ItemVenda.venda_id).outerjoin(
+        Produto, Produto.id == ItemVenda.produto_id).filter(
+        *filtros, Venda.tipo_venda.in_(['normal', 'fiado'])).group_by(ItemVenda.produto_id, nome_avulso).all()
+    rotulados = [(rotulo, produto_id, int(qtd)) for produto_id, rotulo, qtd in linhas]
+    repetidos = {rotulo for rotulo, *_ in rotulados if sum(r == rotulo for r, *_ in rotulados) > 1}
+    return {(f'{rotulo} (#{produto_id})' if rotulo in repetidos and produto_id else rotulo): qtd
+            for rotulo, produto_id, qtd in sorted(rotulados, key=lambda linha: linha[0].lower())}
 
 
 def _linha_historico(venda):
@@ -119,7 +131,7 @@ def _linha_historico(venda):
                  ', '.join(f'{i.quantidade}x {i.nome_produto}' for i in venda.itens))
     return {
         'id': str(venda.id), 'hora': venda.criado_em.astimezone(FUSO).strftime('%d/%m %H:%M'),
-        'descricao': descricao, 'valor': float(venda.valor_total),
+        'descricao': descricao, 'valor': valor_em_reais(venda.valor_total),
         'metodo': venda.metodo_pagamento.upper(),
         'tipo': 'RECEBIMENTO' if recebimento else ('FIADO' if venda.tipo_venda == 'fiado' else 'VENDA'),
     }
@@ -145,7 +157,7 @@ def gerar_relatorio(db, tipo, dados_filtro):
     produtos = _produtos_vendidos(db, filtros)
     historico, tem_mais = _historico(db, filtros, limite, offset)
     return {
-        'status': 'ok', **{k: float(v) for k, v in totais.items()}, 'periodo': periodo,
+        'status': 'ok', **{k: valor_em_reais(v) for k, v in totais.items()}, 'periodo': periodo,
         'produtosVendidos': produtos,
         'historico': historico, 'historico_truncado': tem_mais or offset > 0,
         'paginacao': {'limite': limite, 'offset': offset, 'tem_mais': tem_mais},

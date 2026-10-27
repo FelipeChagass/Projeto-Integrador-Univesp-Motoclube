@@ -6,5 +6,7 @@ from .membro import Membro
 from .movimentacao_membro import MovimentacaoMembro
 from .produto import Produto
 from .ajuste_estoque import AjusteEstoque
-from .venda import Venda, ItemVenda
+from .combo import ComboItem
+from .venda import Venda, ItemVenda, ItemVendaComponente
 from .caixa import Caixa
+from .tentativa_senha import TentativaSenhaEstoque

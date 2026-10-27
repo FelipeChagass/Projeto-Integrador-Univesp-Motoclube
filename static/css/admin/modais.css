@@ -1,0 +1,127 @@
+/* admin: modais (sistema .modal-overlay, até a fase 4 do plano) e toast.
+ * Ligado em templates/admin.html; os ajustes de celular ficam em modais-celular.css.
+ * Campos, botões, tabela, resumo e alerta do editor de venda são componentes do Bootstrap
+ * (financeiro.js); aqui só a camada do overlay, tamanhos e o desenho do cabeçalho de itens.
+ */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Camada de modal do Bootstrap: acima do cabeçalho sticky-top (1020) e do offcanvas. */
+    z-index: var(--bs-modal-zindex, 1055);
+}
+
+.modal-content {
+    background: var(--card-bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-lg {
+    max-width: 700px;
+}
+
+/* Editor de venda com itens: cabeçalho e rodapé fixos, só os campos rolam. */
+.modal-content.edicao-venda {
+    width: min(1040px, calc(100% - 32px));
+    max-width: 1040px;
+    max-height: 92vh;
+    overflow: hidden;
+}
+
+/* ─── Itens da venda ─── */
+.edicao-itens-cabecalho {
+    border-bottom-color: var(--header-border);
+}
+
+.edicao-itens-icone {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+    color: var(--accent-readable);
+}
+
+.edicao-itens-icone svg {
+    width: 20px;
+    height: 20px;
+}
+
+.edicao-itens-contagem {
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    color: var(--accent-readable);
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.edicao-itens-contagem:empty {
+    display: none;
+}
+
+/* Células mais baixas que as das tabelas do painel: a tabela vive dentro de um modal. */
+.tabela-itens-venda {
+    --bs-table-cell-padding-x: 1rem;
+    --bs-table-cell-padding-y: 0.75rem;
+}
+
+.edicao-item-quantidade {
+    width: 9.5rem;
+}
+
+.edicao-item-preco {
+    width: 8rem;
+}
+
+.edicao-item-quantidade .form-control,
+.edicao-item-preco,
+.edicao-item-subtotal {
+    font-variant-numeric: tabular-nums;
+}
+
+.edicao-item-venda.removido .edicao-item-produto strong {
+    text-decoration: line-through;
+}
+
+.edicao-resumo-total {
+    color: var(--accent-readable);
+}
+
+.toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    padding: 0.8rem 1.4rem;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 500;
+    font-size: 0.88rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    /* Acima dos modais (camada de toast do Bootstrap). */
+    z-index: var(--bs-toast-zindex, 1090);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.ok {
+    background: color-mix(in srgb, var(--success) 55%, #000);
+}
+
+.toast.err {
+    background: color-mix(in srgb, var(--danger) 65%, #000);
+}

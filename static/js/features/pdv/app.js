@@ -13,6 +13,7 @@ import {
   selecionarCategoria,
   atualizarEstadoBotoes,
   initBottomSheetGestures,
+  mostrarCarregamento,
 } from "./ui.js";
 import {
   adicionarAoCarrinho,
@@ -37,7 +38,7 @@ import {
   abrirConfig,
   salvarConfig,
   processarFilaVendas,
-  sincronizarProdutosBackground,
+  sincronizarProdutosEmSegundoPlano,
   abrirReconciliacao,
 } from "./actions.js";
 import {
@@ -57,7 +58,7 @@ function closeSidebar() {
 
 function realizarLogout() {
   UIModal.confirm("Tem certeza que deseja sair?", () => {
-    document.getElementById("loading").style.display = "flex";
+    mostrarCarregamento(true);
     API.logout()
       .then(() => window.location.replace("/login"))
       .catch(() => window.location.replace("/login"));
@@ -65,6 +66,13 @@ function realizarLogout() {
 }
 
 /* ─── Global Listeners ─── */
+
+// O X do cabeçalho repete o Cancelar do modal, com a mesma limpeza de estado.
+document.addEventListener("click", (eventoClique) => {
+  const botaoAcionador = eventoClique.target.closest("[data-acionar]");
+  if (botaoAcionador)
+    document.getElementById(botaoAcionador.dataset.acionar)?.click();
+});
 
 document.addEventListener("keydown", (eventoTeclado) => {
   if (eventoTeclado.key !== "Escape") return;
@@ -330,7 +338,7 @@ document
   )
     return;
 
-  function atualizarBadge() {
+  function atualizarIndicador() {
     let quantidadeItens = 0;
     try {
       if (Array.isArray(estadoPdv.carrinho)) {
@@ -349,18 +357,12 @@ document
       quantidadeItens = 0;
     }
     indicadorQuantidadeCarrinho.textContent = quantidadeItens;
-    if (quantidadeItens > 0) {
-      indicadorQuantidadeCarrinho.classList.add("show");
-      indicadorQuantidadeCarrinho.style.display = "";
-    } else {
-      indicadorQuantidadeCarrinho.classList.remove("show");
-      indicadorQuantidadeCarrinho.style.display = "";
-    }
+    indicadorQuantidadeCarrinho.classList.toggle("show", quantidadeItens > 0);
   }
 
-  const observadorCarrinho = new MutationObserver(atualizarBadge);
+  const observadorCarrinho = new MutationObserver(atualizarIndicador);
   observadorCarrinho.observe(listaCarrinho, { childList: true, subtree: true });
-  atualizarBadge();
+  atualizarIndicador();
 
   botaoAlternarCarrinho.addEventListener("click", () => {
     secaoCarrinho.classList.toggle("mobile-aberto");
@@ -386,7 +388,6 @@ async function iniciarSistema() {
     console.error("Erro init local", erroInicializacaoLocal);
   }
 
-  const indicadorCarregamento = document.getElementById("loading");
   API._initSupabase()
     .then((clienteSupabase) => {
       if (!clienteSupabase) {
@@ -443,11 +444,11 @@ async function iniciarSistema() {
       renderizarCatalogo();
       atualizarEstadoBotoes();
       processarFilaVendas();
-      if (indicadorCarregamento) indicadorCarregamento.style.display = "none";
+      mostrarCarregamento(false);
     })
     .catch((erroInicializacao) => {
       console.error("Falha na inicialização:", erroInicializacao);
-      if (indicadorCarregamento) indicadorCarregamento.style.display = "none";
+      mostrarCarregamento(false);
       if (estadoPdv.operadorAtual) {
         renderizarCatalogo();
         atualizarEstadoBotoes();
@@ -463,10 +464,10 @@ async function iniciarSistema() {
   setInterval(() => {
     if (!document.hidden) processarFilaVendas();
   }, 10000);
-  setInterval(sincronizarProdutosBackground, 60000);
+  setInterval(sincronizarProdutosEmSegundoPlano, 60000);
   window.addEventListener("online", () => {
     processarFilaVendas();
-    sincronizarProdutosBackground();
+    sincronizarProdutosEmSegundoPlano();
   });
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) processarFilaVendas();

@@ -4,6 +4,7 @@
  */
 import { API } from "../../shared/api.js";
 import { toast } from "./ui.js";
+import { mensagemErro } from "../../shared/utils.js";
 
 export const BASE = "";
 
@@ -16,7 +17,7 @@ export async function authFetch(url, opcoes = {}) {
     );
     return { json: async () => dadosResposta };
   } catch (erro) {
-    toast(erro.message || "Operação não concluída.", false);
+    toast(mensagemErro(erro, "Operação não concluída."), false);
     // Every caller checks this sentinel before committing a UI success state.
     return null;
   }

@@ -26,7 +26,7 @@ export {
   verificarDividaSelecionada,
   abrirModalMembros,
   buscarMembrosFrescos,
-  popularSelectMembros,
+  popularSeletorMembros,
   confirmarSelecaoMembro,
   fecharModalSelecaoMembro,
   carregarDadosFechamento,
@@ -42,5 +42,5 @@ export {
 export {
   processarFilaVendas,
   abrirReconciliacao,
-  sincronizarProdutosBackground,
+  sincronizarProdutosEmSegundoPlano,
 } from "./actions/sincronizacao.js";

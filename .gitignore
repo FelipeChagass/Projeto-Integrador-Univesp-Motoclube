@@ -13,3 +13,5 @@ coverage/
 .test-tools/
 .test-pgdata/
 .test-logs/
+.claude/
+skills-lock.json

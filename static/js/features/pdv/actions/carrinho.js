@@ -8,8 +8,9 @@ import {
   fecharModal,
   abrirModal,
   atualizarUI,
-  getQtdCarrinho,
+  obterDisponivelBar,
 } from "../ui.js";
+import { temCategoriaCombo } from "../../../shared/combos.js";
 
 /* ─── Cart ─── */
 
@@ -23,10 +24,12 @@ export function adicionarAoCarrinho(
     (produto) => produto.id == produtoId && produto.nome == nomeProduto,
   );
   if (!produtoEncontrado) return;
-  const limiteEstoqueBar = Number(produtoEncontrado.estoque_bar);
-  const quantidadeNoCarrinho = getQtdCarrinho(produtoId);
-  if (quantidadeNoCarrinho + 1 > limiteEstoqueBar)
-    return showToast("Estoque do Bar insuficiente!");
+  if (obterDisponivelBar(produtoEncontrado) < 1)
+    return showToast(
+      temCategoriaCombo(produtoEncontrado)
+        ? "Itens do combo insuficientes no Bar!"
+        : "Estoque do Bar insuficiente!",
+    );
   const itemExistente = estadoPdv.carrinho.find(
     (itemCarrinho) =>
       itemCarrinho.id == produtoId &&
@@ -53,10 +56,7 @@ export function incrementarQtd(indiceItem) {
     (produto) =>
       produto.id == itemCarrinho.id && produto.nome == itemCarrinho.nome,
   );
-  const limiteEstoqueBar = produtoEncontrado
-    ? Number(produtoEncontrado.estoque_bar)
-    : 0;
-  if (getQtdCarrinho(itemCarrinho.id) + 1 > limiteEstoqueBar)
+  if (!produtoEncontrado || obterDisponivelBar(produtoEncontrado) < 1)
     return showToast("Limite do Bar atingido!");
   itemCarrinho.qtd++;
   atualizarUI();
@@ -106,8 +106,20 @@ export function cliqueProduto(produto, estoqueBarZerado) {
   const categoriaProduto = String(produto.categoria || "")
     .trim()
     .toUpperCase();
-  const produtoComida = categoriaProduto === "COMIDA";
+  // Combo com comida também passa pela cozinha e aceita observação.
+  const produtoComida =
+    categoriaProduto === "COMIDA" ||
+    (temCategoriaCombo(produto) &&
+      (produto.itens_combo || []).some(
+        (itemCombo) =>
+          String(itemCombo.categoria || "").toUpperCase() === "COMIDA",
+      ));
 
+  if (estadoPdv.modoGerenciaEstoque && temCategoriaCombo(produto)) {
+    return showToast(
+      "Combo usa o estoque dos itens. Ajuste cada item no modo estoque.",
+    );
+  }
   if (estadoPdv.modoGerenciaEstoque) {
     estadoPdv.produtoEdicao = produto;
     estadoPdv.estoqueOriginalBar = Number(produto.estoque_bar);

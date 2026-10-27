@@ -11,6 +11,7 @@ from sqlalchemy import case, func
 
 from app.core.tempo import FUSO
 from app.models.movimentacao_membro import MovimentacaoMembro as Movimento
+from app.core.schemas import valor_em_reais
 
 
 AVISO_HISTORICO = ('O histórico não corresponde ao saldo atual. Não é possível atribuir quitação aos '
@@ -63,20 +64,20 @@ def _resumo(db, base, aberto, filtros):
 
 def _situacao(m, valor_aberto):
     if valor_aberto is not None:
-        return 'quitado' if valor_aberto == 0 else 'parcial' if valor_aberto < float(m.valor) else 'em_aberto'
+        return 'quitado' if valor_aberto == 0 else 'parcial' if valor_aberto < valor_em_reais(m.valor) else 'em_aberto'
     if m.tipo_movimentacao == 'credito':
         return 'pagamento' if m.origem == 'pagamento' else 'credito'
     return 'nao_identificado'
 
 
 def _item(m, confiavel):
-    valor_aberto = float(m.aberto) if confiavel and m.tipo_movimentacao == 'debito' else None
+    valor_aberto = valor_em_reais(m.aberto) if confiavel and m.tipo_movimentacao == 'debito' else None
     return {
         'id': str(m.id), 'data': m.criado_em.astimezone(FUSO).strftime('%d/%m/%Y %H:%M'),
         'tipo': m.tipo_movimentacao, 'origem': m.origem, 'descricao': m.descricao or '',
-        'valor': float(m.valor), 'versao': m.versao, 'venda_id': str(m.venda_id) if m.venda_id else None,
+        'valor': valor_em_reais(m.valor), 'versao': m.versao, 'venda_id': str(m.venda_id) if m.venda_id else None,
         'valor_aberto': valor_aberto,
-        'valor_abatido': float(m.valor) - valor_aberto if valor_aberto is not None else None,
+        'valor_abatido': valor_em_reais(m.valor) - valor_aberto if valor_aberto is not None else None,
         'situacao': _situacao(m, valor_aberto),
     }
 
@@ -90,14 +91,14 @@ def consultar_extrato(db, membro, filtro):
         base.c.criado_em.desc(), base.c.id.desc()).offset(filtro.offset).limit(filtro.limite + 1).all()
     return {
         'membro': membro.to_dict(), 'itens': [_item(m, confiavel) for m in linhas[:filtro.limite]],
-        'total': float(membro.saldo_devedor),
+        'total': valor_em_reais(membro.saldo_devedor),
         'periodo': {'inicio': filtro.data_inicio.isoformat() if filtro.data_inicio else None,
                     'fim': filtro.data_fim.isoformat() if filtro.data_fim else None},
-        'resumo': {'total_periodo': float(resumo[0]), 'total_pago_periodo': float(resumo[1]),
-                   'total_creditos_ajuste_periodo': float(resumo[2]),
-                   'total_aberto_periodo': float(resumo[3]) if confiavel else None,
-                   'total_abatido_periodo': float(resumo[0] - resumo[3]) if confiavel else None,
-                   'divida_total_atual': float(membro.saldo_devedor)},
+        'resumo': {'total_periodo': valor_em_reais(resumo[0]), 'total_pago_periodo': valor_em_reais(resumo[1]),
+                   'total_creditos_ajuste_periodo': valor_em_reais(resumo[2]),
+                   'total_aberto_periodo': valor_em_reais(resumo[3]) if confiavel else None,
+                   'total_abatido_periodo': valor_em_reais(resumo[0] - resumo[3]) if confiavel else None,
+                   'divida_total_atual': valor_em_reais(membro.saldo_devedor)},
         'criterio_quitacao': 'fifo_informativo',
         'aviso': None if confiavel else AVISO_HISTORICO,
         'paginacao': {'limite': filtro.limite, 'offset': filtro.offset,

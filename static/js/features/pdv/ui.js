@@ -7,6 +7,12 @@ import {
   formatCurrency,
   LocalDB,
 } from "../../shared/utils.js";
+import {
+  temCategoriaCombo,
+  disponivelNoBar,
+  precoAvulso,
+  descricaoCombo,
+} from "../../shared/combos.js";
 
 function viewportIsMobile() {
   return (
@@ -14,6 +20,14 @@ function viewportIsMobile() {
     typeof window.matchMedia === "function" &&
     window.matchMedia("(max-width: 768px)").matches
   );
+}
+
+/** Cobre a tela durante operações longas; a visibilidade é só classe do Bootstrap. */
+export function mostrarCarregamento(visivel) {
+  const carregamento = document.getElementById("loading");
+  if (!carregamento) return;
+  carregamento.classList.toggle("d-flex", visivel);
+  carregamento.classList.toggle("d-none", !visivel);
 }
 
 export function showToast(mensagem, tipoMensagem) {
@@ -111,11 +125,11 @@ export function atualizarEstadoBotoes() {
     if (estadoPdv.caixaAberto) {
       barraOperador.innerText += " (CAIXA ABERTO)";
       barraOperador.classList.add("status-aberto");
-      barraOperador.classList.remove("status-fechado");
+      barraOperador.classList.remove("status-fechado", "text-body-secondary");
     } else {
       barraOperador.innerText += " (CAIXA FECHADO)";
       barraOperador.classList.add("status-fechado");
-      barraOperador.classList.remove("status-aberto");
+      barraOperador.classList.remove("status-aberto", "text-body-secondary");
     }
     if (estadoPdv.usuarioAtual && estadoPdv.usuarioAtual.perfil === "admin") {
       if (botaoAdministracao) botaoAdministracao.classList.remove("d-none");
@@ -131,8 +145,8 @@ export function atualizarEstadoBotoes() {
     if (botaoAdministracaoLateral)
       botaoAdministracaoLateral.classList.add("d-none");
     barraOperador.innerText = "SISTEMA BLOQUEADO - Clique para Entrar";
-    barraOperador.style.color = "#ccc";
-    barraOperador.style.backgroundColor = "rgba(0,0,0,0.35)";
+    barraOperador.classList.add("text-body-secondary");
+    barraOperador.classList.remove("status-aberto", "status-fechado");
   }
 }
 
@@ -163,25 +177,62 @@ export function sincronizarTextoModoEstoque() {
   }
 }
 
-export function getEstoqueBar(produtoId) {
+export function obterEstoqueBar(produtoId) {
   const produtoEncontrado = estadoPdv.produtos.find(
     (produto) => produto.id == produtoId,
   );
   return produtoEncontrado ? Number(produtoEncontrado.estoque_bar) : 0;
 }
 
-export function getQtdCarrinho(produtoId) {
-  let quantidadeTotal = 0;
-  if (Array.isArray(estadoPdv.carrinho)) {
-    estadoPdv.carrinho.forEach((itemCarrinho) => {
-      if (itemCarrinho.id == produtoId) quantidadeTotal += itemCarrinho.qtd;
-    });
-  }
-  return quantidadeTotal;
+/** Unidades que ainda podem entrar no carrinho; combos e avulsos dividem o estoque dos itens. */
+export function obterDisponivelBar(produto) {
+  return disponivelNoBar(produto, estadoPdv.produtos, estadoPdv.carrinho);
+}
+
+function htmlCartaoCombo(produto, disponivel, comboZerado) {
+  const urlImagem = sanitizeUrl(produto.url_imagem);
+  const itensCombo = produto.itens_combo || [];
+  const precoCombo = Number(produto.preco_atual) || 0;
+  const avulso = precoAvulso(itensCombo, estadoPdv.produtos);
+  const composicaoHtml = itensCombo
+    .map(
+      (itemCombo) =>
+        `<li><b>${Number(itemCombo.quantidade)}×</b> ${esc(itemCombo.nome)}</li>`,
+    )
+    .join("");
+  const vitrineHtml = produto.url_imagem
+    ? `<img src="${esc(urlImagem)}" alt="" onerror="this.remove()">`
+    : `<ul class="combo-composicao d-flex flex-column justify-content-center gap-1 h-100 m-0 pt-4 px-2 pb-2 list-unstyled text-start">${composicaoHtml}</ul>`;
+  const legendaHtml = produto.url_imagem
+    ? `<div class="combo-itens mb-1">${esc(descricaoCombo(itensCombo))}</div>`
+    : "";
+  const avulsoHtml =
+    avulso > precoCombo
+      ? `<s class="combo-avulso d-block" aria-label="Preço dos itens avulsos">${formatCurrency(avulso)}</s>`
+      : "";
+  const zeradoHtml =
+    comboZerado && !estadoPdv.modoGerenciaEstoque
+      ? '<div class="overlay-esgotado-bar"><span class="icon-lock"></span>ITENS EM<br>FALTA</div>'
+      : "";
+  return `
+            <div class="img-container combo-vitrine">
+                <span class="combo-selo px-2 py-1">Combo</span>
+                ${vitrineHtml}
+                ${zeradoHtml}
+            </div>
+            <div class="card-info d-flex flex-column justify-content-between text-center">
+                <div class="card-name">${esc(produto.nome)}</div>
+                ${legendaHtml}
+                <div class="card-price">${formatCurrency(precoCombo)} ${avulsoHtml}</div>
+                <div class="card-stock combo-stock justify-content-center">
+                    <span>Monta no bar: <b>${disponivel}</b></span>
+                </div>
+            </div>`;
 }
 
 export function selecionarCategoria(categoria) {
-  if (!["todos", "bebida", "comida", "outro"].includes(categoria)) return;
+  if (!["todos", "bebida", "comida", "combo", "outro"].includes(categoria))
+    return;
   estadoPdv.categoriaCatalogo = categoria;
   renderizarCatalogo();
 }
@@ -215,7 +266,7 @@ export function renderizarCatalogo() {
       .toLowerCase();
     if (estadoPdv.categoriaCatalogo === "todos") return true;
     if (estadoPdv.categoriaCatalogo === "outro")
-      return !["bebida", "comida"].includes(categoria);
+      return !["bebida", "comida", "combo"].includes(categoria);
     return categoria === estadoPdv.categoriaCatalogo;
   });
   if (!produtosFiltrados.length) {
@@ -225,9 +276,20 @@ export function renderizarCatalogo() {
   }
   const fragmentoProdutos = document.createDocumentFragment();
   produtosFiltrados.forEach((produto) => {
-    const estoqueBarTotal = Number(produto.estoque_bar) || 0;
-    const quantidadeNoCarrinho = getQtdCarrinho(produto.id);
-    const estoqueBarDisponivel = estoqueBarTotal - quantidadeNoCarrinho;
+    const estoqueBarDisponivel = obterDisponivelBar(produto);
+    if (temCategoriaCombo(produto)) {
+      const cartaoCombo = document.createElement("div");
+      cartaoCombo.className = "card card-combo";
+      cartaoCombo.dataset.produtoId = produto.id;
+      cartaoCombo.dataset.barZerado = estoqueBarDisponivel <= 0;
+      cartaoCombo.innerHTML = htmlCartaoCombo(
+        produto,
+        estoqueBarDisponivel,
+        estoqueBarDisponivel <= 0,
+      );
+      fragmentoProdutos.appendChild(cartaoCombo);
+      return;
+    }
     const estoqueDeposito = Number(produto.estoque_deposito) || 0;
     const estoqueMinimoBar = Number(produto.estoque_min_bar) || 0;
     const estoqueMinimoDeposito = Number(produto.estoque_min_deposito) || 0;
@@ -286,12 +348,18 @@ export function atualizarUI() {
       const observacaoHtml = itemCarrinho.obs
         ? `<div class="item-obs">${esc(itemCarrinho.obs)}</div>`
         : "";
+      const produtoCarrinho = estadoPdv.produtos.find(
+        (produto) => produto.id == itemCarrinho.id,
+      );
+      const composicaoHtml = temCategoriaCombo(produtoCarrinho)
+        ? `<div class="item-combo">${esc(descricaoCombo(produtoCarrinho.itens_combo))}</div>`
+        : "";
       const elementoItemCarrinho = document.createElement("div");
       elementoItemCarrinho.className = "item-carrinho";
       elementoItemCarrinho.innerHTML = `
                 <div class="item-detalhes">
                     <div class="item-nome">${esc(itemCarrinho.nome)}</div>
-                    ${observacaoHtml}
+                    ${composicaoHtml}${observacaoHtml}
                 </div>
                 <div class="item-qty-controls">
                     <button class="btn-qty" data-action="decrement" data-idx="${indiceItem}">-</button>

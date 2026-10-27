@@ -1,86 +1,98 @@
 {# Relatórios e fechamento de caixa; cálculos/exibição em pdv/reports.js.
    Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
+{% from 'shared/modal.html' import cabecalho_modal %}
     <div id="modal-relatorios" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-drag-header">
-                <div class="drag-handle"></div>
-                <h3>Gestão de Caixa</h3>
-            </div>
-            <div class="modal-scroll-body">
-                <div class="section-header">
-                    <svg class="section-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <circle cx="12" cy="8" r="4" />
-                        <path d="M5 21a7 7 0 0 1 14 0" />
-                    </svg>
-                    <span>OPERADOR ATUAL</span>
-                </div>
-                <div class="operador-box">
-                    <p id="nome-operador-atual" class="operador-nome">...</p>
-                    <button class="btn-action" id="btn-pendencias">OPERAÇÕES PENDENTES / RECONCILIAÇÃO</button>
-                    <button class="btn-action" id="btn-trocar-membro">
-                        TROCAR MEMBRO (Sair)
+        <div class="modal-content d-flex flex-column overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-relatorios-titulo">
+            {{ cabecalho_modal('Gestão de caixa', 'relatorio', 'modal-relatorios-titulo',
+                subtitulo='Operador, abertura, fechamento e relatórios.', fechar='data-acionar="btn-fechar-relatorios"') }}
+            <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
+                <section class="d-flex flex-column gap-2" aria-labelledby="secao-operador">
+                    <h3 class="section-header m-0" id="secao-operador">
+                        <svg class="section-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="8" r="4" />
+                            <path d="M5 21a7 7 0 0 1 14 0" />
+                        </svg>
+                        <span>OPERADOR ATUAL</span>
+                    </h3>
+                    <div class="operador-box m-0 d-flex flex-column gap-2 p-3">
+                        <p id="nome-operador-atual" class="operador-nome m-0">...</p>
+                        <button class="btn-action m-0" id="btn-pendencias">OPERAÇÕES PENDENTES / RECONCILIAÇÃO</button>
+                        <button class="btn-action m-0" id="btn-trocar-membro">
+                            TROCAR MEMBRO (Sair)
+                        </button>
+                    </div>
+                </section>
+                <section class="d-flex flex-column gap-2" aria-labelledby="secao-caixa">
+                    <h3 class="section-header m-0" id="secao-caixa">
+                        <svg class="section-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="3" y="6" width="18" height="13" rx="2" />
+                            <path d="M3 10h18M7 15h2m6 0h2M7 3h10" />
+                        </svg>
+                        <span>CAIXA</span>
+                    </h3>
+                    <button class="btn-action btn-abrir-caixa m-0" id="btn-abrir-caixa-rel">
+                        ABRIR CAIXA (INICIO)
                     </button>
-                </div>
-                <div class="section-header">
-                    <svg class="section-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <rect x="3" y="6" width="18" height="13" rx="2" />
-                        <path d="M3 10h18M7 15h2m6 0h2M7 3h10" />
-                    </svg>
-                    <span>CAIXA</span>
-                </div>
-                <button class="btn-action btn-abrir-caixa" id="btn-abrir-caixa-rel">
-                    ABRIR CAIXA (INICIO)
-                </button>
-                <div class="section-header">
-                    <svg class="section-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <rect x="3" y="5" width="18" height="16" rx="2" />
-                        <path d="M16 3v4M8 3v4m-5 3h18m-12 5 2 2 4-4" />
-                    </svg>
-                    <span>FECHAMENTOS</span>
-                </div>
-                <button class="btn-action btn-fechar-dia" id="btn-fechar-dia">
-                    FECHAR CAIXA TOTAL (DIA)
-                </button>
-                <div class="section-header">
-                    <svg class="section-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <rect x="3" y="5" width="18" height="16" rx="2" />
-                        <path d="M16 3v4M8 3v4m-5 3h18M7 14h3m4 0h3M7 17h3" />
-                    </svg>
-                    <span>RELATÓRIO PERÍODO</span>
-                </div>
-                <div class="date-range-row mb-2">
-                    <input type="date" id="data-inicio" class="config-input">
-                    <input type="date" id="data-fim" class="config-input">
-                </div>
-                <button class="btn-action btn-gerar-periodo" id="btn-gerar-periodo">
-                    GERAR MENSAL/PERIODO
-                </button>
-                <div id="resultado-relatorio" class="resultado-relatorio d-none"></div>
-                <button class="btn-action mt-2" id="btn-fechar-relatorios">FECHAR JANELA</button>
+                </section>
+                <section class="d-flex flex-column gap-2" aria-labelledby="secao-fechamentos">
+                    <h3 class="section-header m-0" id="secao-fechamentos">
+                        <svg class="section-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="3" y="5" width="18" height="16" rx="2" />
+                            <path d="M16 3v4M8 3v4m-5 3h18m-12 5 2 2 4-4" />
+                        </svg>
+                        <span>FECHAMENTOS</span>
+                    </h3>
+                    <button class="btn-action btn-fechar-dia m-0" id="btn-fechar-dia">
+                        FECHAR CAIXA TOTAL (DIA)
+                    </button>
+                </section>
+                <section class="d-flex flex-column gap-2" aria-labelledby="secao-periodo">
+                    <h3 class="section-header m-0" id="secao-periodo">
+                        <svg class="section-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="3" y="5" width="18" height="16" rx="2" />
+                            <path d="M16 3v4M8 3v4m-5 3h18M7 14h3m4 0h3M7 17h3" />
+                        </svg>
+                        <span>RELATÓRIO PERÍODO</span>
+                    </h3>
+                    <div class="date-range-row gap-2 m-0">
+                        <input type="date" id="data-inicio" class="config-input" aria-label="Início do período">
+                        <input type="date" id="data-fim" class="config-input" aria-label="Fim do período">
+                    </div>
+                    <button class="btn-action btn-gerar-periodo m-0" id="btn-gerar-periodo">
+                        GERAR MENSAL/PERIODO
+                    </button>
+                </section>
+                <div id="resultado-relatorio" class="resultado-relatorio d-none m-0"></div>
+            </div>
+            <div class="modal-rodape d-flex gap-2 px-3 px-md-4 pt-3 pb-md-3 flex-shrink-0 flex-column-reverse flex-sm-row">
+                <button class="btn-action m-0 justify-content-center" id="btn-fechar-relatorios">FECHAR JANELA</button>
             </div>
         </div>
     </div>
 
     <div id="modal-fechar-caixa" class="modal-overlay">
-        <div class="modal-content text-center">
-            <div class="modal-drag-header">
-                <div class="drag-handle"></div>
-                <h2 class="text-white">FECHAMENTO DE CAIXA</h2>
+        <div class="modal-content d-flex flex-column overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-fechar-caixa-titulo">
+            {{ cabecalho_modal('Fechamento de caixa', 'caixa-fechado', 'modal-fechar-caixa-titulo',
+                subtitulo='Informe o total físico em caixa neste momento.',
+                fechar='data-acionar="btn-cancelar-fechamento-caixa"') }}
+            <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
+                <label class="modal-campo d-flex flex-column gap-2 m-0" for="input-valor-fechamento">Total em caixa (R$)
+                    <input type="number" id="input-valor-fechamento" class="input-cliente input-valor-grande"
+                        placeholder="0,00" min="0" step="0.01" inputmode="decimal">
+                </label>
+                <label class="modal-campo d-flex flex-column gap-2 m-0" for="input-obs-fechamento">Observações (opcional)
+                    <input type="text" id="input-obs-fechamento" class="input-cliente"
+                        placeholder="Ex: Fechamento do dia, sem ocorrências.">
+                </label>
             </div>
-            <div class="modal-scroll-body">
-                <p class="modal-subtitle">Informe o total físico em caixa no momento do fechamento:</p>
-                <input type="number" id="input-valor-fechamento" class="input-cliente input-valor-grande"
-                    placeholder="0,00" min="0" step="0.01">
-                <p class="modal-subtitle" style="margin-top: 12px;">Observações (opcional):</p>
-                <input type="text" id="input-obs-fechamento" class="input-cliente"
-                    placeholder="Ex: Fechamento do dia, sem ocorrências.">
-                <button class="btn-action btn-fechar-dia mt-2" id="btn-confirmar-fechamento-caixa">CONFIRMAR
+            <div class="modal-rodape d-flex gap-2 px-3 px-md-4 pt-3 pb-md-3 flex-shrink-0 flex-column-reverse flex-sm-row">
+                <button class="btn-action m-0 justify-content-center" id="btn-cancelar-fechamento-caixa">CANCELAR</button>
+                <button class="btn-action btn-acao-primaria btn-fechar-dia m-0 justify-content-center" id="btn-confirmar-fechamento-caixa">CONFIRMAR
                     FECHAMENTO</button>
-                <button class="btn-action" id="btn-cancelar-fechamento-caixa">CANCELAR</button>
             </div>
         </div>
     </div>

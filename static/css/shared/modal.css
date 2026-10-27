@@ -1,0 +1,140 @@
+/* Aparência comum dos modais do PDV e da administração: cabeçalho, corpo e rodapé.
+ * Markup em templates/shared/modal.html. Layout (d-flex, flex-*), espaçamento e
+ * alinhamento vêm só das classes do Bootstrap no markup; aqui fica o que elas não cobrem:
+ * cores, bordas, tamanhos e tipografia. Não declarar display/flex/margin/padding/gap aqui.
+ */
+
+/* Cabeçalho: a faixa do "confirmar saída", com a linha de latão da barra do app. */
+.modal-cabecalho {
+    background: var(--surface-bg);
+    border-bottom: 1px solid var(--header-border);
+    text-align: left;
+}
+
+.modal-cabecalho-icone {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+    color: var(--accent-readable);
+}
+
+.modal-cabecalho-icone svg {
+    width: 20px;
+    height: 20px;
+}
+
+.modal-cabecalho-textos {
+    min-width: 0;
+}
+
+.modal-cabecalho .modal-cabecalho-titulo {
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.modal-cabecalho-subtitulo {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.modal-cabecalho-subtitulo:empty {
+    display: none !important;
+}
+
+.modal-cabecalho-fechar {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: color 0.15s, background-color 0.15s, border-color 0.15s;
+}
+
+.modal-cabecalho-fechar svg {
+    width: 18px;
+    height: 18px;
+}
+
+.modal-cabecalho-fechar:hover {
+    color: var(--accent-readable);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.modal-cabecalho-fechar:focus-visible {
+    outline: 2px solid var(--accent-readable);
+    outline-offset: 2px;
+}
+
+/* Corpo rola entre cabeçalho e rodapé fixos (flex-grow-1 overflow-auto no markup);
+ * sem min-height zero o item flex não encolhe e a rolagem não acontece. */
+.modal-scroll-body {
+    min-height: 0;
+}
+
+/* Rótulo de campo e título de grupo dentro do corpo. */
+.modal-campo {
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.modal-secao-titulo {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+/* Rodapé: ações lado a lado, a principal à direita. */
+.modal-rodape {
+    background: var(--card-bg);
+    border-top: 1px solid var(--divider-color);
+}
+
+.modal-rodape .btn-action {
+    text-align: center;
+}
+
+.btn-action.btn-acao-primaria {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+.btn-action.btn-acao-primaria:hover {
+    background: var(--accent-hover) !important;
+    border-color: var(--accent-hover);
+}
+
+.btn-action.btn-acao-primaria:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+    .modal-cabecalho {
+        border-radius: 16px 16px 0 0;
+    }
+
+    /* Bootstrap não tem utilidade para a área segura do iPhone. */
+    .modal-rodape {
+        padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .modal-cabecalho-fechar {
+        transition: none;
+    }
+}

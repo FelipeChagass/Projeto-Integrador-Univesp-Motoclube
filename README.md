@@ -64,6 +64,30 @@ python -m venv .venv
 npm ci
 ```
 
+### Nomes em português
+
+O idioma do código é o português do Brasil: funções, classes, variáveis, mensagens ao usuário e comentários.
+
+- Um nome nunca mistura os dois idiomas. `renderizarProdutos` e `atualizar_itens_combo` seguem a regra; `renderProdutos` e `mostrarSkeleton` não.
+- Prefixos de convenção de programação (`get`, `set`, `is`) e a abreviação `Form` podem ficar em inglês.
+- Termos técnicos sem tradução corrente ficam como estão: login, token, cache, upload, admin, csv, api.
+- Nomes inteiros em inglês, como `showToast`, `session_scope` ou `to_dict`, só são aceitos quando seguem convenção de framework ou da plataforma web. Código novo deve nascer em português.
+- Mensagens de erro de bibliotecas externas (Supabase, navegador) nunca vão direto para a tela. O app traduz ou usa `mensagemErro()`, em `static/js/shared/utils.js`.
+
+### Layout e espaçamento com Bootstrap
+
+O projeto usa Bootstrap 5. Layout e espaçamento ficam nas classes utilitárias, no HTML (templates e markup gerado em JS), nunca no CSS:
+
+- Flex e grid de colunas: `d-flex`, `d-grid`, `flex-column`, `flex-grow-1`, `flex-shrink-0`, `justify-content-*`, `align-items-*`, `align-self-*`, `row`/`col-*`. Não declarar `display: flex`, `flex-*`, `justify-content` ou `align-*` em arquivo `.css`: isso duplica o Bootstrap e briga com as classes do markup.
+- Espaçamento: `p-*`, `m-*`, `gap-*`, que já seguem a escala de 4px (1 = 4px, 2 = 8px, 3 = 16px, 4 = 24px). Não criar tokens ou classes próprias de espaçamento.
+- Responsividade pelos breakpoints do Bootstrap (`p-3 p-md-4`, `flex-column-reverse flex-sm-row`, `d-none d-md-block`).
+- O CSS do projeto fica com o que o Bootstrap não cobre: cores e tokens de `static/css/tokens.css`, bordas, tamanhos fixos (ex.: botão de 40px), tipografia, estados (`:hover`, `:focus-visible`, `:empty`), `line-clamp` e grids com colunas de largura mínima que o grid de 12 colunas não expressa.
+- Regras antigas que ainda declaram `display: flex` no CSS são legado: ao mexer nelas, mova o layout para o markup.
+- Modais usam o cabeçalho único de `templates/shared/modal.html` (macro `cabecalho_modal`) e a estrutura cabeçalho, `modal-scroll-body` e `modal-rodape`.
+- Estado visual muda por classe ou atributo (`d-none`, `disabled`, `text-success`), nunca por `element.style`. A exceção é valor contínuo, como a posição durante um arrasto.
+- O tema é o do Bootstrap: `data-bs-theme="dark"` e a paleta do clube em `--bs-*` (`static/css/tokens.css`). Use `text-body-secondary`, `text-success`, `border-primary`… em vez de criar classes de cor.
+- `tests/arquitetura.test.js` é uma catraca: nenhum arquivo pode piorar nas categorias de `scripts/arquitetura.mjs`. Rode `npm run arquitetura` para ver o placar e `npm run arquitetura:limites` para travar uma melhoria. O plano completo está em `plans/padronizacao-bootstrap.md`.
+
 ### Formatação do JavaScript
 
 O Prettier é uma dependência de desenvolvimento com versão exata e lockfile versionado.
@@ -105,6 +129,7 @@ DB_POOL_SIZE=5
 DB_MAX_OVERFLOW=5
 DB_POOL_TIMEOUT=10
 STORAGE_BUCKET=produto-imagens
+LOG_LEVEL=INFO
 ```
 
 ### Desenvolvimento local com HTTP
@@ -123,6 +148,10 @@ Em produção, mantenha `FLASK_DEBUG=false`, use a URL pública HTTPS e configur
 
 A aplicação valida configurações obrigatórias ao iniciar. Dimensione conexões considerando
 `workers × (DB_POOL_SIZE + DB_MAX_OVERFLOW)` e o limite efetivo do Supabase.
+
+`LOG_LEVEL` (padrão `INFO`) controla os logs de requisição, que registram método, rota, status, duração, `request_id` e usuário. Use `WARNING` para silenciá-los.
+
+Tokens do Supabase assinados com chave assimétrica (ES256/RS256, as "JWT Signing Keys" do projeto) são verificados localmente pelo JWKS, sem consultar o Auth a cada requisição. Projetos que ainda usam o segredo HS256 legado continuam validando pelo Auth; para ganhar desempenho, migre o projeto para as novas chaves em Project Settings → JWT Keys.
 
 Prepare o banco conforme [migrations/README.md](migrations/README.md); não execute a baseline diretamente sobre tabelas existentes.
 

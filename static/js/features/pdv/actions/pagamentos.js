@@ -3,15 +3,20 @@
  * Persiste na fila antes de limpar o carrinho ou imprimir; sincronizacao.js obtém o ACK.
  */
 import { estadoPdv, salvarDadosLocais } from "../state.js";
-import { formatCurrency } from "../../../shared/utils.js";
+import { mensagemErro, formatCurrency } from "../../../shared/utils.js";
 import {
   showToast,
   fecharModal,
   abrirModal,
   atualizarUI,
   renderizarCatalogo,
+  mostrarCarregamento,
 } from "../ui.js";
 import { montarImpressao } from "../reports.js";
+import {
+  consumoDoCarrinho,
+  temCategoriaCombo,
+} from "../../../shared/combos.js";
 import {
   novoIdExterno,
   persistirOperacao,
@@ -74,10 +79,10 @@ export function prepararPagamentoGlobal(
     document.getElementById("valor-total-dinheiro").innerText =
       `Total: ${formatCurrency(valorTotal)}`;
     document.getElementById("valor-recebido").value = "";
-    document.getElementById("display-troco").innerText = "Troco: R$ 0,00";
-    document.getElementById("btn-confirmar-dinheiro").style.opacity = "0.5";
-    document.getElementById("btn-confirmar-dinheiro").style.pointerEvents =
-      "none";
+    const indicadorTroco = document.getElementById("display-troco");
+    indicadorTroco.innerText = "Troco: R$ 0,00";
+    indicadorTroco.classList.remove("text-success", "text-danger");
+    document.getElementById("btn-confirmar-dinheiro").disabled = true;
     abrirModal("modal-dinheiro");
     document.getElementById("valor-recebido").focus();
   } else if (metodoPagamento === "CARTAO") {
@@ -97,17 +102,13 @@ export function calcularTroco() {
   const botaoConfirmarDinheiro = document.getElementById(
     "btn-confirmar-dinheiro",
   );
-  if (troco >= 0) {
-    indicadorTroco.innerText = `Troco: ${formatCurrency(troco)}`;
-    indicadorTroco.style.color = "var(--success)";
-    botaoConfirmarDinheiro.style.opacity = "1";
-    botaoConfirmarDinheiro.style.pointerEvents = "auto";
-  } else {
-    indicadorTroco.innerText = `Faltam: ${formatCurrency(Math.abs(troco))}`;
-    indicadorTroco.style.color = "var(--danger)";
-    botaoConfirmarDinheiro.style.opacity = "0.5";
-    botaoConfirmarDinheiro.style.pointerEvents = "none";
-  }
+  indicadorTroco.innerText =
+    troco >= 0
+      ? `Troco: ${formatCurrency(troco)}`
+      : `Faltam: ${formatCurrency(Math.abs(troco))}`;
+  indicadorTroco.classList.toggle("text-success", troco >= 0);
+  indicadorTroco.classList.toggle("text-danger", troco < 0);
+  botaoConfirmarDinheiro.disabled = troco < 0;
 }
 
 export function finalizarPagamentoDinheiro() {
@@ -162,15 +163,17 @@ export async function registrarVendaOtimista(
     await persistirOperacao(novaVenda);
     estadoPdv.filaVendas = await listarOperacoes();
     if (estadoPdv.produtos) {
-      novaVenda.itens.forEach((itemVenda) => {
-        const produtoEncontrado = estadoPdv.produtos.find(
-          (produto) =>
-            produto.id == itemVenda.id && produto.nome == itemVenda.nome,
-        );
-        if (produtoEncontrado)
-          produtoEncontrado.estoque_bar =
-            Number(produtoEncontrado.estoque_bar) - itemVenda.qtd;
-      });
+      // Combo baixa os itens dele, como o servidor fará ao confirmar.
+      consumoDoCarrinho(novaVenda.itens, estadoPdv.produtos).forEach(
+        (quantidadeConsumida, produtoId) => {
+          const produtoEncontrado = estadoPdv.produtos.find(
+            (produto) => produto.id == produtoId,
+          );
+          if (produtoEncontrado && !temCategoriaCombo(produtoEncontrado))
+            produtoEncontrado.estoque_bar =
+              Number(produtoEncontrado.estoque_bar) - quantidadeConsumida;
+        },
+      );
     }
     try {
       if (estadoPdv.config.imprimir) {
@@ -193,7 +196,7 @@ export async function registrarVendaOtimista(
     await processarFilaVendas({ notificarFalhas: true });
   } catch (erroRegistroVenda) {
     estadoPdv.enviandoVenda = false;
-    showToast(`Erro ao registrar venda: ${erroRegistroVenda.message}`);
+    showToast(`Erro ao registrar venda: ${mensagemErro(erroRegistroVenda)}`);
     console.error(erroRegistroVenda);
   } finally {
     estadoPdv.enviandoVenda = false;
@@ -201,8 +204,7 @@ export async function registrarVendaOtimista(
 }
 
 export async function executarPagamentoFinal(metodoPagamentoFinal) {
-  const indicadorCarregamento = document.getElementById("loading");
-  if (indicadorCarregamento) indicadorCarregamento.style.display = "none";
+  mostrarCarregamento(false);
   if (estadoPdv.enviandoVenda) return;
   estadoPdv.enviandoVenda = true;
 
@@ -213,7 +215,7 @@ export async function executarPagamentoFinal(metodoPagamentoFinal) {
       estadoPdv.pagamentoPendente.dados,
     );
   } else if (estadoPdv.pagamentoPendente.tipo === "DIVIDA") {
-    if (indicadorCarregamento) indicadorCarregamento.style.display = "flex";
+    mostrarCarregamento(true);
     try {
       if (
         !estadoPdv.usuarioAtual?.id ||
@@ -246,10 +248,10 @@ export async function executarPagamentoFinal(metodoPagamentoFinal) {
       fecharModal("modal-fechar-conta");
       await processarFilaVendas({ notificarFalhas: true });
     } catch (erroPagamento) {
-      showToast(`Pagamento não confirmado: ${erroPagamento.message}`);
+      showToast(`Pagamento não confirmado: ${mensagemErro(erroPagamento)}`);
     } finally {
       estadoPdv.enviandoVenda = false;
-      if (indicadorCarregamento) indicadorCarregamento.style.display = "none";
+      mostrarCarregamento(false);
     }
   }
 }

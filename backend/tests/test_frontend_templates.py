@@ -1,50 +1,73 @@
-"""Protege a estrutura HTML aprovada das páginas compostas com parciais Jinja.
+"""Contrato entre as páginas renderizadas e o JS que as controla.
 
-Ignora comentários/espaçamento, mas preserva tags, atributos e texto. Alterações
-intencionais de UI exigem revisar os hashes; não substitui screenshots/E2E.
-Revisão de utilities Bootstrap: plans/utilities-bootstrap.md (25/09/2026).
+Substitui o snapshot por hash da estrutura HTML (plans/padronizacao-bootstrap.md, F2),
+que quebrava a cada ajuste visual sem dizer o quê. Aqui cada falha nomeia o problema:
+ID repetido na página, ou ID usado pelo JS que não existe no template nem é criado pelo JS.
 """
-import hashlib
+from collections import Counter
 from html.parser import HTMLParser
-import json
+from pathlib import Path
 import re
 
 import pytest
 from app import create_app
 
+RAIZ = Path(__file__).resolve().parents[2]
+JS = RAIZ / 'static' / 'js'
 
-class Structure(HTMLParser):
+# Cada página carrega os módulos da sua funcionalidade; shared/ serve a todas.
+PAGINAS = {'/': 'features/pdv', '/admin': 'features/admin', '/login': 'features/auth'}
+
+
+class Ids(HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
-        self.events = []
+        self.ids = []
 
     def handle_starttag(self, tag, attrs):
-        self.events.append(('start', tag, attrs))
+        self.ids += [valor for nome, valor in attrs if nome == 'id' and valor]
 
-    def handle_startendtag(self, tag, attrs):
-        self.events.append(('empty', tag, attrs))
-
-    def handle_endtag(self, tag):
-        self.events.append(('end', tag))
-
-    def handle_data(self, data):
-        data = re.sub(r'\s+', ' ', data).strip()
-        if data:
-            self.events.append(('text', data))
+    handle_startendtag = handle_starttag
 
 
-def structure_digest(html):
-    parser = Structure()
-    parser.feed(html)
-    content = json.dumps(parser.events, ensure_ascii=True)
-    return hashlib.sha256(content.encode()).hexdigest()
+def ids_da_pagina(rota):
+    html = create_app({'TESTING': True}).test_client().get(rota).get_data(as_text=True)
+    leitor = Ids()
+    leitor.feed(html)
+    return leitor.ids
 
 
-@pytest.mark.parametrize(('path', 'expected'), [
-    ('/', '6393473e5930ddca7af1e5df90b9e0c5663df071d78251d27a4cbba95b3e75de'),
-    ('/admin', '67588ac34056810ae392e06a660b251b989c35672d14c4dec88ca8f8a7556d56'),
-])
-def test_rendered_structure_matches_approved_contract(path, expected):
-    response = create_app({'TESTING': True}).test_client().get(path)
-    assert response.status_code == 200
-    assert structure_digest(response.get_data(as_text=True)) == expected
+def _codigo(pasta):
+    return '\n'.join(arquivo.read_text(encoding='utf-8') for arquivo in sorted((JS / pasta).rglob('*.js')))
+
+
+def ids_usados(codigo):
+    """IDs literais buscados pelo JS: getElementById("x") e seletores "#x"."""
+    # Só literais completos: getElementById("tab-" + nome) é montado em tempo de execução.
+    por_id = re.findall(r'getElementById\(\s*["\']([\w-]+)["\']\s*\)', codigo)
+    por_seletor = re.findall(r'querySelector(?:All)?\(\s*["\'`]#([\w-]+)["\'`\s]', codigo)
+    return set(por_id) | set(por_seletor)
+
+
+def ids_criados(codigo):
+    """IDs que o próprio JS cria: id="x" em markup gerado ou elemento.id = "x"."""
+    return set(re.findall(r'\bid=\\?["\']([\w-]+)', codigo)) | set(re.findall(r'\.id\s*=\s*["\']([\w-]+)', codigo))
+
+
+@pytest.mark.parametrize('rota', list(PAGINAS))
+def test_ids_da_pagina_sao_unicos(rota):
+    repetidos = {i: n for i, n in Counter(ids_da_pagina(rota)).items() if n > 1}
+    assert repetidos == {}
+
+
+@pytest.mark.parametrize(('rota', 'pasta'), list(PAGINAS.items()))
+def test_ids_usados_pelo_js_da_pagina_existem(rota, pasta):
+    codigo = _codigo(pasta)
+    disponiveis = set(ids_da_pagina(rota)) | ids_criados(codigo) | ids_criados(_codigo('shared'))
+    assert sorted(ids_usados(codigo) - disponiveis) == []
+
+
+def test_ids_usados_pelo_js_compartilhado_existem_em_alguma_pagina():
+    codigo = _codigo('shared')
+    disponiveis = set().union(*(ids_da_pagina(rota) for rota in PAGINAS)) | ids_criados(codigo)
+    assert sorted(ids_usados(codigo) - disponiveis) == []

@@ -1,4 +1,10 @@
-"""Autenticação Supabase e autorização local, com cache limitado e sem tokens em logs."""
+"""Autenticação Supabase e autorização local, com cache limitado e sem tokens em logs.
+
+Tokens assinados com chave assimétrica (ES256/RS256) são verificados localmente com
+o JWKS do projeto, sem ida ao Auth por requisição. Tokens HS256, chave desconhecida
+ou JWKS indisponível seguem para auth.get_user, que continua sendo a autoridade.
+Revogação não depende do JWT: o perfil local (ativo) é conferido a cada requisição.
+"""
 import hashlib
 import threading
 import time
@@ -7,10 +13,10 @@ from functools import wraps
 
 import jwt
 from cachetools import TTLCache
-from flask import g, request
+from flask import current_app, g, request
 from supabase_auth.errors import AuthApiError
 
-from app.core.database import session_scope
+from app.core.database import sessao_da_requisicao
 from app.core.errors import ApiError
 from app.features.auth.admin_client import get_supabase_admin_client as _get_supabase_client
 from app.models.usuario import Usuario
@@ -18,6 +24,11 @@ from app.models.usuario import Usuario
 TOKEN_CACHE_TTL = 120
 _token_cache = TTLCache(maxsize=1024, ttl=TOKEN_CACHE_TTL)
 _token_cache_lock = threading.Lock()
+
+ALGORITMOS_LOCAIS = ('ES256', 'RS256')
+CONSULTAR_AUTH = object()  # Sentinela: a verificação local não decide, o Auth decide.
+_clientes_jwks = {}
+_clientes_jwks_lock = threading.Lock()
 
 # Capacidades administrativas não são concedidas implicitamente a operadores.
 PERMISSOES = {
@@ -66,6 +77,39 @@ def _usuario_da_resposta(response):
     }
 
 
+def _cliente_jwks():
+    url = current_app.config['SUPABASE_URL'].rstrip('/') + '/auth/v1/.well-known/jwks.json'
+    with _clientes_jwks_lock:
+        cliente = _clientes_jwks.get(url)
+        if cliente is None:
+            # Chaves em cache por 10 min; kid novo (rotação) força nova busca no próprio cliente.
+            cliente = _clientes_jwks[url] = jwt.PyJWKClient(url, cache_keys=True, lifespan=600, timeout=5)
+    return cliente
+
+
+def _validar_localmente(token):
+    """Usuário, None se o token é inválido, ou CONSULTAR_AUTH quando só o Auth pode decidir."""
+    try:
+        cabecalho = jwt.get_unverified_header(token)
+    except jwt.PyJWTError:
+        return CONSULTAR_AUTH
+    algoritmo = cabecalho.get('alg')
+    if algoritmo not in ALGORITMOS_LOCAIS or not cabecalho.get('kid'):
+        return CONSULTAR_AUTH
+    try:
+        chave = _cliente_jwks().get_signing_key(cabecalho['kid'])
+    except jwt.PyJWKClientError:
+        return CONSULTAR_AUTH
+    emissor = current_app.config['SUPABASE_URL'].rstrip('/') + '/auth/v1'
+    try:
+        dados = jwt.decode(token, chave.key, algorithms=[algoritmo], audience='authenticated',
+                           issuer=emissor, options={'require': ['exp', 'sub']})
+        user_id = str(uuid.UUID(str(dados['sub'])))
+    except (jwt.PyJWTError, ValueError, TypeError):
+        return None
+    return {'id': user_id, 'email': dados.get('email') or '', 'metadata': dados.get('user_metadata') or {}}
+
+
 def _expiracao(token):
     """`exp` do JWT sem verificar assinatura (get_user já é a autoridade); None se ausente."""
     try:
@@ -81,7 +125,9 @@ def _validar_token(token):
     if cached:
         return cached
 
-    user = _usuario_da_resposta(_consultar_auth(token))
+    user = _validar_localmente(token)
+    if user is CONSULTAR_AUTH:
+        user = _usuario_da_resposta(_consultar_auth(token))
     if not user:
         return None
     # get_user é a autoridade. Decodificação local apenas encurta a duração do cache.
@@ -118,14 +164,14 @@ def requer_token(f):
 
 
 def _carregar_perfil():
-    with session_scope() as db:
-        usuario = db.get(Usuario, uuid.UUID(g.usuario_id))
-        if not usuario:
-            raise ApiError('USUARIO_NAO_ENCONTRADO', 'Usuário sem cadastro local. Solicite aprovação administrativa.', 403)
-        if not usuario.ativo:
-            raise ApiError('USUARIO_INATIVO', 'Usuário inativo. Procure um administrador.', 403)
-        g.usuario_dict = usuario.to_dict()
-        g.usuario_dict['permissoes'] = sorted(PERMISSOES.get(usuario.perfil, ()))
+    # Mesma sessão (e conexão) que a rota vai usar; o teardown da requisição a fecha.
+    usuario = sessao_da_requisicao().get(Usuario, uuid.UUID(g.usuario_id))
+    if not usuario:
+        raise ApiError('USUARIO_NAO_ENCONTRADO', 'Usuário sem cadastro local. Solicite aprovação administrativa.', 403)
+    if not usuario.ativo:
+        raise ApiError('USUARIO_INATIVO', 'Usuário inativo. Procure um administrador.', 403)
+    g.usuario_dict = usuario.to_dict()
+    g.usuario_dict['permissoes'] = sorted(PERMISSOES.get(usuario.perfil, ()))
 
 
 def requer_login(f):

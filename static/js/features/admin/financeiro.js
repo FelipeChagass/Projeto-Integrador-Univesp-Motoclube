@@ -2,13 +2,15 @@
 import { authFetch } from "./requests.js";
 import { esc, toast, fecharModalAdmin } from "./ui.js";
 import { UIModal } from "../../shared/modals.js";
+import { mensagemErro } from "../../shared/utils.js";
 
 let registroEmEdicao = null;
 let elementoRetornoFoco = null;
 let geracaoConsultaVenda = 0;
 const dinheiro = (valor) => Number(valor).toFixed(2);
-const campo = (rotulo, conteudo) =>
-  `<label class="form-group">${rotulo}${conteudo}</label>`;
+/** Campo do formulário genérico (movimento, venda sem itens); vai dentro de .row g-3. */
+const campo = (rotulo, conteudo, largura = "col-12 col-md-6") =>
+  `<label class="${largura} d-flex flex-column gap-2 mb-0"><span class="form-label mb-0">${rotulo}</span>${conteudo}</label>`;
 
 async function atualizar() {
   const [
@@ -32,22 +34,30 @@ function fechar() {
   elementoRetornoFoco?.focus();
 }
 
-function preencher(titulo, camposHtml, registro) {
+function preencher(titulo, camposHtml, registro, subtitulo = "") {
   registroEmEdicao = registro;
+  document.getElementById("edicao-financeira-subtitulo").textContent =
+    subtitulo;
   const formularioEdicao = document.getElementById("form-edicao-financeira");
   const vendaComItens = Boolean(registro?.venda?.itens?.length);
-  formularioEdicao.classList.toggle("edicao-venda", vendaComItens);
+  // Venda com itens: cabeçalho e rodapé fixos, só os campos rolam.
+  for (const classe of ["edicao-venda", "d-flex", "flex-column"])
+    formularioEdicao.classList.toggle(classe, vendaComItens);
+  formularioEdicao
+    .querySelector(".edicao-aviso-generico")
+    ?.classList.toggle("d-none", vendaComItens);
   const camposEdicao = document.getElementById("edicao-financeira-campos");
-  camposEdicao.classList.toggle("form-grid", !vendaComItens);
+  for (const classe of ["flex-grow-1", "overflow-auto"])
+    camposEdicao.classList.toggle(classe, vendaComItens);
   document.getElementById("edicao-financeira-titulo").textContent = titulo;
   camposEdicao.innerHTML = camposHtml;
   if (vendaComItens) atualizarResumoVenda();
 }
 
-function abrir(titulo, camposHtml, registro) {
+function abrir(titulo, camposHtml, registro, subtitulo = "") {
   elementoRetornoFoco = document.activeElement;
   fecharModalAdmin("modalExtrato");
-  preencher(titulo, camposHtml, registro);
+  preencher(titulo, camposHtml, registro, subtitulo);
   document.getElementById("modalEdicaoFinanceira").classList.remove("d-none");
   document.body.classList.add("modal-open");
   if (!window.matchMedia?.("(max-width: 768px)").matches) {
@@ -59,67 +69,105 @@ function abrir(titulo, camposHtml, registro) {
   }
 }
 
-function montarEditorItensVenda(venda) {
-  const itensHtml = venda.itens
-    .map(
-      (item, indice) => `
-        <div class="edicao-item-venda" data-item-venda="${indice}">
-            <div class="edicao-item-linha">
-                <span class="edicao-item-arrastar" aria-hidden="true">⠿</span>
-                <div class="edicao-item-produto">
-                    <strong>${esc(item.nome_produto)}</strong>
-                    <small>Código: ${esc(String(item.produto_id ?? "—"))}</small>
-                </div>
-                <div class="edicao-item-quantidade" aria-label="Quantidade">
-                    <button type="button" data-quantidade-delta="-1" aria-label="Diminuir quantidade">−</button>
-                    <input type="number" name="qtd-${indice}" min="0" max="100000" step="1" required
-                        value="${item.quantidade}" aria-label="Quantidade de ${esc(item.nome_produto)}">
-                    <button type="button" data-quantidade-delta="1" aria-label="Aumentar quantidade">+</button>
-                </div>
-                <label class="edicao-item-preco">
-                    <span class="edicao-item-preco-rotulo" aria-hidden="true">Preço unitário (R$)</span>
-                    <input type="number" name="preco-${indice}" min="0" step="0.01" required
-                        value="${dinheiro(item.preco_unitario)}" aria-label="Preço unitário (R$)">
-                </label>
-                <strong class="edicao-item-subtotal" data-subtotal-item>${dinheiro(item.preco_total)}</strong>
-                <div class="edicao-item-acoes">
-                    <button type="button" class="edicao-item-editar" data-alternar-observacao aria-label="Editar observação do item" title="Editar observação">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>
-                    </button>
-                    <button type="button" class="edicao-item-remover" data-remover-item aria-label="Remover ${esc(item.nome_produto)}" title="Remover item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/></svg>
-                    </button>
-                </div>
-            </div>
-            <label class="edicao-item-observacao" data-observacao-item hidden>
-                Observação do item
-                <textarea name="obs-${indice}" maxlength="1000" rows="2">${esc(item.observacoes || "")}</textarea>
-            </label>
-        </div>`,
-    )
-    .join("");
+const ICONE = (caminhos) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${caminhos}</svg>`;
 
+/** Observação do item: linha própria da tabela, aberta pelo botão de lápis. */
+const OBSERVACAO_ABERTA = ["d-block", "d-md-table-row"];
+
+/**
+ * Um <tbody> por item: a linha dos campos e a da observação. No desktop é uma linha da
+ * .table; no celular (tabela-cartoes) o <tbody> vira o cartão e cada célula mostra o
+ * próprio data-label.
+ */
+function htmlItemVenda(item, indice) {
+  const nome = esc(item.nome_produto);
   return `
-        <section class="edicao-itens-venda" aria-labelledby="edicao-itens-titulo">
-            <header class="edicao-itens-cabecalho">
-                <div class="edicao-itens-identificacao">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
-                    <span id="edicao-itens-titulo">Itens da venda</span>
+        <tbody class="edicao-item-venda mb-3 mb-md-0" data-item-venda="${indice}">
+            <tr class="d-flex flex-column d-md-table-row">
+                <td class="edicao-item-produto d-flex flex-column gap-1 d-md-table-cell" data-label="Produto">
+                    <strong class="text-break">${nome}</strong>
+                    <small class="d-block text-body-secondary">Código: ${esc(String(item.produto_id ?? "—"))}</small>
+                </td>
+                <td class="d-flex flex-column gap-1 d-md-table-cell" data-label="Quantidade">
+                    <div class="input-group flex-nowrap edicao-item-quantidade">
+                        <button type="button" class="btn btn-escuro" data-quantidade-delta="-1" aria-label="Diminuir quantidade">−</button>
+                        <input type="number" class="form-control text-center" name="qtd-${indice}" min="0" max="100000" step="1" required
+                            value="${item.quantidade}" aria-label="Quantidade de ${nome}">
+                        <button type="button" class="btn btn-escuro" data-quantidade-delta="1" aria-label="Aumentar quantidade">+</button>
+                    </div>
+                </td>
+                <td class="d-flex flex-column gap-1 d-md-table-cell" data-label="Preço unitário (R$)">
+                    <input type="number" class="form-control edicao-item-preco" name="preco-${indice}" min="0" step="0.01" required
+                        value="${dinheiro(item.preco_unitario)}" aria-label="Preço unitário (R$)">
+                </td>
+                <td class="d-flex flex-column gap-1 d-md-table-cell text-md-end" data-label="Subtotal (R$)">
+                    <strong class="edicao-item-subtotal" data-subtotal-item>${dinheiro(item.preco_total)}</strong>
+                </td>
+                <td class="sem-rotulo d-md-table-cell">
+                    <div class="d-flex gap-2 justify-content-md-end">
+                        <button type="button" class="btn btn-escuro p-2 flex-fill flex-md-grow-0" data-alternar-observacao aria-label="Editar observação do item" title="Editar observação">
+                            ${ICONE('<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"/>')}
+                        </button>
+                        <button type="button" class="btn btn-excluir p-2 flex-fill flex-md-grow-0" data-remover-item aria-label="Remover ${nome}" title="Remover item">
+                            ${ICONE('<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/>')}
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            <tr class="d-none" data-observacao-item>
+                <td class="sem-rotulo d-block d-md-table-cell" colspan="5">
+                    <label class="form-label" for="obs-item-${indice}">Observação do item</label>
+                    <textarea class="form-control" id="obs-item-${indice}" name="obs-${indice}" maxlength="1000" rows="2">${esc(item.observacoes || "")}</textarea>
+                </td>
+            </tr>
+        </tbody>`;
+}
+
+function montarEditorItensVenda(venda) {
+  return `
+        <div class="col-12">
+            <section class="card edicao-itens-venda overflow-hidden" aria-labelledby="edicao-itens-titulo">
+                <header class="card-header edicao-itens-cabecalho d-flex align-items-center gap-3 px-3 px-md-4 py-3">
+                    <span class="edicao-itens-icone d-flex align-items-center justify-content-center flex-shrink-0" aria-hidden="true">
+                        ${ICONE('<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/>')}
+                    </span>
+                    <div class="d-flex flex-column gap-1 flex-grow-1">
+                        <h3 class="h6 fw-bold m-0" id="edicao-itens-titulo">Itens da venda</h3>
+                        <p class="small text-body-secondary m-0 d-none d-md-block">Altere a quantidade ou o preço. Quantidade zero remove o item.</p>
+                    </div>
+                    <span class="edicao-itens-contagem badge rounded-pill flex-shrink-0" data-contagem-itens aria-live="polite"></span>
+                </header>
+                <div class="table-responsive p-3 p-md-0">
+                    <table class="table align-middle mb-0 tabela-cartoes tabela-itens-venda d-block d-md-table">
+                        <thead class="text-uppercase text-nowrap">
+                            <tr>
+                                <th scope="col">Produto</th>
+                                <th scope="col">Quantidade</th>
+                                <th scope="col">Preço unitário (R$)</th>
+                                <th scope="col" class="text-end">Subtotal (R$)</th>
+                                <th scope="col" class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        ${venda.itens.map(htmlItemVenda).join("")}
+                    </table>
                 </div>
-            </header>
-            <div class="edicao-itens-tabela py-2">
-                <div class="edicao-itens-colunas" aria-hidden="true"><span></span><span>Produto</span><span>Quantidade</span><span>Preço unitário (R$)</span><span>Subtotal (R$)</span><span>Ações</span></div>
-                ${itensHtml}
-            </div>
-        </section>
-        <div class="edicao-venda-inferior">
-            <section class="edicao-resumo-venda" aria-labelledby="edicao-resumo-titulo">
-                <h4 id="edicao-resumo-titulo"><span aria-hidden="true">▤</span> Resumo da venda</h4>
-                <dl><div><dt>Itens</dt><dd data-resumo-itens>0</dd></div><div><dt>Quantidade total</dt><dd data-resumo-quantidade>0</dd></div><div class="edicao-resumo-total"><dt>Total da venda</dt><dd data-resumo-total>R$ 0,00</dd></div></dl>
             </section>
-            <aside class="edicao-alerta-venda" role="note">
-                <h4><span aria-hidden="true">ⓘ</span> Atenção</h4>
-                <p>Estoque, divisão e totais do caixa serão recalculados ao salvar as alterações.</p>
+        </div>
+        <div class="col-12 col-md-6">
+            <section class="card h-100 p-3" aria-labelledby="edicao-resumo-titulo">
+                <h4 id="edicao-resumo-titulo" class="h6 fw-bold d-flex align-items-center gap-2 m-0"><span aria-hidden="true">▤</span> Resumo da venda</h4>
+                <dl class="d-flex flex-column gap-2 small mt-3 mb-0">
+                    <div class="d-flex justify-content-between gap-2"><dt class="fw-normal text-body-secondary">Itens</dt><dd class="fw-bold m-0" data-resumo-itens>0</dd></div>
+                    <div class="d-flex justify-content-between gap-2"><dt class="fw-normal text-body-secondary">Quantidade total</dt><dd class="fw-bold m-0" data-resumo-quantidade>0</dd></div>
+                    <div class="d-flex justify-content-between gap-2 border-top fs-6 pt-2"><dt>Total da venda</dt><dd class="edicao-resumo-total fw-bold m-0" data-resumo-total>R$ 0,00</dd></div>
+                </dl>
+            </section>
+        </div>
+        <div class="col-12 col-md-6">
+            <aside class="alert alert-danger h-100 p-3 mb-0" role="note">
+                <h4 class="alert-heading h6 fw-bold d-flex align-items-center gap-2 m-0"><span aria-hidden="true">ⓘ</span> Atenção</h4>
+                <p class="small text-body-secondary mt-2 mb-0 ps-4">Estoque, divisão e totais do caixa serão recalculados ao salvar as alterações.</p>
             </aside>
         </div>`;
 }
@@ -143,11 +191,14 @@ function atualizarResumoVenda() {
     linha.querySelector("[data-subtotal-item]").textContent =
       dinheiro(subtotal);
     linha.classList.toggle("removido", quantidade === 0);
+    linha.querySelector("tr").classList.toggle("opacity-50", quantidade === 0);
     total += subtotal;
     quantidadeTotal += quantidade;
     if (quantidade > 0) itensAtivos += 1;
   });
   camposEdicao.querySelector("[data-resumo-itens]").textContent = itensAtivos;
+  camposEdicao.querySelector("[data-contagem-itens]").textContent =
+    `${quantidadeTotal} ${quantidadeTotal === 1 ? "unidade" : "unidades"}`;
   camposEdicao.querySelector("[data-resumo-quantidade]").textContent =
     quantidadeTotal;
   camposEdicao.querySelector("[data-resumo-total]").textContent =
@@ -190,7 +241,7 @@ export async function administrarVenda(id, acao) {
   botaoSalvar.disabled = true;
   abrir(
     "Editar venda",
-    '<p class="edicao-venda-carregando" role="status">Carregando dados da venda...</p>',
+    '<p class="text-body-secondary m-0" role="status">Carregando dados da venda...</p>',
     null,
   );
   const resposta = await authFetch(url);
@@ -218,7 +269,7 @@ export async function administrarVenda(id, acao) {
     ) {
       document.getElementById("edicao-financeira-campos").innerHTML =
         '<p role="alert">Não foi possível carregar a venda. Feche e tente novamente.</p>';
-      toast(erro.message || "Resposta inválida da venda.", false);
+      toast(mensagemErro(erro, "Resposta inválida da venda."), false);
     }
     return;
   }
@@ -247,39 +298,55 @@ export async function administrarVenda(id, acao) {
     .join("");
   let camposHtml;
   if (venda.itens?.length) {
-    camposHtml = `<div class="edicao-venda-layout">
-            <label class="edicao-venda-campo"><span class="edicao-venda-label"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg>Cliente</span>
-                <input name="nome_cliente" maxlength="200" value="${esc(venda.nome_cliente || "")}" placeholder="Nome do cliente">
-            </label>
-            <label class="edicao-venda-campo"><span class="edicao-venda-label"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20"/></svg>Pagamento</span>
-                <select name="metodo_pagamento">${opcoesPagamento}</select>
-            </label>
-            <label class="edicao-venda-campo edicao-venda-observacoes"><span class="edicao-venda-label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z"/></svg>Observações da venda</span>
-                <textarea name="observacoes" maxlength="2000" rows="2" placeholder="Digite observações gerais da venda...">${esc(venda.observacoes || "")}</textarea>
-                <small class="edicao-contador"><span data-contador-observacoes>${(venda.observacoes || "").length}</span>/2000</small>
-            </label>
+    camposHtml = `<div class="row g-3">
+            <div class="col-12 col-md-6">
+                <label class="form-label d-flex align-items-center gap-2" for="edicao-cliente">${ICONE('<circle cx="12" cy="8" r="4"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/>')}Cliente</label>
+                <input class="form-control py-2" id="edicao-cliente" name="nome_cliente" maxlength="200" value="${esc(venda.nome_cliente || "")}" placeholder="Nome do cliente">
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label d-flex align-items-center gap-2" for="edicao-pagamento">${ICONE('<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20"/>')}Pagamento</label>
+                <select class="form-select py-2" id="edicao-pagamento" name="metodo_pagamento">${opcoesPagamento}</select>
+            </div>
+            <div class="col-12">
+                <label class="form-label d-flex align-items-center gap-2" for="edicao-observacoes">${ICONE('<path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z"/>')}Observações da venda</label>
+                <textarea class="form-control" id="edicao-observacoes" name="observacoes" maxlength="2000" rows="2" placeholder="Digite observações gerais da venda...">${esc(venda.observacoes || "")}</textarea>
+                <div class="form-text text-end"><span data-contador-observacoes>${(venda.observacoes || "").length}</span>/2000</div>
+            </div>
             ${montarEditorItensVenda(venda)}
         </div>`;
   } else {
-    camposHtml =
+    camposHtml = `<div class="row g-3">${
       campo(
         "Cliente",
-        `<input name="nome_cliente" maxlength="200" value="${esc(venda.nome_cliente || "")}">`,
+        `<input class="form-control py-2" name="nome_cliente" maxlength="200" value="${esc(venda.nome_cliente || "")}">`,
       ) +
       campo(
         "Pagamento",
-        `<select name="metodo_pagamento">${opcoesPagamento}</select>`,
-      ) +
-      campo(
-        "Observações",
-        `<textarea name="observacoes" maxlength="2000">${esc(venda.observacoes || "")}</textarea>`,
+        `<select class="form-select py-2" name="metodo_pagamento">${opcoesPagamento}</select>`,
       ) +
       campo(
         "Valor (R$)",
-        `<input type="number" name="valor_total" min="0" step="0.01" required value="${dinheiro(venda.valor_total)}">`,
-      );
+        `<input class="form-control py-2" type="number" name="valor_total" min="0" step="0.01" required value="${dinheiro(venda.valor_total)}">`,
+      ) +
+      campo(
+        "Observações",
+        `<textarea class="form-control" name="observacoes" maxlength="2000" rows="2">${esc(venda.observacoes || "")}</textarea>`,
+        "col-12",
+      )
+    }</div>`;
   }
-  preencher("Editar venda", camposHtml, { url, venda, versao: venda.versao });
+  const registradaEm = venda.criado_em
+    ? new Date(venda.criado_em).toLocaleString("pt-BR", {
+        dateStyle: "short",
+        timeStyle: "short",
+      })
+    : "";
+  preencher(
+    "Editar venda",
+    camposHtml,
+    { url, venda, versao: venda.versao },
+    registradaEm ? `Registrada em ${registradaEm}` : "",
+  );
   botaoSalvar.disabled = false;
 }
 
@@ -292,20 +359,27 @@ export function administrarMovimento(membroId, movimento, acao) {
       movimento.versao,
       `Movimentação de R$ ${dinheiro(movimento.valor)}.`,
     );
-  const camposHtml =
+  const camposHtml = `<div class="row g-3">${
     campo(
       "Tipo",
-      `<select name="tipo"><option value="debito" ${movimento.tipo === "debito" ? "selected" : ""}>Débito</option><option value="credito" ${movimento.tipo === "credito" ? "selected" : ""}>Crédito</option></select>`,
+      `<select class="form-select py-2" name="tipo"><option value="debito" ${movimento.tipo === "debito" ? "selected" : ""}>Débito</option><option value="credito" ${movimento.tipo === "credito" ? "selected" : ""}>Crédito</option></select>`,
     ) +
     campo(
       "Valor (R$)",
-      `<input name="valor" type="number" min="0" step="0.01" required value="${dinheiro(movimento.valor)}">`,
+      `<input class="form-control py-2" name="valor" type="number" min="0" step="0.01" required value="${dinheiro(movimento.valor)}">`,
     ) +
     campo(
       "Descrição",
-      `<input name="descricao" maxlength="1000" value="${esc(movimento.descricao || "")}">`,
-    );
-  abrir("Editar movimentação", camposHtml, { url, versao: movimento.versao });
+      `<input class="form-control py-2" name="descricao" maxlength="1000" value="${esc(movimento.descricao || "")}">`,
+      "col-12",
+    )
+  }</div>`;
+  abrir(
+    "Editar movimentação",
+    camposHtml,
+    { url, versao: movimento.versao },
+    movimento.data ? `Lançada em ${movimento.data}` : "",
+  );
 }
 
 export function configurarEdicaoFinanceira() {
@@ -334,9 +408,10 @@ export function configurarEdicaoFinanceira() {
       campoQuantidade.dispatchEvent(new Event("input", { bubbles: true }));
     } else if (botao.hasAttribute("data-alternar-observacao")) {
       const observacaoItem = linha.querySelector("[data-observacao-item]");
-      observacaoItem.hidden = !observacaoItem.hidden;
-      if (!observacaoItem.hidden)
-        observacaoItem.querySelector("textarea").focus();
+      const fechada = observacaoItem.classList.toggle("d-none");
+      for (const classe of OBSERVACAO_ABERTA)
+        observacaoItem.classList.toggle(classe, !fechada);
+      if (!fechada) observacaoItem.querySelector("textarea").focus();
     }
   });
   camposEdicao?.addEventListener("input", (evento) => {

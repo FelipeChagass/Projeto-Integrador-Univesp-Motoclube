@@ -6,10 +6,11 @@ Pode ter saldo devedor (compras fiado).
 
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Boolean, DateTime, Numeric, CheckConstraint, text
+from sqlalchemy import Column, String, Boolean, DateTime, Numeric, CheckConstraint, Index, func, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.core.database import Base
+from app.core.schemas import valor_em_reais
 
 
 class Membro(Base):
@@ -31,6 +32,10 @@ class Membro(Base):
         return {
             'id': str(self.id),
             'nome': self.nome,
-            'saldo_devedor': float(self.saldo_devedor),
+            'saldo_devedor': valor_em_reais(self.saldo_devedor),
             'ativo': self.ativo,
         }
+
+
+# A checagem do serviço dá a mensagem; o índice impede dois cadastros simultâneos com o mesmo nome.
+Index('uq_membros_nome_lower', func.lower(Membro.nome), unique=True)

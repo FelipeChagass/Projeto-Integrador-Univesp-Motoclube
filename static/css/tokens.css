@@ -17,6 +17,8 @@
     --divider-color: #1F1F1F;
     --border-color: rgba(255, 255, 255, 0.12);
     --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-hover: rgba(255, 255, 255, 0.28);
+    --surface-translucida: rgba(255, 255, 255, 0.06);
     --input-border: #393939;
     --header-border: #5F451F;
 
@@ -31,4 +33,65 @@
     --edit-mode-color: #B30000;
     --warning-bg: rgba(255, 152, 0, 0.15);
     --warning-border: #ff9800;
+    --info: #3498db;
+
+    /* Sombras */
+    --sombra-elevada: 0 4px 20px rgba(0, 0, 0, 0.3);
+
+    /* Combos/promoções: latão da borda dos headers, aceso; não compete com o vermelho do preço. */
+    --combo: #D9A441;
+    --combo-surface: #241C10;
+    --combo-ink: #17110A;
+}
+
+/* Tema do Bootstrap na paleta do clube (as páginas usam data-bs-theme="dark").
+ * Utilities e componentes do Bootstrap (text-success, text-body-secondary, bg-body-tertiary,
+ * border, form-control, table...) passam a sair nas cores acima, sem CSS extra.
+ * Os pares *-rgb precisam ser números: o Bootstrap os usa dentro de rgba(). */
+:root,
+[data-bs-theme="dark"] {
+    --bs-font-sans-serif: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+    --bs-body-bg: var(--bg-color);
+    --bs-body-bg-rgb: 13, 11, 11;
+    --bs-body-color: var(--text-primary);
+    --bs-body-color-rgb: 224, 224, 224;
+    --bs-secondary-color: var(--text-secondary);
+    --bs-tertiary-color: var(--text-muted);
+    --bs-secondary-bg: var(--card-bg);
+    --bs-tertiary-bg: var(--surface-bg);
+    --bs-emphasis-color: #fff;
+    --bs-border-color: var(--border-color);
+    --bs-border-color-translucent: var(--border-subtle);
+
+    --bs-primary: var(--accent);
+    --bs-primary-rgb: 199, 8, 8;
+    --bs-danger: var(--danger);
+    --bs-danger-rgb: 244, 67, 54;
+    --bs-success: var(--success);
+    --bs-success-rgb: 76, 175, 80;
+    --bs-warning: var(--warning-border);
+    --bs-warning-rgb: 255, 152, 0;
+    --bs-info: var(--info);
+    --bs-info-rgb: 52, 152, 219;
+
+    /* Versões suaves (badges, alertas: bg-*-subtle, text-*-emphasis, border-*-subtle). */
+    --bs-success-bg-subtle: color-mix(in srgb, var(--success) 15%, transparent);
+    --bs-success-border-subtle: color-mix(in srgb, var(--success) 25%, transparent);
+    --bs-success-text-emphasis: var(--success);
+    --bs-danger-bg-subtle: color-mix(in srgb, var(--danger) 15%, transparent);
+    --bs-danger-border-subtle: color-mix(in srgb, var(--danger) 25%, transparent);
+    --bs-danger-text-emphasis: var(--danger);
+    --bs-warning-bg-subtle: var(--warning-bg);
+    --bs-warning-border-subtle: color-mix(in srgb, var(--warning-border) 25%, transparent);
+    --bs-warning-text-emphasis: var(--warning-border);
+    --bs-info-bg-subtle: color-mix(in srgb, var(--info) 15%, transparent);
+    --bs-info-border-subtle: color-mix(in srgb, var(--info) 25%, transparent);
+    --bs-info-text-emphasis: var(--info);
+
+    --bs-link-color: var(--accent-readable);
+    --bs-link-color-rgb: 255, 51, 51;
+    --bs-link-hover-color: var(--accent-hover);
+    --bs-link-hover-color-rgb: 218, 1, 1;
+    --bs-focus-ring-color: color-mix(in srgb, var(--accent) 30%, transparent);
 }

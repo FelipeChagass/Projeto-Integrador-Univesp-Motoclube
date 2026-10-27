@@ -95,15 +95,3 @@
 .extrato-pago { color: var(--success); }
 .extrato-erro { color: var(--danger); }
 
-.modal-extrato .modal-scroll-body { min-height: 0; }
-.modal-extrato .extrato-acoes {
-    background: var(--card-bg);
-    border-top: 1px solid var(--border-color);
-}
-
-@media (max-width: 768px) {
-    .extrato-titulo-desktop { display: none; }
-    .modal-extrato .extrato-acoes {
-        padding-bottom: calc(1rem + env(safe-area-inset-bottom)) !important;
-    }
-}

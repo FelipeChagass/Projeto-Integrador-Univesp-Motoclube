@@ -1,0 +1,88 @@
+/* admin: modais no celular (bottom sheet). Ligado em templates/admin.html depois de modais.css. */
+@media (max-width: 768px) {
+
+    /* ── Modals (bottom-sheet style) ── */
+    .modal-overlay {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .modal-content {
+
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: 92vh !important;
+        border-radius: 16px 16px 0 0 !important;
+        /* Cabeçalho de ponta a ponta; cada bloco interno define o próprio padding. */
+        padding: 0 0 env(safe-area-inset-bottom) !important;
+        overflow-y: auto;
+        animation: adminModalSlideUp 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        margin: 0 !important;
+        position: relative;
+        touch-action: pan-y;
+    }
+
+    .modal-overlay.closing .modal-content {
+        animation: adminModalSlideDown 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes adminModalSlideUp {
+        from {
+            transform: translateY(100%);
+            opacity: 1;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes adminModalSlideDown {
+        from {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        to {
+            transform: translateY(100%);
+            opacity: 1;
+        }
+    }
+
+    .modal-lg {
+        max-width: 100% !important;
+    }
+
+    .modal-content.edicao-venda {
+        max-height: 92dvh !important;
+    }
+
+    /* Itens da venda: o <tbody> de cada item é o cartão (tabela-cartoes põe o cartão no <tr>). */
+    .tabela-cartoes > .edicao-item-venda {
+        background: var(--card-bg);
+        border: 1px solid var(--border-subtle);
+        border-radius: 0.875rem;
+        overflow: hidden;
+    }
+
+    /* Só a largura: as células herdam a cor da borda do <tr> (border-color: inherit). */
+    .tabela-cartoes > .edicao-item-venda > tr {
+        border-width: 0;
+        border-radius: 0;
+        background: transparent;
+    }
+
+    .edicao-item-quantidade,
+    .edicao-item-preco {
+        width: 100%;
+    }
+
+    .toast {
+        left: 0.8rem;
+        right: 0.8rem;
+        bottom: calc(0.8rem + env(safe-area-inset-bottom));
+        text-align: center;
+    }
+}
+

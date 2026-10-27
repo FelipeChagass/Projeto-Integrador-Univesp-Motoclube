@@ -1,7 +1,7 @@
 """Contratos de produtos e estoque."""
 from uuid import UUID
 from pydantic import BaseModel, Field, model_validator
-from app.core.schemas import Dinheiro
+from app.core.schemas import Dinheiro, DinheiroPositivo
 
 class ProdutoCriacaoPayload(BaseModel):
     nome: str = Field(min_length=1, max_length=250)
@@ -22,6 +22,27 @@ class ProdutoEdicaoPayload(BaseModel):
     estoque_min_bar: int | None = Field(default=None, ge=0, strict=True)
     estoque_min_deposito: int | None = Field(default=None, ge=0, strict=True)
     ativo: bool | None = Field(default=None, strict=True)
+
+class ComboItemPayload(BaseModel):
+    produto_id: int = Field(gt=0, strict=True)
+    quantidade: int = Field(gt=0, le=100, strict=True)
+
+class ComboItensPayload(BaseModel):
+    itens: list[ComboItemPayload] = Field(min_length=1, max_length=20)
+
+    @model_validator(mode='after')
+    def validar_composicao(self):
+        ids = [item.produto_id for item in self.itens]
+        if len(ids) != len(set(ids)):
+            raise ValueError('Cada produto aparece uma vez no combo; ajuste a quantidade.')
+        if sum(item.quantidade for item in self.itens) < 2:
+            raise ValueError('O combo precisa reunir 2 ou mais itens.')
+        return self
+
+class ComboCriacaoPayload(ComboItensPayload):
+    nome: str = Field(min_length=1, max_length=250)
+    preco_atual: DinheiroPositivo
+    url_imagem: str = Field(default='', max_length=2000)
 
 class EstoquePayload(BaseModel):
     produto_id: int = Field(gt=0)

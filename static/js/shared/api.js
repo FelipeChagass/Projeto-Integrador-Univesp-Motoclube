@@ -24,6 +24,51 @@ export class ApiError extends Error {
   }
 }
 
+const MENSAGENS_AUTENTICACAO = {
+  invalid_credentials: "E-mail ou senha incorretos.",
+  email_not_confirmed:
+    "E-mail ainda não confirmado. Confirme o cadastro antes de entrar.",
+  user_banned: "Este usuário está bloqueado. Fale com o administrador.",
+  user_not_found: "E-mail ou senha incorretos.",
+  over_request_rate_limit:
+    "Muitas tentativas seguidas. Aguarde um momento e tente de novo.",
+  over_email_send_rate_limit:
+    "Muitas tentativas seguidas. Aguarde um momento e tente de novo.",
+  validation_failed: "Confira o e-mail e a senha informados.",
+  email_address_invalid: "O e-mail informado não é válido.",
+  weak_password: "A senha é muito fraca.",
+  session_expired: "Sua sessão expirou. Entre novamente.",
+};
+
+const PADROES_AUTENTICACAO = [
+  [
+    /invalid login credentials|invalid credentials/i,
+    "E-mail ou senha incorretos.",
+  ],
+  [/email not confirmed/i, MENSAGENS_AUTENTICACAO.email_not_confirmed],
+  [
+    /rate limit|too many requests/i,
+    MENSAGENS_AUTENTICACAO.over_request_rate_limit,
+  ],
+  [/banned/i, MENSAGENS_AUTENTICACAO.user_banned],
+  [
+    /failed to fetch|network|load failed|fetch failed/i,
+    "Sem conexão com o servidor de login. Verifique a internet.",
+  ],
+];
+
+/** Mensagem do Supabase Auth em português; nunca devolve o texto cru em inglês. */
+export function traduzirErroAutenticacao(erro) {
+  const mensagem = String(erro?.message || "");
+  return (
+    MENSAGENS_AUTENTICACAO[erro?.code] ||
+    PADROES_AUTENTICACAO.find(([padrao]) => padrao.test(mensagem))?.[1] ||
+    (Number(erro?.status) >= 500
+      ? "O serviço de login está indisponível. Tente novamente em instantes."
+      : "Não foi possível entrar. Tente novamente.")
+  );
+}
+
 export const API = (function () {
   const BASE_URL = window.location.origin + "/api";
 
@@ -241,14 +286,20 @@ export const API = (function () {
     login: async function (email, senha) {
       const clienteAutenticacao = await initSupabase();
       if (!clienteAutenticacao)
-        return { status: "erro", mensagem: "Supabase não inicializado" };
+        return {
+          status: "erro",
+          mensagem: "Não foi possível conectar ao servidor de login.",
+        };
       const { data: dadosAutenticacao, error: erroAutenticacao } =
         await clienteAutenticacao.auth.signInWithPassword({
           email: email,
           password: senha,
         });
       if (erroAutenticacao)
-        return { status: "erro", mensagem: erroAutenticacao.message };
+        return {
+          status: "erro",
+          mensagem: traduzirErroAutenticacao(erroAutenticacao),
+        };
       return {
         status: "ok",
         usuario: dadosAutenticacao.user,

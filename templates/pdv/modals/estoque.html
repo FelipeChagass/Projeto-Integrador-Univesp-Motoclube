@@ -1,27 +1,26 @@
 {# Edição de estoque; actions/estoque.js envia os valores esperados para a API.
    Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
+{% from 'shared/modal.html' import cabecalho_modal %}
     <div id="modal-estoque" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-drag-header">
-                <div class="drag-handle"></div>
-                <h3 class="modal-title-estoque">Gestão de Estoque</h3>
-            </div>
-            <div class="modal-scroll-body">
-                <p id="nome-prod-estoque" class="fw-bold mb-3"></p>
-                <div class="estoque-grid">
-                    <div class="config-option"><label class="label-accent">Estoque BAR:</label><input type="number"
-                            id="edit-est-bar" class="config-input" min="0"></div>
-                    <div class="config-option"><label class="label-accent">Estoque DEPÓSITO:</label><input type="number"
-                            id="edit-est-dep" class="config-input" min="0"></div>
-                    <div class="config-option"><label class="label-danger">Mínimo BAR:</label><input type="number"
-                            id="edit-min-bar" class="config-input" min="0"></div>
-                    <div class="config-option"><label class="label-danger">Mínimo DEPÓSITO:</label><input type="number"
-                            id="edit-min-dep" class="config-input" min="0"></div>
+        <div class="modal-content d-flex flex-column overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-estoque-titulo">
+            {{ cabecalho_modal('Gestão de estoque', 'estoque', 'modal-estoque-titulo', id_subtitulo='nome-prod-estoque',
+                fechar='data-acionar="btn-cancelar-estoque"') }}
+            <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
+                <div class="estoque-grid gap-3 m-0">
+                    <div class="config-option d-flex flex-column gap-2 m-0"><label class="label-accent mb-0" for="edit-est-bar">Estoque BAR:</label><input
+                            type="number" id="edit-est-bar" class="config-input" min="0"></div>
+                    <div class="config-option d-flex flex-column gap-2 m-0"><label class="label-accent mb-0" for="edit-est-dep">Estoque DEPÓSITO:</label><input
+                            type="number" id="edit-est-dep" class="config-input" min="0"></div>
+                    <div class="config-option d-flex flex-column gap-2 m-0"><label class="label-danger mb-0" for="edit-min-bar">Mínimo BAR:</label><input
+                            type="number" id="edit-min-bar" class="config-input" min="0"></div>
+                    <div class="config-option d-flex flex-column gap-2 m-0"><label class="label-danger mb-0" for="edit-min-dep">Mínimo DEPÓSITO:</label><input
+                            type="number" id="edit-min-dep" class="config-input" min="0"></div>
                 </div>
-                <p class="estoque-nota"><i>Nota: Ao aumentar o Bar, o valor será subtraído
-                        do Depósito automaticamente.</i></p>
-                <button class="btn-action btn-estoque-salvar" id="btn-salvar-estoque">SALVAR ALTERAÇÕES</button>
-                <button class="btn-action" id="btn-cancelar-estoque">CANCELAR</button>
+                <p class="estoque-nota m-0">Ao aumentar o Bar, o valor é subtraído do Depósito automaticamente.</p>
+            </div>
+            <div class="modal-rodape d-flex gap-2 px-3 px-md-4 pt-3 pb-md-3 flex-shrink-0 flex-column-reverse flex-sm-row">
+                <button class="btn-action m-0 justify-content-center" id="btn-cancelar-estoque">CANCELAR</button>
+                <button class="btn-action btn-acao-primaria m-0 justify-content-center" id="btn-salvar-estoque">SALVAR ALTERAÇÕES</button>
             </div>
         </div>
     </div>

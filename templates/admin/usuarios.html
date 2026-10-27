@@ -1,11 +1,11 @@
 {# Aba de usuários e cadastro; comportamento em admin/usuarios.js.
 Incluído por admin.html; manter IDs únicos na página composta. #}
-<section class="tab-content" id="tab-usuarios">
-    <div class="container">
-        <div class="toolbar d-flex align-items-center flex-wrap">
-            <button class="btn btn-add" id="btn-add-usuario">
+<section class="tab-pane" id="tab-usuarios" role="tabpanel">
+    <div class="container-fluid conteudo-admin mx-auto px-2 px-md-3 px-xl-4 py-3 py-xl-4">
+        <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center flex-wrap gap-3 mb-4">
+            <button type="button" class="btn btn-escuro btn-lg d-inline-flex align-items-center justify-content-center gap-2" id="btn-add-usuario">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                     <circle cx="9" cy="7" r="4" />
                     <line x1="19" y1="8" x2="19" y2="14" />
@@ -15,46 +15,45 @@ Incluído por admin.html; manter IDs únicos na página composta. #}
             </button>
         </div>
 
-        <div id="formNovoUsuario" class="form-card d-none">
-            <div class="form-card-header d-flex justify-content-between align-items-center">
-                <h3>Cadastrar Novo Usuário</h3>
-                <button class="btn-icon-close" id="btn-close-form-usuario">
+        <div id="formNovoUsuario" class="card overflow-hidden mb-4 d-none">
+            <div class="card-header d-flex justify-content-between align-items-center gap-3 px-3 px-md-4 py-3">
+                <h3 class="d-flex align-items-center gap-2 h6 fw-bold m-0">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2">
-                        <path d="M18 6 6 18" />
-                        <path d="m6 6 12 12" />
-                    </svg>
-                </button>
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg>
+                    Cadastrar Novo Usuário
+                </h3>
+                <button type="button" class="btn-close" id="btn-close-form-usuario" aria-label="Fechar"></button>
             </div>
-            <div class="form-grid">
-                <div class="form-group"><label>Nome de Exibição</label><input type="text" id="novo-user-nome"
-                        placeholder="Nome"></div>
-                <div class="form-group"><label>E-mail (Login)</label><input type="email" id="novo-user-email"
-                        placeholder="usuario@email.com"></div>
-                <div class="form-group"><label>Senha Inicial</label><input type="password" id="novo-user-senha"
-                        placeholder="Mínimo 6 caracteres"></div>
-                <div class="form-group"><label>Perfil de Acesso</label>
-                    <select id="novo-user-perfil">
-                        <option value="operador" selected>Operador</option>
-                        <option value="admin">Administrador</option>
-                    </select>
+            <div class="p-3 p-md-4">
+                <div class="row g-3">
+                    <div class="col-12 col-md-6"><label class="form-label" for="novo-user-nome">Nome de Exibição</label><input type="text" class="form-control py-2" id="novo-user-nome" placeholder="Nome"></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="novo-user-email">E-mail (Login)</label><input type="email" class="form-control py-2" id="novo-user-email" placeholder="usuario@email.com" autocomplete="off"></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="novo-user-senha">Senha Inicial</label><input type="password" class="form-control py-2" id="novo-user-senha" placeholder="Mínimo 6 caracteres" autocomplete="new-password"></div>
+                    <div class="col-12 col-md-6"><label class="form-label" for="novo-user-perfil">Perfil de Acesso</label>
+                        <select class="form-select py-2" id="novo-user-perfil">
+                            <option value="operador" selected>Operador</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
                 </div>
             </div>
-            <div class="form-actions d-flex justify-content-end">
-                <button class="btn btn-save" id="btn-save-novo-usuario">Salvar Usuário</button>
-                <button class="btn btn-cancel" id="btn-cancel-novo-usuario">Cancelar</button>
+            <div class="d-flex flex-column-reverse flex-md-row justify-content-end gap-2 px-3 px-md-4 pb-3 pb-md-4">
+                <button type="button" class="btn btn-escuro btn-lg" id="btn-cancel-novo-usuario">Cancelar</button>
+                <button type="button" class="btn btn-escuro btn-lg" id="btn-save-novo-usuario">Salvar Usuário</button>
             </div>
         </div>
-        <div class="table-wrapper">
-            <table>
-                <thead>
+
+        <div class="table-responsive tabela-moldura">
+            <table class="table table-hover align-middle text-start text-md-center mb-0 tabela-cartoes d-block d-md-table">
+                <thead class="text-uppercase text-nowrap">
                     <tr>
-                        <th>Nome</th>
-                        <th>Email</th>
-                        <th>Nova Senha</th>
-                        <th>Perfil</th>
-                        <th>Status</th>
-                        <th>Ações</th>
+                        <th scope="col">Nome</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Nova Senha</th>
+                        <th scope="col">Perfil</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Ações</th>
                     </tr>
                 </thead>
                 <tbody id="tabelaUsuarios"></tbody>

@@ -25,55 +25,23 @@
     height: 70px;
 }
 
-.modal-subtitle {
-    color: #fff;
-    margin-bottom: 20px;
-}
-
-.modal-subtitle-muted {
-    color: #fff;
-    text-align: center;
-    margin-bottom: 20px;
-}
-
 .input-valor-grande {
     font-size: 2rem;
     text-align: center;
     color: var(--success);
 }
 
-.modal-prod-nome-accent {
-    color: var(--accent-readable);
-    font-weight: bold;
-}
-
-.btn-disabled-initial {
-    width: 100%;
-    margin-top: 10px;
-    opacity: 0.5;
-    pointer-events: none;
-}
-
 .btn-tipo-cartao {
-    width: 100%;
-    margin-bottom: 10px;
     font-size: 1.2rem;
 }
 
 .btn-tipo-credito {
-    width: 100%;
-    margin-bottom: 10px;
     font-size: 1.2rem;
-}
-
-.modal-title-estoque {
-    color: var(--accent-readable);
 }
 
 .estoque-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
 }
 
 .label-accent {
@@ -85,20 +53,8 @@
 }
 
 .estoque-nota {
-    font-size: 0.8rem;
-    color: #fff;
-    margin-top: 5px;
-}
-
-.btn-estoque-salvar {
-    background: var(--edit-mode-color) !important;
-    width: 100%;
-}
-
-.btn-estoque-salvar:hover {
-    background: #cc0000 !important;
-    border-color: var(--edit-mode-color) !important;
-    box-shadow: 0 0 15px rgba(179, 0, 0, 0.3) !important;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
 }
 
 .preview-divida {
@@ -109,65 +65,29 @@
     min-height: 1.2em;
 }
 
-.nome-fechar-conta {
-    color: var(--text-secondary);
-    font-weight: bold;
-    font-size: 1.2rem;
-    text-align: center;
-}
-
-.prompt-pagamento {
-    margin-top: 15px;
-    font-size: 0.9em;
-    color: var(--text-secondary);
-    margin-bottom: 5px;
-}
-
 .operador-box {
-    padding: 10px;
     background: var(--surface-bg);
-    border-radius: 5px;
-    margin-bottom: 15px;
+    border-radius: 8px;
 }
 
 .operador-nome {
     font-size: 1.2rem;
-    margin: 5px 0 10px 0;
     font-weight: bold;
     color: white;
     text-align: center;
 }
 
 .btn-abrir-caixa {
-    width: 100%;
-    margin-top: 5px;
     color: white !important;
-}
-
-.btn-fechar-dia {
-    width: 100%;
-    margin-top: 5px;
 }
 
 .date-range-row {
     display: flex;
-    gap: 5px;
-    margin-top: 5px;
-}
-
-.date-range-row .config-input {
-    margin: 0;
-}
-
-.btn-gerar-periodo {
-    width: 100%;
-    margin-bottom: 10px;
 }
 
 .resultado-relatorio {
-    margin-top: 15px;
     border-top: 1px solid var(--border-color);
-    padding-top: 10px;
+    padding-top: 16px;
 }
 
 input[type="number"]::-webkit-outer-spin-button,
@@ -229,8 +149,7 @@ select option {
     gap: 8px;
 }
 
-/* White calendar icon for date inputs */
+/* Ícone do calendário: já sai claro pelo color-scheme: dark de data-bs-theme="dark". */
 input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(1);
     cursor: pointer;
 }

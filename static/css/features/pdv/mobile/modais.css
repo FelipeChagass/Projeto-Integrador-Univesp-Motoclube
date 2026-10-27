@@ -47,11 +47,6 @@
         animation: none !important;
     }
 
-    /* Scroll body padding on mobile */
-    .modal-scroll-body {
-        padding: 0 18px calc(18px + env(safe-area-inset-bottom));
-    }
-
 
 
     #modal-login .modal-content {

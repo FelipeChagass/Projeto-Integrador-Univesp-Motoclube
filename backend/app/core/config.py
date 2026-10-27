@@ -10,6 +10,7 @@ class Config:
     # --- Flask ---
     SECRET_KEY = os.getenv('SECRET_KEY', '')
     DEBUG = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO').upper()
 
     # --- Banco de Dados (PostgreSQL — Supabase) ---
     DATABASE_URL = os.getenv('DATABASE_URL')

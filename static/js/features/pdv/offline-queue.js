@@ -1,3 +1,4 @@
+import { mensagemErro } from "../../shared/utils.js";
 // Durable outbox. Confirmations remain as receipts; pending operations are never deleted.
 const NOME_BANCO_OPERACOES = "motoBarOperacoes";
 const NOME_COLECAO_OPERACOES = "operacoes";
@@ -10,6 +11,23 @@ export function novoIdExterno() {
   return globalThis.crypto.randomUUID();
 }
 
+/** Erros do IndexedDB chegam como DOMException em inglês; o operador recebe o motivo em português. */
+function erroArmazenamento(erro) {
+  const nomes = {
+    QuotaExceededError:
+      "Sem espaço no armazenamento do navegador. Libere espaço e tente de novo.",
+    ConstraintError: "Esta operação já está registrada neste dispositivo.",
+    VersionError:
+      "O armazenamento local está em versão mais nova. Atualize a página.",
+  };
+  const novo = new Error(
+    nomes[erro?.name] ||
+      "Falha ao gravar no armazenamento do navegador. Recarregue a página e tente de novo.",
+  );
+  novo.cause = erro;
+  return novo;
+}
+
 async function abrirBanco() {
   if (!globalThis.indexedDB)
     throw new Error("IndexedDB indisponível. A operação não foi registrada.");
@@ -20,7 +38,8 @@ async function abrirBanco() {
         keyPath: "id_externo",
       });
     requisicaoAbertura.onsuccess = () => resolver(requisicaoAbertura.result);
-    requisicaoAbertura.onerror = () => rejeitar(requisicaoAbertura.error);
+    requisicaoAbertura.onerror = () =>
+      rejeitar(erroArmazenamento(requisicaoAbertura.error));
     requisicaoAbertura.onblocked = () =>
       rejeitar(new Error("Armazenamento ocupado. Feche outras abas do PDV."));
   });
@@ -37,9 +56,7 @@ async function transacao(modoTransacao, executarOperacao) {
       let resultadoOperacao;
       transacaoBanco.oncomplete = () => resolver(resultadoOperacao);
       transacaoBanco.onabort = transacaoBanco.onerror = () =>
-        rejeitar(
-          transacaoBanco.error || new Error("Falha ao persistir operação."),
-        );
+        rejeitar(erroArmazenamento(transacaoBanco.error));
       executarOperacao(
         transacaoBanco.objectStore(NOME_COLECAO_OPERACOES),
         (valorResultado) => {
@@ -148,7 +165,7 @@ export function registrarFalha(operacaoId, erroOperacao) {
     registro.ultimo_erro = {
       code: erroOperacao.code || "UNEXPECTED_ERROR",
       status: erroOperacao.status || 0,
-      message: erroOperacao.message,
+      message: mensagemErro(erroOperacao),
       details: erroOperacao.details || null,
       request_id: erroOperacao.requestId || null,
       ocorrido_em: new Date().toISOString(),

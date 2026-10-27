@@ -6,6 +6,7 @@ from app.core.database import session_scope
 from app.core.errors import ApiError, json_object
 from app.features.auth.admin_client import get_supabase_admin_client
 from app.features.produtos import service as produto_service
+from app.features.produtos import combos as combo_service
 from app.features.produtos import images as imagem_service
 
 
@@ -36,7 +37,23 @@ def editar_produto(produto_id):
 @requer_admin
 def deletar_produto(produto_id):
     with session_scope() as db:
-        return jsonify(produto_service.deletar_produto(db, produto_id))
+        resultado, url_imagem = produto_service.excluir_produto_e_imagem(db, produto_id)
+    imagem_service.descartar_imagem(produto_id, url_imagem)
+    return jsonify(resultado)
+
+
+@bp.route('/combos', methods=['POST'])
+@requer_admin
+def criar_combo():
+    with session_scope() as db:
+        return jsonify(combo_service.criar_combo(db, json_object())), 201
+
+
+@bp.route('/combos/<int:combo_id>/itens', methods=['PUT'])
+@requer_admin
+def atualizar_itens_combo(combo_id):
+    with session_scope() as db:
+        return jsonify(combo_service.atualizar_itens_combo(db, combo_id, json_object()))
 
 
 @bp.route('/produtos/<int:produto_id>/estoque', methods=['POST'])
@@ -60,6 +77,11 @@ def upload_imagem(produto_id):
             raise ApiError('PRODUTO_NAO_ENCONTRADO', 'Produto não encontrado.', 404)
     url = imagem_service.enviar_imagem(get_supabase_admin_client(), current_app.config['STORAGE_BUCKET'],
                                        produto_id, conteudo)
-    with session_scope() as db:
-        resultado = produto_service.editar_produto(db, {'produto_id': produto_id, 'url_imagem': url})
+    try:
+        with session_scope() as db:
+            resultado, url_anterior = produto_service.trocar_imagem(db, produto_id, url)
+    except Exception:
+        imagem_service.descartar_imagem(produto_id, url)  # A foto nova não chegou ao cadastro.
+        raise
+    imagem_service.descartar_imagem(produto_id, url_anterior)
     return jsonify(status='ok', url_imagem=url, produto=resultado['produto'])

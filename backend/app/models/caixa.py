@@ -9,6 +9,7 @@ from sqlalchemy import Column, String, DateTime, Numeric, ForeignKey, CheckConst
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.core.database import Base
+from app.core.schemas import valor_em_reais
 
 
 class Caixa(Base):
@@ -42,8 +43,8 @@ class Caixa(Base):
             'usuario_fechamento_id': str(self.usuario_fechamento_id) if self.usuario_fechamento_id else None,
             'aberto_em': self.aberto_em.isoformat() if self.aberto_em else None,
             'fechado_em': self.fechado_em.isoformat() if self.fechado_em else None,
-            'valor_abertura': float(self.valor_abertura),
-            'valor_fechamento': float(self.valor_fechamento) if self.valor_fechamento is not None else None,
+            'valor_abertura': valor_em_reais(self.valor_abertura),
+            'valor_fechamento': valor_em_reais(self.valor_fechamento) if self.valor_fechamento is not None else None,
             'status': self.status,
             'observacoes': self.observacoes,
         }

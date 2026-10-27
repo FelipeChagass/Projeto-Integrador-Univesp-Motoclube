@@ -1,5 +1,6 @@
 /**
- * Navegação entre abas e controle da sidebar administrativa.
+ * Navegação entre abas do painel. Os botões [data-admin-tab] ficam no cabeçalho e no
+ * offcanvas do celular (aberto e fechado pelo Bootstrap); cada aba é um .tab-pane.
  * Consulta os bindings vivos de membros/usuários para preservar a carga sob demanda.
  */
 import { membros, carregarMembros } from "./membros.js";
@@ -8,33 +9,23 @@ import { carregarVendas } from "./vendas.js";
 import { carregarConfig } from "./configuracoes.js";
 
 export function switchTab(nomeAba) {
+  document.querySelectorAll("[data-admin-tab]").forEach((botaoAba) => {
+    const atual = botaoAba.dataset.adminTab === nomeAba;
+    botaoAba.classList.toggle("active", atual);
+    if (atual) botaoAba.setAttribute("aria-current", "page");
+    else botaoAba.removeAttribute("aria-current");
+  });
   document
-    .querySelectorAll(".tab-btn")
-    .forEach((botaoAba) => botaoAba.classList.remove("active"));
-  document
-    .querySelectorAll(".tab-content")
-    .forEach((conteudoAba) => conteudoAba.classList.remove("active"));
-  document.getElementById("tab-btn-" + nomeAba).classList.add("active");
-  document.getElementById("tab-" + nomeAba).classList.add("active");
+    .querySelectorAll(".tab-pane")
+    .forEach((conteudoAba) =>
+      conteudoAba.classList.toggle(
+        "active",
+        conteudoAba.id === "tab-" + nomeAba,
+      ),
+    );
 
   if (nomeAba === "membros" && membros.length === 0) carregarMembros();
   if (nomeAba === "usuarios" && usuarios.length === 0) carregarUsuarios();
   if (nomeAba === "vendas") carregarVendas();
   if (nomeAba === "config") carregarConfig();
-}
-
-export function openAdminSidebar() {
-  const menuLateral = document.getElementById("admin-sidebar-mobile");
-  if (menuLateral) {
-    menuLateral.classList.add("open");
-    document.body.style.overflow = "hidden";
-  }
-}
-
-export function closeAdminSidebar() {
-  const menuLateral = document.getElementById("admin-sidebar-mobile");
-  if (menuLateral) {
-    menuLateral.classList.remove("open");
-    document.body.style.overflow = "";
-  }
 }

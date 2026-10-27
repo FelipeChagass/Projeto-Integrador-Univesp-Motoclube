@@ -17,7 +17,7 @@ bp = Blueprint('dados_iniciais', __name__, url_prefix='/api')
 
 @bp.route('/dados-iniciais', methods=['GET'])
 @requer_login
-def get_dados_iniciais():
+def obter_dados_iniciais():
     """
     Retorna dados iniciais para o frontend. Requer autenticação.
     Formato:

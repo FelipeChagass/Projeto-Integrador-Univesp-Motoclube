@@ -1,6 +1,7 @@
 /** Entrada do login: autentica no Supabase e consulta o perfil local autorizado. */
 import { API } from "../../shared/api.js";
 import { UIModal } from "../../shared/modals.js";
+import { mensagemErro } from "../../shared/utils.js";
 function showToast(mensagem) {
   const elementoToast = document.getElementById("login-toast");
   elementoToast.innerText = mensagem;
@@ -21,19 +22,17 @@ function redirecionarParaPdv() {
   window.location.replace("/");
 }
 
-function toggleSenha() {
+function alternarSenha() {
   const campoSenha = document.getElementById("login-senha");
   const iconeFechado = document.getElementById("icon-olho-fechado");
   const iconeAberto = document.getElementById("icon-olho-aberto");
-  if (campoSenha.type === "password") {
-    campoSenha.type = "text";
-    iconeFechado.style.display = "none";
-    iconeAberto.style.display = "block";
-  } else {
-    campoSenha.type = "password";
-    iconeFechado.style.display = "block";
-    iconeAberto.style.display = "none";
-  }
+  const mostrar = campoSenha.type === "password";
+  campoSenha.type = mostrar ? "text" : "password";
+  iconeFechado.classList.toggle("d-none", mostrar);
+  iconeAberto.classList.toggle("d-none", !mostrar);
+  document
+    .getElementById("btn-toggle-senha")
+    ?.setAttribute("aria-pressed", String(mostrar));
 }
 
 const lembrarMeAtivo = localStorage.getItem("motoBarLembrarMe") === "true";
@@ -128,14 +127,14 @@ function realizarLogin() {
     })
     .catch((erroLogin) => {
       setLoading(false);
-      showToast(erroLogin.message || "Não foi possível entrar.");
+      showToast(mensagemErro(erroLogin, "Não foi possível entrar."));
     });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("btn-toggle-senha")
-    ?.addEventListener("click", toggleSenha);
+    ?.addEventListener("click", alternarSenha);
   document
     .getElementById("btn-login")
     ?.addEventListener("click", realizarLogin);

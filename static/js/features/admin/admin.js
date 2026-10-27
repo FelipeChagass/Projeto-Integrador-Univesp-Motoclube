@@ -3,14 +3,14 @@
  * Regras por recurso ficam nos módulos irmãos; não adicionar CRUD nesta entrada.
  */
 import { initBottomSheetGestures } from "../../shared/gestures.js";
-import { mostrarSkeleton } from "./ui.js";
+import { mostrarEsqueleto } from "./ui.js";
 import { carregarProdutos } from "./produtos.js";
 import { setupEventListeners } from "./events.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   initBottomSheetGestures();
   setupEventListeners();
-  mostrarSkeleton("tabelaProdutos", 8);
+  mostrarEsqueleto("tabelaProdutos");
   carregarProdutos();
 
   // ── ESC fecha modal aberto ──

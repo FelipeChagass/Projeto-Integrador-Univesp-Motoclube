@@ -2,6 +2,7 @@
 from uuid import UUID
 
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.database import unit_of_work
@@ -54,12 +55,22 @@ def _validar_nome(db, nome, membro_id=None):
     return nome
 
 
+def _gravar_nome_unico(db):
+    """Outro cadastro com o mesmo nome pode ter sido confirmado entre a checagem e o flush."""
+    try:
+        db.flush()
+    except IntegrityError as erro:
+        if 'uq_membros_nome_lower' in str(erro.orig):
+            raise ApiError('MEMBRO_DUPLICADO', 'Já existe membro com esse nome.', 409) from None
+        raise
+
+
 def criar_membro(db: Session, dados: dict) -> dict:
     entrada = MembroCriacaoPayload.model_validate(dados)
     with unit_of_work(db):
         membro = Membro(nome=_validar_nome(db, entrada.nome), saldo_devedor=0, ativo=True)
         db.add(membro)
-        db.flush()
+        _gravar_nome_unico(db)
         return {'status': 'ok', 'mensagem': 'Membro criado.', 'membro': membro.to_dict()}
 
 
@@ -71,7 +82,7 @@ def editar_membro(db: Session, membro_id: str, dados: dict) -> dict:
             membro.nome = _validar_nome(db, entrada.nome, membro.id)
         if entrada.ativo is not None:
             membro.ativo = entrada.ativo
-        db.flush()
+        _gravar_nome_unico(db)
         return {'status': 'ok', 'mensagem': 'Membro atualizado.', 'membro': membro.to_dict()}
 
 

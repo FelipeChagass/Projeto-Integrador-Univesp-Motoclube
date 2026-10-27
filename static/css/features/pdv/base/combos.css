@@ -1,0 +1,105 @@
+/* pdv: combos (camada base).
+ * Carregado por static/css/ponto_venda.css depois de catalogo/carrinho.
+ * Sem foto, a vitrine do card mostra a própria composição do combo.
+ * Layout e espaçamento ficam nas classes do Bootstrap (pdv/ui.js e catalogo-carrinho.html).
+ */
+.card.card-combo {
+    border-color: color-mix(in srgb, var(--combo) 35%, transparent);
+}
+
+.card.card-combo:hover {
+    border-color: color-mix(in srgb, var(--combo) 70%, transparent);
+}
+
+.card.card-combo:active {
+    border-color: var(--combo);
+}
+
+.combo-vitrine {
+    background: var(--combo-surface);
+}
+
+.combo-selo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    border-radius: 0 0 8px 0;
+    background: var(--combo);
+    color: var(--combo-ink);
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.combo-composicao {
+    font-size: 0.78rem;
+    line-height: 1.15;
+    color: var(--text-primary);
+    overflow: hidden;
+}
+
+.combo-composicao li {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+}
+
+.combo-composicao b {
+    color: var(--combo);
+    font-variant-numeric: tabular-nums;
+}
+
+.combo-itens {
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.combo-avulso {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+.item-combo {
+    color: var(--combo);
+    font-size: 0.75rem;
+    line-height: 1.25;
+}
+
+@media (max-width: 768px) {
+    /* Quatro filtros não cabem com o rótulo; a rolagem fica como reserva. */
+    .filtro-catalogo {
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .filtro-catalogo .btn-categoria {
+        width: auto;
+    }
+
+    .filtro-catalogo .btn-categoria svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .combo-composicao {
+        font-size: 0.7rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .card.card-combo:active {
+        transform: none;
+    }
+}
