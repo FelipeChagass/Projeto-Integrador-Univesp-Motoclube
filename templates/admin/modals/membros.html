@@ -1,9 +1,9 @@
-{# Extrato e ajuste de saldo; IDs consumidos por admin/membros.js.
+{# Extrato do membro (consulta); IDs consumidos por admin/membros.js. O ajuste de saldo é painel lateral.
 Incluído por admin.html; manter IDs únicos na página composta. #}
 {% from 'shared/modal.html' import cabecalho_modal %}
 <div class="modal-overlay d-none" id="modalExtrato">
     <div class="modal-content modal-lg modal-extrato d-flex flex-column overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="extrato-titulo">
-        {{ cabecalho_modal('Extrato de saldo devedor', 'extrato-titulo', id_contexto='extrato-membro-nome',
+        {{ cabecalho_modal('Extrato de saldo devedor', 'extrato-titulo', id_complemento='extrato-membro-nome',
             fechar='id="btn-close-modal-extrato"', arrastavel=False) }}
         <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">
             <div id="extrato-body">{% include 'shared/extrato-membro.html' %}</div>
@@ -11,32 +11,3 @@ Incluído por admin.html; manter IDs únicos na página composta. #}
     </div>
 </div>
 
-<div class="modal-overlay d-none" id="modalAjuste">
-    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="ajuste-saldo-titulo">
-        {{ cabecalho_modal('Ajuste de saldo', 'ajuste-saldo-titulo', id_contexto='ajuste-membro-nome',
-            fechar='id="btn-close-modal-ajuste"', arrastavel=False) }}
-        <div class="p-3 p-md-4">
-            <div class="row g-3">
-                <div class="col-12 col-md-6">
-                    <label class="form-label" for="ajuste-tipo">Tipo</label>
-                    <select class="form-select py-2" id="ajuste-tipo">
-                        <option value="credito">Crédito (abater dívida)</option>
-                        <option value="debito">Débito (aumentar dívida)</option>
-                    </select>
-                </div>
-                <div class="col-12 col-md-6">
-                    <label class="form-label" for="ajuste-valor">Valor (R$)</label>
-                    <input class="form-control py-2" type="number" id="ajuste-valor" step="0.01" min="0" placeholder="0,00" inputmode="decimal">
-                </div>
-                <div class="col-12">
-                    <label class="form-label" for="ajuste-descricao">Descrição (opcional)</label>
-                    <input class="form-control py-2" type="text" id="ajuste-descricao" placeholder="Motivo do ajuste">
-                </div>
-            </div>
-        </div>
-        <div class="d-flex flex-column-reverse flex-md-row justify-content-end gap-2 px-3 px-md-4 pb-3 pb-md-4 flex-shrink-0">
-            <button type="button" class="btn btn-escuro btn-lg" id="btn-cancel-modal-ajuste">Cancelar</button>
-            <button type="button" class="btn btn-escuro btn-lg" id="btn-confirmar-ajuste-saldo">Confirmar ajuste</button>
-        </div>
-    </div>
-</div>

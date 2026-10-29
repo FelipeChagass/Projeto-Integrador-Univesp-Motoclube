@@ -2,7 +2,7 @@
  * Carregado por static/css/ponto_venda.css; preserve a ordem da cascata no manifesto.
  */
 #carrinho-section {
-    width: 380px;
+    width: 23.75rem;
     background: var(--bg-color);
     display: flex;
     flex-direction: column;
@@ -27,7 +27,7 @@
     border: 0;
     border-radius: 0;
     flex-shrink: 0;
-    min-height: 56px;
+    min-height: 3.5rem;
     padding: 16px;
     background: var(--surface-bg);
     text-align: center;
@@ -44,7 +44,7 @@
     stroke: var(--accent);
 }
 
-.carrinho-header #titulo-carrinho {
+.carrinho-header .titulo-carrinho {
     margin: 0;
     font-size: 0.85rem;
     color: #eee;

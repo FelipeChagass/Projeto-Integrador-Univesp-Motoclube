@@ -1,101 +1,21 @@
-{# Aba de produtos e formulários de cadastro; renderização em admin/produtos.js e admin/combos.js.
+{# Aba de produtos: barra de ações e tabela; renderização em admin/produtos.js.
+Cadastro e edição abrem painéis laterais (admin/paineis/produtos.html).
 Incluído por admin.html; manter IDs únicos na página composta. #}
 <section class="tab-pane active" id="tab-produtos" role="tabpanel">
     <div class="container-fluid conteudo-admin mx-auto px-2 px-md-3 px-xl-4 py-3 py-xl-4">
         <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center flex-wrap gap-3 mb-4">
             <button type="button" class="btn btn-escuro btn-lg d-inline-flex align-items-center justify-content-center gap-2" id="btn-add-produto">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M5 12h14" /><path d="M12 5v14" />
-                </svg>
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
                 Novo Produto
             </button>
             <button type="button" class="btn btn-escuro btn-lg d-inline-flex align-items-center justify-content-center gap-2 btn-add-combo" id="btn-add-combo">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M3 11.2V4a1 1 0 0 1 1-1h7.2a1 1 0 0 1 .7.3l8.8 8.8a1 1 0 0 1 0 1.4l-7.2 7.2a1 1 0 0 1-1.4 0L3.3 11.9a1 1 0 0 1-.3-.7Z" />
-                    <circle cx="7.5" cy="7.5" r="1.5" />
-                </svg>
+                <i class="bi bi-tag" aria-hidden="true"></i>
                 Novo Combo
             </button>
             <label class="d-flex align-items-center gap-2 small mb-0">
                 <input type="checkbox" id="mostrarProdutosInativos">
                 <span>Mostrar desativados</span>
             </label>
-        </div>
-
-        <div id="formNovoProduto" class="card overflow-hidden mb-4 d-none">
-            <div class="card-header d-flex justify-content-between align-items-center gap-3 px-3 px-md-4 py-3">
-                <h3 class="d-flex align-items-center gap-2 h6 fw-bold m-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg>
-                    Cadastrar Novo Produto
-                </h3>
-                <button type="button" class="btn-close" id="btn-close-form-produto" aria-label="Fechar"></button>
-            </div>
-            <div class="row g-3 p-3 p-md-4">
-                <div class="col-12"><label class="form-label" for="novo-nome">Nome</label><input type="text" class="form-control py-2" id="novo-nome" placeholder="Ex: Cerveja 600ml"></div>
-                <div class="col-12 col-md-6"><label class="form-label" for="novo-preco">Preço (R$)</label><input type="number" class="form-control py-2" id="novo-preco" step="0.01" min="0" inputmode="decimal" placeholder="0,00"></div>
-                <div class="col-12 col-md-6"><label class="form-label" for="novo-categoria">Categoria</label>
-                    <select class="form-select py-2" id="novo-categoria">
-                        <option value="bebida">Bebida</option>
-                        <option value="comida">Comida</option>
-                        <option value="outro">Outro</option>
-                    </select>
-                </div>
-                <div class="col-12">
-                    <span class="form-label d-block mb-2" id="novo-imagem-rotulo">Imagem do Produto</span>
-                    <button type="button" class="upload-zone d-flex flex-column align-items-center justify-content-center gap-2 w-100 p-4"
-                        id="novo-upload-zone" aria-labelledby="novo-imagem-rotulo">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                            <polyline points="17 8 12 3 7 8" />
-                            <line x1="12" x2="12" y1="3" y2="15" />
-                        </svg>
-                        <span>Clique para selecionar</span><small>PNG, JPG, GIF ou WebP</small>
-                    </button>
-                    <input type="file" id="novo-file-input" accept="image/*" class="d-none">
-                    <div id="novo-img-preview" class="d-none align-items-center gap-3 mt-3">
-                        <img id="novo-img-tag" class="preview-imagem" src="" alt="Pré-visualização da imagem">
-                        <button type="button" class="btn btn-excluir btn-sm" id="btn-remove-preview-produto">Remover</button>
-                    </div>
-                </div>
-            </div>
-            <div class="d-flex flex-column-reverse flex-md-row justify-content-end gap-2 px-3 px-md-4 pb-3 pb-md-4">
-                <button type="button" class="btn btn-escuro btn-lg" id="btn-cancel-novo-produto">Cancelar</button>
-                <button type="button" class="btn btn-primary btn-lg" id="btn-save-novo-produto">Salvar Produto</button>
-            </div>
-        </div>
-
-        {# Combo: preço promocional sobre 2 ou mais itens do estoque; admin/combos.js monta as linhas. #}
-        <div id="formCombo" class="card form-combo overflow-hidden mb-4 d-none" role="region" aria-labelledby="combo-form-titulo">
-            <div class="card-header d-flex justify-content-between align-items-center gap-3 px-3 px-md-4 py-3">
-                <h3 class="d-flex align-items-center gap-2 h6 fw-bold m-0" id="combo-form-titulo">
-                    Novo combo
-                </h3>
-                <button type="button" class="btn-close" id="btn-close-form-combo" aria-label="Fechar"></button>
-            </div>
-            <div class="row g-3 p-3 p-md-4">
-                <div class="col-12" data-combo-basico><label class="form-label" for="combo-nome">Nome do combo</label><input
-                        type="text" class="form-control py-2" id="combo-nome" autocomplete="off" placeholder="Ex: Balde com 5 long necks"></div>
-                <div class="col-12 col-md-6" data-combo-basico><label class="form-label" for="combo-preco">Preço do combo (R$)</label><input
-                        type="number" class="form-control py-2" id="combo-preco" inputmode="decimal" step="0.01" min="0" placeholder="0,00"></div>
-                <fieldset class="col-12 combo-itens-campo d-flex flex-column gap-4">
-                    <legend class="form-label float-none w-auto m-0 p-0">Itens do combo</legend>
-                    <div id="combo-itens-lista" class="d-flex flex-column gap-2"></div>
-                    <button type="button" class="btn btn-escuro btn-sm align-self-start" id="btn-add-item-combo">Adicionar
-                        item</button>
-                </fieldset>
-                <div class="col-12">
-                    <div class="combo-resumo d-flex flex-column flex-md-row flex-wrap row-gap-2 column-gap-4 rounded-3 p-3" id="combo-resumo" aria-live="polite"></div>
-                </div>
-            </div>
-            <div class="d-flex flex-column-reverse flex-md-row justify-content-end gap-2 px-3 px-md-4 pb-3 pb-md-4">
-                <button type="button" class="btn btn-escuro btn-lg" id="btn-cancel-combo">Cancelar</button>
-                <button type="button" class="btn btn-primary btn-lg" id="btn-save-combo">Salvar combo</button>
-            </div>
         </div>
 
         <div class="table-responsive tabela-moldura">

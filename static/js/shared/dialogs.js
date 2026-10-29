@@ -1,4 +1,4 @@
-/** Diálogos Bootstrap: uma instância por vez, callbacks após hidden e texto seguro. */
+/** Diálogos Bootstrap (estilos em css/shared/dialogs.css, ligado no <head> das páginas): uma instância por vez, callbacks após hidden e texto seguro. */
 let sequencia = 0;
 const fila = [];
 let dialogoAtual = null;
@@ -28,15 +28,6 @@ export function sincronizarScrollDialogos() {
   document.body.classList.toggle("modal-open", aberto);
 }
 
-function carregarEstilos() {
-  if (document.querySelector("link[data-estilos-dialogos]")) return;
-  const estilos = document.createElement("link");
-  estilos.rel = "stylesheet";
-  estilos.href = new URL("../../css/shared/dialogs.css", import.meta.url).href;
-  estilos.dataset.estilosDialogos = "";
-  document.head.append(estilos);
-}
-
 function elemento(tag, classes, texto) {
   const criado = document.createElement(tag);
   criado.className = classes;
@@ -49,7 +40,6 @@ export function abrirDialogo(opcoes) {
     throw new Error(
       "Bootstrap Modal precisa estar carregado antes de abrir um diálogo.",
     );
-  carregarEstilos();
   fila.push({ ...opcoes, retorno: document.activeElement });
   exibirProximo();
 }
@@ -74,13 +64,26 @@ function exibirProximo() {
     "div",
     "modal-dialog modal-dialog-centered modal-dialog-scrollable",
   );
-  const conteudo = elemento("div", "modal-content");
-  const cabecalho = elemento("div", "modal-header");
-  const tituloElemento = elemento("h2", "modal-title fs-5", titulo);
+  // Desenho original do app: faixa escura com título vermelho centralizado, mensagem
+  // centralizada e os dois botões lado a lado ocupando a largura (cores em dialogs.css).
+  const conteudo = elemento("div", "modal-content text-center");
+  const cabecalho = elemento(
+    "div",
+    "modal-header justify-content-center px-4 py-3",
+  );
+  const tituloElemento = elemento(
+    "h2",
+    "modal-title ui-dialogo-titulo",
+    titulo,
+  );
   tituloElemento.id = `${identificador}-titulo`;
   cabecalho.append(tituloElemento);
-  const corpo = elemento("div", "modal-body");
-  const mensagemElemento = elemento("p", "mb-0 text-break", mensagem);
+  const corpo = elemento("div", "modal-body px-4 py-4");
+  const mensagemElemento = elemento(
+    "p",
+    "ui-dialogo-mensagem mb-0 text-break",
+    mensagem,
+  );
   mensagemElemento.id = `${identificador}-mensagem`;
   corpo.append(mensagemElemento);
   let entrada = null;
@@ -92,21 +95,26 @@ function exibirProximo() {
     entrada.setAttribute("aria-labelledby", mensagemElemento.id);
     corpo.append(entrada);
   }
-  const rodape = elemento("div", "modal-footer");
+  const acoes = elemento("div", "d-flex gap-2 mt-4");
   const confirmar = elemento(
     "button",
-    "btn btn-danger",
+    "btn btn-primary btn-lg flex-fill",
     exigeConfirmacao ? "CONFIRMAR" : "OK",
   );
   confirmar.type = "button";
   let cancelar = null;
   if (exigeConfirmacao) {
-    cancelar = elemento("button", "btn btn-secondary", "CANCELAR");
+    cancelar = elemento(
+      "button",
+      "btn btn-escuro btn-lg flex-fill",
+      "CANCELAR",
+    );
     cancelar.type = "button";
-    rodape.append(cancelar);
+    acoes.append(cancelar);
   }
-  rodape.append(confirmar);
-  conteudo.append(cabecalho, corpo, rodape);
+  acoes.append(confirmar);
+  corpo.append(acoes);
+  conteudo.append(cabecalho, corpo);
   caixa.append(conteudo);
   modal.append(caixa);
   document.body.append(modal);

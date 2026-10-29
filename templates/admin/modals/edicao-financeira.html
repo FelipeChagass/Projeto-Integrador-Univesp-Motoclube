@@ -3,13 +3,13 @@ Incluído por admin.html; manter IDs únicos na página composta. #}
 {% from 'shared/modal.html' import cabecalho_modal %}
 <div class="modal-overlay d-none" id="modalEdicaoFinanceira" role="dialog" aria-modal="true" aria-labelledby="edicao-financeira-titulo">
     <form class="modal-content modal-lg" id="form-edicao-financeira">
-        {{ cabecalho_modal('Editar venda', 'edicao-financeira-titulo', id_contexto='edicao-financeira-subtitulo',
+        {{ cabecalho_modal('Editar venda', 'edicao-financeira-titulo', id_complemento='edicao-financeira-subtitulo',
             fechar='data-fechar-edicao', arrastavel=False) }}
         <div class="p-3 p-md-4" id="edicao-financeira-campos"></div>
         <p class="edicao-aviso-generico small text-body-secondary px-3 px-md-4 mb-3">Estoque, dívida e totais do caixa serão recalculados ao salvar.</p>
         <div class="d-flex flex-column-reverse flex-sm-row justify-content-end gap-2 px-3 px-md-4 py-3 border-top flex-shrink-0">
             <button type="button" class="btn btn-escuro btn-lg" data-fechar-edicao>Cancelar</button>
-            <button type="submit" class="btn btn-primary btn-lg d-inline-flex align-items-center justify-content-center gap-2" id="btn-salvar-edicao-financeira"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>Salvar alterações</button>
+            <button type="submit" class="btn btn-primary btn-lg d-inline-flex align-items-center justify-content-center gap-2" id="btn-salvar-edicao-financeira"><i class="bi bi-floppy" aria-hidden="true"></i>Salvar alterações</button>
         </div>
     </form>
 </div>

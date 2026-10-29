@@ -186,10 +186,17 @@ describe("Servidor — Segurança", () => {
     expect(status).toBe(200);
     expect(body).toContain("--header-border: #5F451F");
     expect(body).toContain("--accent-text: #B30707");
-    const common = await fetchText(`${BASE}/static/css/common.css`);
-    expect(common.body).toContain("@import url('tokens.css')");
-    const admin = await fetchText(`${BASE}/admin`);
-    expect(admin.body).toContain("/static/css/tokens.css");
+    // Cada página liga a paleta direto no <head>, antes do tema e dos estilos próprios.
+    for (const pagina of ["/", "/admin", "/login"]) {
+      const html = await fetchText(`${BASE}${pagina}`);
+      const ordem = ["tokens.css", "tema-bootstrap.css"].map((arquivo) =>
+        html.body.indexOf(`/static/css/${arquivo}`),
+      );
+      expect({ pagina, ordem: ordem[0] > -1 && ordem[0] < ordem[1] }).toEqual({
+        pagina,
+        ordem: true,
+      });
+    }
   });
 
   test("caminhos inexistentes retornam 404", async () => {

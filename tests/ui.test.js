@@ -257,7 +257,11 @@ describe("ui.js — renderizarCatalogo()", () => {
     ];
     renderizarCatalogo();
     const card = document.querySelector(".card");
-    expect(card.innerHTML).not.toContain("<script>");
+    // O nome vira texto, nunca elemento: o texto aparece literal e não há <script> no DOM.
+    expect(card.querySelector("script")).toBeNull();
+    expect(card.querySelector(".card-name").textContent).toBe(
+      "<script>Evil</script>",
+    );
     expect(card.innerHTML).toContain("&lt;script&gt;");
     expect(card.innerHTML).toContain("R$ 99.90");
   });

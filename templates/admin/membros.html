@@ -1,40 +1,17 @@
-{# Aba de membros e cadastro; comportamento em admin/membros.js.
+{# Aba de membros: barra de ações e tabela; comportamento em admin/membros.js.
+Cadastro, edição e ajuste de saldo abrem painéis laterais (admin/paineis/membros.html).
 Incluído por admin.html; manter IDs únicos na página composta. #}
 <section class="tab-pane" id="tab-membros" role="tabpanel">
     <div class="container-fluid conteudo-admin mx-auto px-2 px-md-3 px-xl-4 py-3 py-xl-4">
         <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center flex-wrap gap-3 mb-4">
             <button type="button" class="btn btn-escuro btn-lg d-inline-flex align-items-center justify-content-center gap-2" id="btn-add-membro">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M5 12h14" /><path d="M12 5v14" />
-                </svg>
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
                 Novo Membro
             </button>
             <label class="d-flex align-items-center gap-2 small mb-0">
                 <input type="checkbox" id="mostrarMembrosInativos">
                 <span>Mostrar desativados</span>
             </label>
-        </div>
-
-        <div id="formNovoMembro" class="card overflow-hidden mb-4 d-none">
-            <div class="card-header d-flex justify-content-between align-items-center gap-3 px-3 px-md-4 py-3">
-                <h3 class="d-flex align-items-center gap-2 h6 fw-bold m-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-                    Cadastrar Novo Membro
-                </h3>
-                <button type="button" class="btn-close" id="btn-close-form-membro" aria-label="Fechar"></button>
-            </div>
-            <div class="p-3 p-md-4">
-                <div class="row g-3">
-                    <div class="col-12"><label class="form-label" for="novo-membro-nome">Nome do Membro</label><input type="text" class="form-control py-2" id="novo-membro-nome" placeholder="Nome completo"></div>
-                </div>
-            </div>
-            <div class="d-flex flex-column-reverse flex-md-row justify-content-end gap-2 px-3 px-md-4 pb-3 pb-md-4">
-                <button type="button" class="btn btn-escuro btn-lg" id="btn-cancel-novo-membro">Cancelar</button>
-                <button type="button" class="btn btn-escuro btn-lg" id="btn-save-novo-membro">Salvar</button>
-            </div>
         </div>
 
         <div class="table-responsive tabela-moldura">

@@ -1,5 +1,6 @@
-/* admin: formulários de cadastro — card do Bootstrap com row g-3 e form-control.
- * Aqui só a área de envio de foto e a prévia; o resto vem do tema e das utilities.
+/* admin: formulários — painéis laterais de cadastro e o card de configurações, com
+ * row g-3 e form-control. Aqui só a área de envio de foto e a prévia; o resto vem do tema
+ * e das utilities.
  */
 .upload-zone {
     border: 2px dashed var(--border-color);
@@ -25,15 +26,17 @@
     object-fit: cover;
 }
 
-/* Barra de título dos cards de cadastro: ícone na cor da marca. */
-.card-header svg {
+/* Barra de título do card de configurações: ícone na cor da marca. */
+.card-header .bi {
     color: var(--accent-text);
 }
 
 /* 16px evita o zoom automático do iOS ao focar o campo. */
 @media (max-width: 767.98px) {
     .card .form-control,
-    .card .form-select {
+    .card .form-select,
+    .painel-admin .form-control,
+    .painel-admin .form-select {
         font-size: calc(16px * var(--escala-fonte, 1));
     }
 }

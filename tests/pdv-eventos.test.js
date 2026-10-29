@@ -31,7 +31,8 @@ beforeEach(async () => {
       <button id="sidebar-btn-estoque">Estoque</button>
       <button id="sidebar-logout">Sair</button>
     </div>
-    <button id="btn-alternar-carrinho" type="button" aria-controls="carrinho-lista" aria-expanded="false"><span>Carrinho</span></button>
+    <button id="btn-alternar-carrinho" class="carrinho-header" type="button" aria-controls="carrinho-lista" aria-expanded="false"><span>Carrinho</span></button>
+    <div id="carrinho-lista"></div>
     <span id="carrinho-badge-mobile"></span>
     <nav id="filtro-catalogo"><button data-categoria="bebida">Bebidas</button><button data-categoria="combo">Combos</button></nav>
     <button id="btn-pag-dinheiro">Dinheiro</button><button id="btn-pag-cartao">Cartão</button>
@@ -45,7 +46,10 @@ beforeEach(async () => {
     <span id="nome-operador-atual"></span><input id="data-inicio"><input id="data-fim">
   `,
   );
-  elemento("carrinho-section").append(elemento("btn-alternar-carrinho"));
+  elemento("carrinho-section").append(
+    elemento("btn-alternar-carrinho"),
+    elemento("carrinho-lista"),
+  );
   esconderSidebar = jest.fn();
   window.bootstrap = {
     Offcanvas: {
@@ -80,12 +84,13 @@ function eventoSidebar(tipo) {
   elemento("sidebar-mobile").dispatchEvent(new Event(tipo, { bubbles: true }));
 }
 
-function toque(tipo, y) {
+/** Toque no cabeçalho "Pedido atual" (único ponto de arrasto da gaveta) ou em outro alvo. */
+function toque(tipo, y, alvo = elemento("btn-alternar-carrinho")) {
   const evento = new Event(tipo, { bubbles: true, cancelable: true });
   Object.defineProperty(evento, "touches", {
     value: tipo === "touchend" ? [] : [{ clientX: 100, clientY: y }],
   });
-  elemento("carrinho-section").dispatchEvent(evento);
+  alvo.dispatchEvent(evento);
 }
 
 describe("catálogo e carrinho acessíveis", () => {
@@ -285,6 +290,19 @@ describe("eventos extraídos do PDV", () => {
     toque("touchend", 100);
     expect(secao.classList.contains("mobile-aberto")).toBe(true);
     expect(botao.getAttribute("aria-expanded")).toBe("true");
+  });
+
+  test("rolar a lista de itens não arrasta nem fecha a gaveta do carrinho", async () => {
+    simularViewport(767.98);
+    await configurar();
+    const secao = elemento("carrinho-section");
+    elemento("btn-alternar-carrinho").querySelector("span").click();
+    const lista = elemento("carrinho-lista");
+    toque("touchstart", 100, lista);
+    toque("touchmove", 300, lista);
+    expect(secao.style.transform).toBe("");
+    toque("touchend", 300, lista);
+    expect(secao.classList.contains("mobile-aberto")).toBe(true);
   });
 
   test("desktop mantém carrinho expandido sem alternar classe mobile", async () => {

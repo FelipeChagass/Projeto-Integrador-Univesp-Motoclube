@@ -80,7 +80,7 @@
     flex-shrink: 0;
 }
 
-#btn-estoque {
+.btn-estoque {
     --bs-btn-active-bg: color-mix(in srgb, var(--accent) 20%, transparent);
     --bs-btn-active-border-color: var(--edit-mode-color);
 }

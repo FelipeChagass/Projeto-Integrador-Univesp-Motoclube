@@ -1,11 +1,21 @@
-/* Isola o Modal Bootstrap dos estilos bottom-sheet legados das três páginas.
- * Layout e espaçamentos permanecem nas utilities e componentes Bootstrap. */
+/* Diálogos de confirmação/aviso (shared/dialogs.js) sobre o Modal do Bootstrap, no desenho
+ * original do app: faixa escura com título vermelho, mensagem centralizada e botões largos.
+ * Layout e espaçamento ficam nas utilities do markup; aqui só variáveis, cor e tipografia.
+ * Também isola o Modal dos estilos bottom-sheet legados de .modal-content das páginas. */
 .ui-dialogo {
     --bs-modal-zindex: 11000;
+    --bs-modal-width: 480px;
+    --bs-modal-color: var(--text-primary);
+    --bs-modal-bg: var(--card-bg);
+    --bs-modal-border-color: var(--border-subtle);
+    --bs-modal-border-radius: 14px;
+    --bs-modal-inner-border-radius: 13px;
+    --bs-modal-header-border-color: var(--divider-color);
 }
 
 .ui-dialogo-fundo {
     --bs-backdrop-zindex: 10990;
+    --bs-backdrop-opacity: 0.85;
 }
 
 .ui-dialogo .modal-content {
@@ -15,4 +25,29 @@
     transition: none;
     background: var(--card-bg, var(--bs-body-bg));
     color: var(--text-primary, var(--bs-body-color));
+    box-shadow: var(--sombra-dialogo);
+}
+
+.ui-dialogo .modal-header {
+    background: var(--surface-bg);
+}
+
+.ui-dialogo-titulo {
+    color: var(--accent-readable);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.ui-dialogo-mensagem {
+    font-size: 0.9375rem;
+    line-height: 1.5;
+}
+
+.ui-dialogo .btn {
+    --bs-btn-font-size: 0.8125rem;
+    --bs-btn-font-weight: 700;
+    --bs-btn-border-radius: 10px;
+    letter-spacing: 0.5px;
 }

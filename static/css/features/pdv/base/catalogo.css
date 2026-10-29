@@ -22,7 +22,7 @@
 .grid-produtos {
     padding: 16px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
     gap: 10px;
 }
 
@@ -31,7 +31,7 @@
     position: sticky;
     top: 0;
     z-index: 20;
-    min-height: 56px;
+    min-height: 3.5rem;
     padding: 4px 16px;
     margin-bottom: 4px;
     gap: 8px;
@@ -45,7 +45,7 @@
 }
 
 .filtro-catalogo [data-categoria] {
-    width: 160px;
+    width: 10rem;
     --bs-btn-font-size: 0.82rem;
     --bs-btn-hover-border-color: var(--accent);
     --bs-btn-active-border-color: var(--accent);
@@ -86,6 +86,22 @@
 .pdv-produto-card:active {
     transform: scale(0.96);
     border-color: var(--accent);
+}
+
+/* Botão invisível que cobre o card (stretched-link): sem altura própria no fluxo do card,
+ * e com o anel de foco desenhado na área esticada, que é a que o operador vê. */
+.pdv-produto-acionador {
+    height: 0;
+}
+
+.pdv-produto-acionador:focus-visible {
+    outline: none;
+}
+
+.pdv-produto-acionador:focus-visible::after {
+    outline: 2px solid var(--accent-readable);
+    outline-offset: -2px;
+    border-radius: 10px;
 }
 
 .img-container {
@@ -161,7 +177,7 @@
 }
 
 .card-price {
-    color: var(--accent-readable);
+    color: var(--accent);
     font-weight: bold;
     font-size: 1.1rem;
 }

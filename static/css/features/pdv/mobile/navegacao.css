@@ -4,7 +4,7 @@
 /* Bootstrap controla backdrop, foco, Escape e transições em todas as larguras.
  * Não esconder o Offcanvas com media query enquanto ele pode estar aberto. */
 .pdv-menu {
-    --bs-offcanvas-width: min(280px, 85vw);
+    --bs-offcanvas-width: min(17.5rem, 85vw);
 }
 
 .pdv-menu .offcanvas-header {

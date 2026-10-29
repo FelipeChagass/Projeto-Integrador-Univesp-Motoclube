@@ -2,20 +2,31 @@
  * Contratos dos módulos administrativos com DOM real de teste e API simulada.
  * Cobre delegação, IDs, valores esperados, navegação e interrupção em falhas HTTP.
  */
-import { beforeEach, expect, jest, test } from "@jest/globals";
+import { beforeAll, beforeEach, expect, jest, test } from "@jest/globals";
 import { readFileSync } from "node:fs";
+import {
+  renderizarPaineis,
+  instalarOffcanvas,
+  enviarPainel,
+  painelAberto,
+} from "./helpers/admin.js";
 
 const request = jest.fn();
+const confirm = jest.fn((_mensagem, aoConfirmar) => aoConfirmar());
 jest.unstable_mockModule("../static/js/shared/api.js", () => ({
   API: { request },
 }));
 jest.unstable_mockModule("../static/js/shared/modals.js", () => ({
-  UIModal: { confirm: (_message, onConfirm) => onConfirm() },
+  UIModal: { confirm },
 }));
 
 const produtos = await import("../static/js/features/admin/produtos.js");
 const membros = await import("../static/js/features/admin/membros.js");
 const usuarios = await import("../static/js/features/admin/usuarios.js");
+const produtoForm = await import("../static/js/features/admin/produto-form.js");
+const ajusteEstoque =
+  await import("../static/js/features/admin/ajuste-estoque.js");
+const usuarioForm = await import("../static/js/features/admin/usuario-form.js");
 const vendas = await import("../static/js/features/admin/vendas.js");
 const configuracoes =
   await import("../static/js/features/admin/configuracoes.js");
@@ -53,8 +64,17 @@ const user = {
 };
 const settleEvents = () => new Promise((resolve) => setTimeout(resolve, 0));
 
+const PAINEIS = ["produtos", "membros", "usuarios"]
+  .map((arquivo) =>
+    renderizarPaineis(`templates/admin/paineis/${arquivo}.html`),
+  )
+  .join("");
+
+beforeAll(instalarOffcanvas);
+
 beforeEach(() => {
   request.mockReset();
+  confirm.mockClear();
   request.mockImplementation(async (method, endpoint) => {
     if (method !== "GET") return { status: "ok", mensagem: "Salvo" };
     if (endpoint === "/admin/produtos")
@@ -90,9 +110,7 @@ beforeEach(() => {
         <input id="vendas-data-inicio"><input id="vendas-data-fim"><input id="vendas-tipo"><div id="vendas-resumo"></div>
         <select id="cfg-imprimir"><option value="true">Sim</option><option value="false">Não</option></select>
         <select id="cfg-largura"><option value="ticket-80mm">80</option><option value="ticket-58mm">58</option></select>
-        <div id="modalAjusteEstoque" class="modal-overlay d-none"></div><span id="ajuste-estoque-nome"></span>
-        <input id="ajuste-estoque-bar"><input id="ajuste-estoque-deposito"><input id="ajuste-estoque-min-bar">
-        <input id="ajuste-estoque-min-deposito"><input id="ajuste-estoque-motivo">
+        ${PAINEIS}
         ${["produtos", "membros", "usuarios", "vendas", "config"]
           .map(
             (name) =>
@@ -107,39 +125,67 @@ test("os módulos de domínio não fazem requisições ao importar", () => {
   expect(esc("<nome>")).toBe("&lt;nome&gt;");
 });
 
-test("produtos: renderização e evento delegado conservam o ID numérico e o payload", async () => {
+test("produtos: editar abre o painel preenchido e envia o ID numérico e o payload", async () => {
   setupEventListeners();
   await produtos.carregarProdutos();
-  document.querySelector('[data-pid="7"][data-campo="preco_atual"]').value =
-    "12.5";
-  document.querySelector('[data-action="salvar-produto"]').click();
+  document.querySelector('[data-action="editar-produto"]').click();
+  expect(painelAberto("painel-produto")).toBe(true);
+  expect(
+    document.getElementById("painel-produto-complemento").textContent,
+  ).toBe("Água");
+  expect(document.getElementById("produto-nome").value).toBe("Água");
+  document.getElementById("produto-preco").value = "12.5";
+  enviarPainel("painel-produto");
   await settleEvents();
   expect(request).toHaveBeenCalledWith("PUT", "/admin/produtos/7", {
     nome: "Água",
     preco_atual: 12.5,
     categoria: "bebida",
   });
+  expect(painelAberto("painel-produto")).toBe(false);
   expect(document.querySelectorAll("#tabelaProdutos tr")).toHaveLength(1);
 });
 
-test("falha de atualização continua sem confirmação visual ou recarga como sucesso", async () => {
+test("falha ao salvar mantém o painel aberto, sem confirmação visual ou recarga", async () => {
+  setupEventListeners();
   await produtos.carregarProdutos();
+  produtoForm.abrirEdicaoProduto(7);
   request.mockClear();
   request.mockRejectedValueOnce(new Error("Conflito de edição"));
-  await produtos.salvarProduto(7);
+  await produtoForm.salvarProduto();
   expect(request).toHaveBeenCalledTimes(1);
   expect(document.getElementById("toast").textContent).toBe(
     "Conflito de edição",
   );
+  expect(painelAberto("painel-produto")).toBe(true);
   expect(document.querySelectorAll("#tabelaProdutos tr")).toHaveLength(1);
+});
+
+test("ações da linha: ícones com nome acessível e ações específicas no menu", async () => {
+  await produtos.carregarProdutos();
+  const editar = document.querySelector('[data-action="editar-produto"]');
+  expect(editar.getAttribute("aria-label")).toBe("Editar Água");
+  expect(editar.textContent.trim()).toBe("");
+  const excluir = document.querySelector('[data-action="excluir-produto"]');
+  expect(excluir.getAttribute("aria-label")).toBe("Excluir Água");
+  const menu = document.querySelector("#tabelaProdutos .dropdown-menu");
+  expect(
+    menu.querySelector('[data-action="ajuste-estoque"]').textContent,
+  ).toContain("Ajustar estoque");
+  const gatilho = document.querySelector('[data-bs-toggle="dropdown"]');
+  expect(gatilho.getAttribute("aria-label")).toBe("Mais ações para Água");
+  expect(JSON.parse(gatilho.dataset.bsConfig).popperConfig.strategy).toBe(
+    "fixed",
+  );
 });
 
 test("estoque mantém a fotografia esperada e o ID do produto no módulo correto", async () => {
   await produtos.carregarProdutos();
-  produtos.abrirAjusteEstoque(7);
+  ajusteEstoque.abrirAjusteEstoque(7);
+  expect(painelAberto("painel-estoque")).toBe(true);
   document.getElementById("ajuste-estoque-bar").value = "6";
   document.getElementById("ajuste-estoque-motivo").value = "Reposição";
-  await produtos.confirmarAjusteEstoque();
+  await ajusteEstoque.confirmarAjusteEstoque();
   expect(request).toHaveBeenCalledWith(
     "POST",
     "/admin/produtos/7/estoque",
@@ -155,8 +201,9 @@ test("estoque mantém a fotografia esperada e o ID do produto no módulo correto
 test("membros: evento conserva UUID e atualização de nome", async () => {
   setupEventListeners();
   await membros.carregarMembros();
-  document.querySelector("[data-mid]").value = "Nome atualizado";
-  document.querySelector('[data-action="salvar-membro"]').click();
+  document.querySelector('[data-action="editar-membro"]').click();
+  document.getElementById("membro-nome").value = "Nome atualizado";
+  enviarPainel("painel-membro");
   await settleEvents();
   expect(request).toHaveBeenCalledWith("PUT", "/admin/membros/member-uuid", {
     nome: "Nome atualizado",
@@ -258,18 +305,59 @@ test("adapter compartilhado mantém tratamento de erro do painel", async () => {
   expect(document.getElementById("toast").textContent).toBe("Não autorizado");
 });
 
-test("edição de linha habilita campos e cancelar restaura os valores", async () => {
+test("painel fecha direto sem alterações e pede confirmação para descartar", async () => {
+  setupEventListeners();
   await produtos.carregarProdutos();
-  const input = document.querySelector('[data-pid="7"][data-campo="nome"]');
-  const botoes = [...document.querySelectorAll("#tabelaProdutos button")];
-  expect(input.disabled).toBe(true);
-  botoes.find((b) => b.textContent === "Editar").click();
-  expect(input.disabled).toBe(false);
-  input.value = "Alteração descartada";
-  botoes.find((b) => b.textContent === "Cancelar").click();
-  expect(input.value).toBe(product.nome);
-  expect(input.disabled).toBe(true);
+  const cancelar = () =>
+    document
+      .querySelector(
+        '#painel-produto .modal-rodape [data-bs-dismiss="offcanvas"]',
+      )
+      .click();
+  produtoForm.abrirEdicaoProduto(7);
+  cancelar();
+  expect(confirm).not.toHaveBeenCalled();
+  expect(painelAberto("painel-produto")).toBe(false);
+
+  produtoForm.abrirEdicaoProduto(7);
+  document.getElementById("produto-nome").value = "Alteração descartada";
+  confirm.mockImplementationOnce(() => {}); // o admin escolhe continuar editando
+  cancelar();
+  expect(confirm).toHaveBeenCalledTimes(1);
+  expect(painelAberto("painel-produto")).toBe(true);
+  cancelar(); // agora aceita descartar
+  expect(painelAberto("painel-produto")).toBe(false);
   expect(request.mock.calls.every(([method]) => method === "GET")).toBe(true);
+});
+
+test("usuário: cadastro exige senha e edição mantém a atual quando vazia", async () => {
+  setupEventListeners();
+  await usuarios.carregarUsuarios();
+  usuarioForm.abrirNovoUsuario();
+  document.getElementById("usuario-nome").value = "Novo";
+  document.getElementById("usuario-email").value = "novo@example.test";
+  await usuarioForm.salvarUsuario();
+  expect(document.getElementById("toast").textContent).toBe(
+    "Informe a senha inicial.",
+  );
+  expect(request).not.toHaveBeenCalledWith(
+    "POST",
+    "/admin/usuarios",
+    expect.anything(),
+  );
+
+  document.querySelector('[data-action="editar-usuario"]').click();
+  expect(document.getElementById("usuario-senha-rotulo").textContent).toBe(
+    "Nova senha (opcional)",
+  );
+  enviarPainel("painel-usuario");
+  await settleEvents();
+  expect(request).toHaveBeenCalledWith("PUT", "/admin/usuarios/user-uuid", {
+    nome: "Admin",
+    email: "test@example.test",
+    senha: "",
+    perfil: "admin",
+  });
 });
 
 test("CSV protege fórmulas, aspas, acentos e separadores", () => {

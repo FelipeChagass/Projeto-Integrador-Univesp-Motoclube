@@ -10,6 +10,7 @@ import {
   CLASSES_TABELA as T,
   badge,
 } from "./ui.js";
+import { htmlAcoes, ACAO } from "./acoes-linha.js";
 import { criarCsv } from "./csv.js";
 import { mensagemErro } from "../../shared/utils.js";
 
@@ -129,10 +130,13 @@ export async function carregarVendas() {
             <td class="${T.celula}" data-label="Cliente">${esc(venda.nome_cliente || "—")}</td>
             <td class="${T.celula} fw-semibold" data-label="Valor">R$ ${venda.valor_total.toFixed(2)}</td>
             <td class="${T.celula}" data-label="Itens">${esc(descricaoItens)}</td>
-            <td class="${T.celulaAcoes}"><div class="${T.acoes}">
-                <button type="button" class="btn btn-escuro flex-fill" data-venda-acao="editar" data-id="${venda.id}">Editar</button>
-                <button type="button" class="btn btn-excluir flex-fill" data-venda-acao="excluir" data-id="${venda.id}">Excluir</button>
-            </div></td>`;
+            <td class="${T.celulaAcoes}">${htmlAcoes(
+              { id: venda.id, nome: `de ${dataFormatada}` },
+              {
+                editar: ACAO.editar("editar"),
+                excluir: ACAO.excluir("excluir"),
+              },
+            )}</td>`;
     corpoTabela.appendChild(linhaVenda);
   });
 }

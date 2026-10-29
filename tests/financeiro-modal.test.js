@@ -41,8 +41,7 @@ beforeEach(() => {
         <div id="modalExtrato" class="modal-overlay d-none"></div>
         <div id="modalEdicaoFinanceira" class="modal-overlay d-none">
             <form id="form-edicao-financeira" class="modal-content modal-lg">
-                <h2 id="edicao-financeira-titulo"></h2>
-                <p id="edicao-financeira-subtitulo"></p>
+                <h2 id="edicao-financeira-titulo"><span data-titulo-texto></span><span id="edicao-financeira-subtitulo"></span></h2>
                 <div id="edicao-financeira-campos" class="form-grid"></div>
                 <button type="button" data-fechar-edicao>Cancelar</button>
                 <button id="btn-salvar-edicao-financeira" type="submit">Salvar</button>

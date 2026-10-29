@@ -1,0 +1,23 @@
+{# Painel de cadastro do admin: Offcanvas do Bootstrap com o mesmo cabeçalho dos modais
+   (shared/modal.html), um formulário rolável e o rodapé fixo com Cancelar e a ação principal.
+   Mobile-first: nasce offcanvas-bottom (bottom sheet com alça de arrasto, sem X) e o CSS
+   (admin/painel-lateral.css) o leva para a direita do md em diante, onde o X aparece.
+   Comportamento em static/js/features/admin/painel.js; arrasto em shared/gestures.js.
+
+   Uso: {% call painel_lateral('painel-produto', 'Novo produto', 'Salvar produto') %}campos{% endcall %}
+   IDs gerados a partir de `id`: {id}-titulo, {id}-complemento (nome do registro no título,
+   preenchido pelo JS), {id}-form (submit = ação principal) e {id}-salvar. #}
+{% from 'shared/modal.html' import cabecalho_modal %}
+{% macro painel_lateral(id, titulo, rotulo_salvar) -%}
+<div class="offcanvas offcanvas-bottom painel-admin" tabindex="-1" id="{{ id }}" aria-labelledby="{{ id }}-titulo">
+    {{ cabecalho_modal(titulo, id ~ '-titulo', fechar='data-bs-dismiss="offcanvas"',
+        id_complemento=id ~ '-complemento') }}
+    <form class="offcanvas-body d-flex flex-column gap-3 p-3 p-md-4" id="{{ id }}-form" novalidate>
+        {{ caller() }}
+    </form>
+    <div class="modal-rodape d-flex flex-column-reverse flex-sm-row justify-content-end gap-2 px-3 px-md-4 py-3 flex-shrink-0">
+        <button type="button" class="btn btn-escuro btn-lg" data-bs-dismiss="offcanvas">Cancelar</button>
+        <button type="submit" class="btn btn-primary btn-lg" form="{{ id }}-form" id="{{ id }}-salvar">{{ rotulo_salvar }}</button>
+    </div>
+</div>
+{%- endmacro %}

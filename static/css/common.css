@@ -64,7 +64,7 @@ textarea::placeholder {
 
 #toast {
     visibility: hidden;
-    min-width: 200px;
+    min-width: 12.5rem;
     background-color: var(--surface-hover);
     color: #fff;
     text-align: center;
@@ -135,7 +135,7 @@ body.modal-open {
     background: var(--card-bg);
     border-radius: 14px;
     width: 90%;
-    max-width: 560px;
+    max-width: 35rem;
     border: 1px solid var(--border-subtle);
     color: white;
     max-height: 88vh;
@@ -169,36 +169,6 @@ body.modal-open {
     to {
         opacity: 0;
         transform: scale(0.95);
-    }
-}
-
-/* ─── Bottom Sheet Component ───
- * O cabeçalho (templates/shared/modal.html) aparece em todas as larguras; a alça só no
- * celular, por d-md-none no markup. Layout e espaçamento ficam nas classes do Bootstrap.
- */
-@media (max-width: 768px) {
-    .modal-drag-header {
-        cursor: grab;
-        user-select: none;
-        -webkit-user-select: none;
-        touch-action: none;
-    }
-
-    .modal-drag-header:active {
-        cursor: grabbing;
-    }
-
-    .drag-handle {
-        width: 40px;
-        height: 4px;
-        background: rgba(255, 255, 255, 0.35);
-        border-radius: 2px;
-        transition: width 0.2s, background 0.2s;
-    }
-
-    .modal-drag-header:active .drag-handle {
-        width: 50px;
-        background: rgba(255, 255, 255, 0.55);
     }
 }
 

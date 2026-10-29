@@ -2,6 +2,7 @@
  * Cadastro e edição de combos no painel. Um combo reúne 2 ou mais unidades de
  * produtos já cadastrados; o resumo mostra a economia e quantos o bar monta.
  * Desativar é decisão do admin: o combo sem itens no bar continua ativo, só esgotado.
+ * O formulário abre no painel lateral "painel-combo" (templates/admin/paineis/produtos.html).
  */
 import { UIModal } from "../../shared/modals.js";
 import {
@@ -11,9 +12,11 @@ import {
 } from "../../shared/combos.js";
 import { formatCurrency } from "../../shared/utils.js";
 import { BASE, authFetch } from "./requests.js";
-import { esc, toast } from "./ui.js";
+import { esc, toast, avisarCampo } from "./ui.js";
+import { abrirPainel, fecharPainel } from "./painel.js";
 import { carregarProdutos, produtosCarregados } from "./produtos.js";
 
+const PAINEL = "painel-combo";
 let comboEmEdicao = null;
 
 const lista = () => document.getElementById("combo-itens-lista");
@@ -42,11 +45,8 @@ function adicionarLinhaItem(produtoId = "", quantidade = 1) {
         </select>
         <input type="number" class="form-control py-2 combo-item-qtd flex-shrink-0" min="1" max="100" step="1" inputmode="numeric"
             value="${Number(quantidade) || 1}" aria-label="Quantidade por combo">
-        <button type="button" class="btn btn-escuro combo-item-remover d-flex align-items-center justify-content-center flex-shrink-0 p-0" aria-label="Remover item">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-                <path d="M18 6 6 18" /><path d="m6 6 12 12" />
-            </svg>
+        <button type="button" class="btn btn-escuro combo-item-remover d-flex align-items-center justify-content-center flex-shrink-0 p-0" aria-label="Remover item" title="Remover item">
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
         </button>`;
   lista().appendChild(linhaItem);
   return linhaItem;
@@ -106,12 +106,10 @@ export function atualizarResumoCombo() {
         <span>O bar monta <b>${monta}</b> ${monta === 1 ? "combo" : "combos"} agora</span>`;
 }
 
+/** Novo combo (nome, preço e itens) ou só os itens de um combo existente. */
 function abrirFormulario(combo) {
   comboEmEdicao = combo;
-  const formulario = document.getElementById("formCombo");
-  document.getElementById("combo-form-titulo").textContent = combo
-    ? `Itens do combo "${combo.nome}"`
-    : "Novo combo";
+  const formulario = document.getElementById(PAINEL);
   formulario.querySelectorAll("[data-combo-basico]").forEach((campo) => {
     campo.classList.toggle("d-none", Boolean(combo));
   });
@@ -128,12 +126,11 @@ function abrirFormulario(combo) {
     adicionarLinhaItem();
   }
   atualizarResumoCombo();
-  formulario.classList.remove("d-none");
-  formulario.scrollIntoView?.({ block: "nearest" });
-  (combo
-    ? lista().querySelector("select")
-    : document.getElementById("combo-nome")
-  ).focus();
+  abrirPainel(PAINEL, {
+    titulo: combo ? "Itens do combo" : "Novo combo",
+    complemento: combo?.nome || "",
+    aoSalvar: salvarCombo,
+  });
 }
 
 export function abrirFormNovoCombo() {
@@ -143,11 +140,6 @@ export function abrirFormNovoCombo() {
 export function abrirEdicaoItensCombo(id) {
   const combo = produtosCarregados().find((produto) => produto.id === id);
   if (combo) abrirFormulario(combo);
-}
-
-export function fecharFormCombo() {
-  comboEmEdicao = null;
-  document.getElementById("formCombo").classList.add("d-none");
 }
 
 export async function salvarCombo() {
@@ -164,9 +156,12 @@ export async function salvarCombo() {
     const nome = document.getElementById("combo-nome").value.trim();
     const preco_atual =
       parseFloat(document.getElementById("combo-preco").value) || 0;
-    if (!nome) return toast("Dê um nome ao combo.", false);
+    if (!nome) return avisarCampo("combo-nome", "Dê um nome ao combo.");
     if (preco_atual <= 0)
-      return toast("O preço do combo deve ser maior que zero.", false);
+      return avisarCampo(
+        "combo-preco",
+        "O preço do combo deve ser maior que zero.",
+      );
     resposta = await authFetch(`${BASE}/api/admin/combos`, {
       method: "POST",
       body: JSON.stringify({ nome, preco_atual, itens }),
@@ -177,7 +172,7 @@ export async function salvarCombo() {
   if (dadosResposta.status !== "ok")
     return toast(dadosResposta.mensagem || "Combo não salvo.", false);
   toast(comboEmEdicao ? "Itens do combo salvos." : "Combo criado.", true);
-  fecharFormCombo();
+  fecharPainel(PAINEL);
   carregarProdutos();
 }
 
@@ -203,15 +198,6 @@ export function configurarFormCombo() {
   document
     .getElementById("btn-add-combo")
     ?.addEventListener("click", abrirFormNovoCombo);
-  document
-    .getElementById("btn-close-form-combo")
-    ?.addEventListener("click", fecharFormCombo);
-  document
-    .getElementById("btn-cancel-combo")
-    ?.addEventListener("click", fecharFormCombo);
-  document
-    .getElementById("btn-save-combo")
-    ?.addEventListener("click", salvarCombo);
   document
     .getElementById("combo-preco")
     ?.addEventListener("input", atualizarResumoCombo);

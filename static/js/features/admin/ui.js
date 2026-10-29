@@ -18,6 +18,12 @@ export function esc(texto) {
     .replace(/>/g, "&gt;");
 }
 
+/** Validação de formulário: mostra o aviso e leva o foco ao campo que precisa ser corrigido. */
+export function avisarCampo(idCampo, mensagem) {
+  toast(mensagem, false);
+  document.getElementById(idCampo)?.focus();
+}
+
 export function toast(mensagem, sucesso) {
   const notificacao = document.getElementById("toast");
   notificacao.textContent = mensagem;
@@ -36,10 +42,6 @@ export const CLASSES_TABELA = {
     "d-flex align-items-center justify-content-between d-md-table-cell",
   celulaImagem: "sem-rotulo d-flex flex-column d-md-table-cell p-0 p-md-3",
   celulaAcoes: "sem-rotulo d-md-table-cell py-3",
-  acoes: "d-flex flex-wrap gap-2",
-  campo: "form-control",
-  campoCurto: "form-control campo-curto text-md-center mx-md-auto",
-  selecao: "form-select",
 };
 
 const BADGES = {

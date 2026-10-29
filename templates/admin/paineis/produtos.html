@@ -1,0 +1,92 @@
+{# Painéis laterais da aba de produtos: cadastro/edição de produto, combo e ajuste de estoque.
+Comportamento em admin/produto-form.js, admin/combos.js e admin/ajuste-estoque.js.
+Incluído por admin.html; manter IDs únicos na página composta. #}
+{% from 'shared/painel.html' import painel_lateral %}
+
+{% call painel_lateral('painel-produto', 'Novo produto', 'Salvar produto') %}
+<div class="row g-3">
+    <div class="col-12">
+        <label class="form-label" for="produto-nome">Nome</label>
+        <input type="text" class="form-control py-2" id="produto-nome" autocomplete="off" placeholder="Ex: Cerveja 600ml">
+    </div>
+    <div class="col-12 col-sm-6">
+        <label class="form-label" for="produto-preco">Preço (R$)</label>
+        <input type="number" class="form-control py-2" id="produto-preco" step="0.01" min="0" inputmode="decimal" placeholder="0,00">
+    </div>
+    {# Combo tem categoria fixa: o campo some ao editar um combo. #}
+    <div class="col-12 col-sm-6" data-campo-categoria>
+        <label class="form-label" for="produto-categoria">Categoria</label>
+        <select class="form-select py-2" id="produto-categoria">
+            <option value="bebida">Bebida</option>
+            <option value="comida">Comida</option>
+            <option value="outro">Outro</option>
+        </select>
+    </div>
+    <div class="col-12">
+        <span class="form-label d-block mb-2" id="produto-imagem-rotulo">Imagem</span>
+        <button type="button" class="upload-zone d-flex flex-column align-items-center justify-content-center gap-2 w-100 p-4"
+            id="produto-upload-zone" aria-labelledby="produto-imagem-rotulo">
+            <i class="bi bi-upload fs-4" aria-hidden="true"></i>
+            <span>Escolher imagem</span><small>PNG, JPG, GIF ou WebP</small>
+        </button>
+        <input type="file" id="produto-arquivo" accept="image/*" class="d-none">
+        <div id="produto-previa" class="d-none align-items-center gap-3">
+            <img id="produto-previa-img" class="preview-imagem" src="" alt="Imagem do produto">
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-escuro btn-sm" id="produto-trocar-imagem">Trocar imagem</button>
+                <button type="button" class="btn btn-excluir btn-sm" id="produto-remover-imagem">Remover</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endcall %}
+
+{# Combo: preço promocional sobre 2 ou mais itens do estoque; admin/combos.js monta as linhas. #}
+{% call painel_lateral('painel-combo', 'Novo combo', 'Salvar combo') %}
+<div class="row g-3 form-combo">
+    <div class="col-12" data-combo-basico>
+        <label class="form-label" for="combo-nome">Nome do combo</label>
+        <input type="text" class="form-control py-2" id="combo-nome" autocomplete="off" placeholder="Ex: Balde com 5 long necks">
+    </div>
+    <div class="col-12 col-sm-6" data-combo-basico>
+        <label class="form-label" for="combo-preco">Preço do combo (R$)</label>
+        <input type="number" class="form-control py-2" id="combo-preco" inputmode="decimal" step="0.01" min="0" placeholder="0,00">
+    </div>
+    <fieldset class="col-12 combo-itens-campo d-flex flex-column gap-3">
+        <legend class="form-label float-none w-auto m-0 p-0">Itens do combo</legend>
+        <div id="combo-itens-lista" class="d-flex flex-column gap-2"></div>
+        <button type="button" class="btn btn-escuro btn-sm d-inline-flex align-items-center gap-2 align-self-start" id="btn-add-item-combo">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>Adicionar item
+        </button>
+    </fieldset>
+    <div class="col-12">
+        <div class="combo-resumo d-flex flex-column flex-wrap row-gap-2 column-gap-4 rounded-3 p-3" id="combo-resumo" aria-live="polite"></div>
+    </div>
+</div>
+{% endcall %}
+
+{# Ajuste de estoque com os valores esperados (concorrência); motivo obrigatório. #}
+{% call painel_lateral('painel-estoque', 'Ajustar estoque', 'Salvar ajuste') %}
+<div class="row g-3">
+    <div class="col-12 col-sm-6">
+        <label class="form-label" for="ajuste-estoque-bar">Estoque no bar</label>
+        <input class="form-control py-2" type="number" id="ajuste-estoque-bar" min="0" inputmode="numeric">
+    </div>
+    <div class="col-12 col-sm-6">
+        <label class="form-label" for="ajuste-estoque-deposito">Estoque no depósito</label>
+        <input class="form-control py-2" type="number" id="ajuste-estoque-deposito" min="0" inputmode="numeric">
+    </div>
+    <div class="col-12 col-sm-6">
+        <label class="form-label" for="ajuste-estoque-min-bar">Mínimo no bar</label>
+        <input class="form-control py-2" type="number" id="ajuste-estoque-min-bar" min="0" inputmode="numeric">
+    </div>
+    <div class="col-12 col-sm-6">
+        <label class="form-label" for="ajuste-estoque-min-deposito">Mínimo no depósito</label>
+        <input class="form-control py-2" type="number" id="ajuste-estoque-min-deposito" min="0" inputmode="numeric">
+    </div>
+    <div class="col-12">
+        <label class="form-label" for="ajuste-estoque-motivo">Motivo do ajuste</label>
+        <input class="form-control py-2" type="text" id="ajuste-estoque-motivo" placeholder="Ex: Contagem do mês, +1 caixa comprada">
+    </div>
+</div>
+{% endcall %}

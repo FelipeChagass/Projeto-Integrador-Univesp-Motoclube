@@ -153,3 +153,31 @@ test.each(["busy", "shared", "bootstrap", "migrado"])(
     expect(modal.style.display).not.toBe("none");
   },
 );
+
+test.each([
+  [400, true], // 300px > 35% de 600px
+  [130, false],
+])(
+  "alça do painel de cadastro arrastada %ipx fecha pelo Bootstrap: %s",
+  (destino, fecha) => {
+    jest.useFakeTimers();
+    document.body.innerHTML = `
+      <div class="offcanvas offcanvas-bottom painel-admin show" id="painel">
+        <header class="modal-cabecalho modal-drag-header"><h2>Editar</h2></header>
+        <form class="offcanvas-body"><input id="campo"></form>
+      </div>`;
+    Object.defineProperty(document.getElementById("painel"), "offsetHeight", {
+      value: 600,
+    });
+    esconder.mockClear();
+    const cabecalho = document.querySelector("#painel header");
+    arrastar(cabecalho, "touchstart", 100);
+    arrastar(cabecalho, "touchmove", destino);
+    expect(document.getElementById("painel").style.transform).toBe(
+      `translateY(${destino - 100}px)`,
+    );
+    arrastar(cabecalho, "touchend", destino);
+    expect(esconder).toHaveBeenCalledTimes(fecha ? 1 : 0);
+    expect(document.getElementById("painel").style.transform).toBe("");
+  },
+);

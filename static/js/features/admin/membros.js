@@ -1,26 +1,29 @@
-import { prepararEdicao } from "./edicao-linha.js";
-import { administrarMovimento } from "./financeiro.js";
 /**
- * Cadastro de membros, extratos e ajustes de saldo do painel administrativo.
- * Exporta membros como binding vivo para a carga sob demanda em navigation.js.
+ * Membros no painel: lista, tabela (linhas só de leitura), extrato e as ações de linha que
+ * não precisam de formulário (excluir, reativar). Cadastro, edição e ajuste de saldo ficam
+ * em membro-form.js. Exporta membros como binding vivo para a carga sob demanda em navigation.js.
  */
+import { administrarMovimento } from "./financeiro.js";
 import { UIModal } from "../../shared/modals.js";
 import { BASE, authFetch } from "./requests.js";
 import {
   abrirModalAdmin,
-  fecharModalAdmin,
   esc,
   toast,
   mostrarEsqueleto,
   CLASSES_TABELA as T,
   badgeStatus,
 } from "./ui.js";
+import { htmlAcoes, ACAO } from "./acoes-linha.js";
 import { criarConsultaExtrato } from "../../shared/extrato-membro.js";
 import { API } from "../../shared/api.js";
 
 export let membros = [];
-let ajusteMembroId = null;
 const consultasExtrato = new WeakMap();
+
+export function buscarMembro(id) {
+  return membros.find((membro) => String(membro.id) === String(id));
+}
 
 export function atualizarExtratoAberto() {
   const modal = document.getElementById("modalExtrato");
@@ -61,55 +64,31 @@ export function renderizarMembros() {
         ? "text-danger fw-bold"
         : "text-success fw-semibold";
     linhaMembro.innerHTML = `
-            <td class="${T.celula}" data-label="Nome"><input class="${T.campo}" value="${esc(membro.nome)}" data-mid="${membro.id}" data-campo="nome" aria-label="Nome"></td>
+            <td class="${T.celula} fw-semibold" data-label="Nome">${esc(membro.nome)}</td>
             <td class="${T.celula} ${classeSaldo}" data-label="Saldo Devedor">R$ ${membro.saldo_devedor.toFixed(2)}</td>
             <td class="${T.celulaStatus}" data-label="Status">${badgeStatus(membro.ativo)}</td>
-            <td class="${T.celulaAcoes}"><div class="${T.acoes}">
-                <button class="btn btn-escuro flex-fill" data-action="salvar-membro" data-id="${membro.id}">Salvar</button>
-                <button class="btn btn-escuro flex-fill" data-action="ver-extrato" data-id="${membro.id}" data-nome="${esc(membro.nome)}">Extrato</button>
-                <button class="btn btn-escuro flex-fill" data-action="ajuste-saldo" data-id="${membro.id}" data-nome="${esc(membro.nome)}">Ajuste</button>
-                <button class="btn btn-excluir flex-fill" data-action="excluir-membro" data-id="${membro.id}" data-nome="${esc(membro.nome)}">Excluir</button> ${!membro.ativo ? `<button class="btn btn-escuro flex-fill" data-action="reativar-membro" data-id="${membro.id}">Reativar</button>` : ""}
-            </div></td>`;
-    prepararEdicao(linhaMembro);
+            <td class="${T.celulaAcoes}">${htmlAcoes(
+              { id: membro.id, nome: membro.nome },
+              {
+                editar: ACAO.editar("editar-membro"),
+                excluir: ACAO.excluir("excluir-membro"),
+                mais: [
+                  {
+                    acao: "ver-extrato",
+                    rotulo: "Ver extrato",
+                    icone: "bi-receipt",
+                  },
+                  {
+                    acao: "ajuste-saldo",
+                    rotulo: "Ajustar saldo",
+                    icone: "bi-cash-coin",
+                  },
+                  ...(membro.ativo ? [] : [ACAO.reativar("reativar-membro")]),
+                ],
+              },
+            )}</td>`;
     corpoTabela.appendChild(linhaMembro);
   });
-}
-
-export function abrirFormNovoMembro() {
-  abrirModalAdmin("formNovoMembro");
-  document.getElementById("novo-membro-nome").value = "";
-  document.getElementById("novo-membro-nome").focus();
-}
-
-export async function criarNovoMembro() {
-  const nome = document.getElementById("novo-membro-nome").value.trim();
-  if (!nome) return toast("Nome é obrigatório", false);
-  const resposta = await authFetch(`${BASE}/api/admin/membros`, {
-    method: "POST",
-    body: JSON.stringify({ nome }),
-  });
-  if (!resposta) return;
-  const dadosResposta = await resposta.json();
-  toast(dadosResposta.mensagem, dadosResposta.status === "ok");
-  if (dadosResposta.status === "ok") {
-    fecharModalAdmin("formNovoMembro");
-    carregarMembros();
-  }
-}
-
-export async function salvarMembro(id) {
-  const campoNome = document.querySelector(
-    `[data-mid="${id}"][data-campo="nome"]`,
-  );
-  if (!campoNome) return;
-  const resposta = await authFetch(`${BASE}/api/admin/membros/${id}`, {
-    method: "PUT",
-    body: JSON.stringify({ nome: campoNome.value }),
-  });
-  if (!resposta) return;
-  const dadosResposta = await resposta.json();
-  toast(dadosResposta.mensagem, dadosResposta.status === "ok");
-  if (dadosResposta.status === "ok") carregarMembros();
 }
 
 export async function excluirMembro(id, nome) {
@@ -158,31 +137,4 @@ export async function verExtrato(id, nome) {
       }),
     );
   return consultasExtrato.get(conteinerExtrato).selecionar(id);
-}
-
-export function abrirAjusteSaldo(id, nome) {
-  ajusteMembroId = id;
-  document.getElementById("ajuste-membro-nome").textContent = nome;
-  document.getElementById("ajuste-valor").value = "";
-  document.getElementById("ajuste-descricao").value = "";
-  document.getElementById("ajuste-tipo").value = "credito";
-  abrirModalAdmin("modalAjuste");
-}
-
-export async function confirmarAjusteSaldo() {
-  const valor = parseFloat(document.getElementById("ajuste-valor").value) || 0;
-  const tipo = document.getElementById("ajuste-tipo").value;
-  const descricao = document.getElementById("ajuste-descricao").value;
-  if (valor <= 0) return toast("Valor deve ser positivo", false);
-  const resposta = await authFetch(
-    `${BASE}/api/admin/membros/${ajusteMembroId}/ajuste`,
-    { method: "POST", body: JSON.stringify({ valor, tipo, descricao }) },
-  );
-  if (!resposta) return;
-  const dadosResposta = await resposta.json();
-  toast(dadosResposta.mensagem, dadosResposta.status === "ok");
-  if (dadosResposta.status === "ok") {
-    fecharModalAdmin("modalAjuste");
-    carregarMembros();
-  }
 }

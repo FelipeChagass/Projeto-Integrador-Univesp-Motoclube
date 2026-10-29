@@ -10,11 +10,8 @@ jest.unstable_mockModule("../static/js/shared/modals.js", () => ({
 
 const { setupEventListeners } =
   await import("../static/js/features/admin/events.js");
-const { fecharModalAdmin } = await import("../static/js/features/admin/ui.js");
-const { abrirFormNovoProduto } =
-  await import("../static/js/features/admin/produtos.js");
-const { abrirAjusteSaldo } =
-  await import("../static/js/features/admin/membros.js");
+const { abrirModalAdmin, fecharModalAdmin } =
+  await import("../static/js/features/admin/ui.js");
 const { administrarMovimento, administrarVenda } =
   await import("../static/js/features/admin/financeiro.js");
 
@@ -38,27 +35,41 @@ beforeEach(() => {
   document.body.className = "";
   document.body.innerHTML = `
     <button id="origem">Abrir</button><div id="toast"></div>
-    <div id="formNovoProduto" class="modal-overlay d-none"><div class="modal-content">
-      <button id="btn-close-form-produto">Fechar</button>
-      <input id="novo-nome"><button id="btn-cancel-novo-produto">Cancelar</button>
+    <div id="modalTeste" class="modal-overlay d-none"><div class="modal-content">
+      <button id="teste-fechar">Fechar</button>
+      <input id="teste-campo"><button id="teste-cancelar">Cancelar</button>
     </div></div>
     <div id="modalExtrato" class="modal-overlay d-none"></div>
-    <div id="modalAjuste" class="modal-overlay d-none"><div class="modal-content">
-      <h2 id="ajuste-membro-nome"></h2><button id="btn-close-modal-ajuste">Fechar</button>
-      <input id="ajuste-valor"><input id="ajuste-descricao"><select id="ajuste-tipo"><option value="credito">Crédito</option></select>
-      <button id="btn-confirmar-ajuste-saldo">Confirmar</button><button id="btn-cancel-modal-ajuste">Cancelar</button>
+    <div id="modalTeste2" class="modal-overlay d-none"><div class="modal-content">
+      <h2>Segundo</h2><button id="teste2-fechar">Fechar</button>
+      <input id="teste2-valor"><input id="teste2-descricao">
+      <button id="teste2-confirmar">Confirmar</button><button id="teste2-cancelar">Cancelar</button>
     </div></div>
     <div id="modalEdicaoFinanceira" class="modal-overlay d-none">
       <form id="form-edicao-financeira" class="modal-content">
-        <h2 id="edicao-financeira-titulo"></h2><p id="edicao-financeira-subtitulo"></p>
+        <h2 id="edicao-financeira-titulo"><span data-titulo-texto></span><span id="edicao-financeira-subtitulo"></span></h2>
         <div id="edicao-financeira-campos"></div>
         <button type="button" data-fechar-edicao>Cancelar</button>
         <button type="submit" id="btn-salvar-edicao-financeira">Salvar</button>
       </form>
     </div>`;
   setupEventListeners();
+  // Overlays genéricos: o contrato de dialogos.js (Escape, fundo, Tab, foco, scroll)
+  // continua valendo para o extrato e a edição de venda, que seguem como modais.
+  for (const [botao, modal] of [
+    ["teste-fechar", "modalTeste"],
+    ["teste-cancelar", "modalTeste"],
+    ["teste2-fechar", "modalTeste2"],
+    ["teste2-cancelar", "modalTeste2"],
+  ])
+    document
+      .getElementById(botao)
+      .addEventListener("click", () => fecharModalAdmin(modal));
   document.getElementById("origem").focus();
 });
+
+const abrirPrimeiro = () => abrirModalAdmin("modalTeste");
+const abrirSegundo = () => abrirModalAdmin("modalTeste2");
 
 afterEach(() => {
   jest.runOnlyPendingTimers();
@@ -69,15 +80,13 @@ afterEach(() => {
 test.each(["Escape", "fundo", "botao"])(
   "%s fecha pelo mesmo ciclo, restaura foco e libera scroll",
   (modo) => {
-    abrirFormNovoProduto();
+    abrirPrimeiro();
     if (modo === "Escape") tecla("Escape");
-    if (modo === "fundo")
-      clicarFundo(document.getElementById("formNovoProduto"));
-    if (modo === "botao")
-      document.getElementById("btn-cancel-novo-produto").click();
+    if (modo === "fundo") clicarFundo(document.getElementById("modalTeste"));
+    if (modo === "botao") document.getElementById("teste-cancelar").click();
     jest.advanceTimersByTime(300);
     expect(
-      document.getElementById("formNovoProduto").classList.contains("d-none"),
+      document.getElementById("modalTeste").classList.contains("d-none"),
     ).toBe(true);
     expect(document.body.classList.contains("modal-open")).toBe(false);
     expect(document.activeElement.id).toBe("origem");
@@ -85,10 +94,10 @@ test.each(["Escape", "fundo", "botao"])(
 );
 
 test("Tab e Shift+Tab permanecem no modal e ignoram controles ocultos", () => {
-  abrirAjusteSaldo("membro", "Ana");
-  expect(document.activeElement.id).toBe("ajuste-valor");
-  const primeiro = document.getElementById("btn-close-modal-ajuste");
-  const ultimo = document.getElementById("btn-cancel-modal-ajuste");
+  abrirSegundo();
+  expect(document.activeElement.id).toBe("teste2-valor");
+  const primeiro = document.getElementById("teste2-fechar");
+  const ultimo = document.getElementById("teste2-cancelar");
   ultimo.insertAdjacentHTML(
     "afterend",
     '<div class="d-none"><button>Oculto</button></div>',
@@ -100,71 +109,58 @@ test("Tab e Shift+Tab permanecem no modal e ignoram controles ocultos", () => {
   expect(document.activeElement).toBe(ultimo);
   document.getElementById("origem").focus();
   expect(
-    document.getElementById("modalAjuste").contains(document.activeElement),
+    document.getElementById("modalTeste2").contains(document.activeElement),
   ).toBe(true);
 });
 
 test("Escape fecha apenas o último modal e mantém scroll até fechar todos", () => {
-  abrirFormNovoProduto();
-  abrirAjusteSaldo("membro", "Ana");
+  abrirPrimeiro();
+  abrirSegundo();
   tecla("Escape");
   jest.advanceTimersByTime(300);
   expect(
-    document.getElementById("modalAjuste").classList.contains("d-none"),
+    document.getElementById("modalTeste2").classList.contains("d-none"),
   ).toBe(true);
   expect(
-    document.getElementById("formNovoProduto").classList.contains("d-none"),
+    document.getElementById("modalTeste").classList.contains("d-none"),
   ).toBe(false);
   expect(document.body.classList.contains("modal-open")).toBe(true);
-  expect(document.activeElement.id).toBe("novo-nome");
+  expect(document.activeElement.id).toBe("teste-campo");
   tecla("Escape");
   jest.advanceTimersByTime(300);
   expect(document.body.classList.contains("modal-open")).toBe(false);
 });
 
 test("overlay escondido por display não mantém scroll bloqueado", () => {
-  abrirFormNovoProduto();
+  abrirPrimeiro();
   document.body.insertAdjacentHTML(
     "beforeend",
     '<div class="modal-overlay" style="display: none"></div>',
   );
-  fecharModalAdmin("formNovoProduto");
+  fecharModalAdmin("modalTeste");
   jest.advanceTimersByTime(300);
   expect(document.body.classList.contains("modal-open")).toBe(false);
 });
 
 test("arrasto iniciado dentro do conteúdo não fecha no backdrop", () => {
-  abrirFormNovoProduto();
+  abrirPrimeiro();
   document
-    .getElementById("novo-nome")
+    .getElementById("teste-campo")
     .dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
-  document.getElementById("formNovoProduto").click();
+  document.getElementById("modalTeste").click();
   jest.advanceTimersByTime(300);
   expect(
-    document.getElementById("formNovoProduto").classList.contains("d-none"),
+    document.getElementById("modalTeste").classList.contains("d-none"),
   ).toBe(false);
 });
 
-test("cadastro inline em card não vira diálogo nem prende teclado ou scroll", () => {
-  const formulario = document.getElementById("formNovoProduto");
-  formulario.classList.replace("modal-overlay", "card");
-  abrirFormNovoProduto();
-  expect(formulario.getAttribute("role")).not.toBe("dialog");
-  expect(document.body.classList.contains("modal-open")).toBe(false);
-  document.getElementById("origem").focus();
-  expect(document.activeElement.id).toBe("origem");
-  document.getElementById("btn-cancel-novo-produto").click();
-  jest.advanceTimersByTime(300);
-  expect(formulario.classList.contains("d-none")).toBe(true);
-});
-
 test("reabrir antes do timeout não deixa o fechamento antigo esconder o modal", () => {
-  abrirFormNovoProduto();
-  fecharModalAdmin("formNovoProduto");
-  abrirFormNovoProduto();
+  abrirPrimeiro();
+  fecharModalAdmin("modalTeste");
+  abrirPrimeiro();
   jest.advanceTimersByTime(300);
   expect(
-    document.getElementById("formNovoProduto").classList.contains("d-none"),
+    document.getElementById("modalTeste").classList.contains("d-none"),
   ).toBe(false);
   expect(document.body.classList.contains("modal-open")).toBe(true);
 });

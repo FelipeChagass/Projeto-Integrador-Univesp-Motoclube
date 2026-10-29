@@ -35,13 +35,24 @@ O inventário final não encontrou arquivos com 400 ou mais linhas nas extensõe
 | `admin.js` | Entrada: DOMContentLoaded, gestos, eventos e carga inicial |
 | `events.js` | Conecta IDs/data-actions dos templates aos handlers; inicializar uma vez |
 | `navigation.js` | Abas/sidebar; lê bindings vivos de membros/usuários para carga sob demanda |
-| `produtos.js` | Cadastro, reativação, upload e ajustes de estoque; cache local de produtos |
-| `membros.js` | Cadastro, extratos e ajuste de saldo; exporta o estado da listagem |
-| `usuarios.js` | Cadastro/ativação de usuários pela API; exporta o estado da listagem |
+| `produtos.js` | Cache local de produtos, tabela (só leitura), excluir e reativar |
+| `produto-form.js` | Painel de cadastro/edição de produto e combo (nome, preço, foto) |
+| `ajuste-estoque.js` | Painel de ajuste de estoque com os valores esperados (concorrência) |
+| `combos.js` | Painel de novo combo / itens do combo, resumo de economia e desativação |
+| `membros.js` | Lista, tabela (só leitura), extrato, excluir e reativar; exporta o estado da listagem |
+| `membro-form.js` | Painéis de cadastro/edição de membro e de ajuste de saldo |
+| `usuarios.js` | Lista, tabela (só leitura), reativar e excluir; exporta o estado da listagem |
+| `usuario-form.js` | Painel de cadastro/edição de usuário (senha opcional na edição) |
+| `painel.js` | Painel lateral (Offcanvas): título, envio, foco e confirmação antes de descartar |
+| `acoes-linha.js` | Coluna "Ações" das tabelas: ícones de editar/excluir e menu "Mais ações" |
+| `financeiro.js` | Edição/exclusão de venda e de movimentação: ciclo do modal, carga com descarte de resposta atrasada, salvar com versão e recarga das listas |
+| `edicao-venda-html.js` | Markup do editor financeiro (campos de venda/movimento e tabela de itens); os `name` são o contrato do salvar |
+| `edicao-venda-itens.js` | Comportamento da tabela de itens: +/−, remover, observação, contador e resumo com o total |
+| `dialogos.js` | Ciclo dos modais que restaram (extrato e edição de venda): foco, Esc, fundo |
 | `vendas.js` | Filtros e renderização do histórico |
 | `configuracoes.js` | Configurações globais persistidas no servidor |
 | `requests.js` | Adapta o cliente HTTP compartilhado; falha exibe toast e retorna `null` |
-| `ui.js` | Escape de texto, toast, skeleton e fechamento de modais |
+| `ui.js` | Escape de texto, toast, aviso de campo inválido, badges, skeleton e classes das tabelas |
 
 Os módulos de recurso não importam a entrada `admin.js`. `events.js` coordena os handlers, sem concentrar novamente o CRUD. Consumidores de `authFetch` devem interromper a operação quando recebem `null`; não exibir sucesso ou recarregar como se a gravação tivesse ocorrido.
 
@@ -63,7 +74,7 @@ O modal e a função de senha compartilhada foram removidos. A checagem visual d
 ### Compartilhados, templates e estilos
 
 - `static/js/shared/modals.js`: somente diálogos e ciclo de vida no DOM. Consumidores importam `UIModal` diretamente.
-- `templates/admin/`: navegação e abas por recurso; `modals/membros.html` contém extrato/ajuste de saldo e `modals/estoque.html` contém ajuste de estoque.
+- `templates/admin/`: navegação e abas por recurso; `paineis/` tem os painéis laterais de cadastro e edição (macro `painel_lateral` de `templates/shared/painel.html`); `modals/` ficou com o extrato e a edição de venda.
 - `templates/pdv/`: navegação e catálogo/carrinho; `modals/` separa abertura, venda, estoque, membros, relatórios/caixa e configurações.
 - `static/css/features/admin/base/`: layout, formulários, tabelas, botões/badges, modais/feedback, responsivo e detalhes.
 - `static/css/features/admin/mobile/`: tablet, navegação, layout/formulários, tabelas, modais, vendas e variantes de viewport.

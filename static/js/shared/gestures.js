@@ -49,6 +49,25 @@ export function initBottomSheetGestures() {
       const modalHeader = touchEvent.target.closest("button, a, input, select")
         ? null
         : touchEvent.target.closest(".modal-drag-header");
+      // Painel de cadastro do admin (Offcanvas em bottom sheet): fecha pelo hide() do
+      // Bootstrap, que passa pela confirmação de alterações pendentes (admin/painel.js).
+      const painel = modalHeader?.closest(".offcanvas.painel-admin.show");
+      if (painel) {
+        dragState = {
+          type: "modal",
+          el: painel,
+          bloqueado: () =>
+            !painel.classList.contains("show") ||
+            [...document.querySelectorAll(".ui-dialogo")].some(elementoVisivel),
+          fechar: () =>
+            window.bootstrap?.Offcanvas.getOrCreateInstance(painel).hide(),
+          startY: activeTouch.clientY,
+          currentOffset: 0,
+          activated: false,
+          points: [{ y: activeTouch.clientY, t: Date.now() }],
+        };
+        return;
+      }
       if (modalHeader) {
         const modalContent = modalHeader.closest(".modal-content");
         const overlay = modalContent?.closest(".modal-overlay");
@@ -56,7 +75,8 @@ export function initBottomSheetGestures() {
           dragState = {
             type: "modal",
             el: modalContent,
-            overlay,
+            bloqueado: () => fechamentoLegadoBloqueado(overlay),
+            fechar: () => pedirFechamentoModal(overlay),
             startY: activeTouch.clientY,
             currentOffset: 0,
             activated: false,
@@ -66,8 +86,11 @@ export function initBottomSheetGestures() {
         }
       }
 
-      // Priority 2: Cart section
-      const cartSection = touchEvent.target.closest("#carrinho-section");
+      // Priority 2: gaveta do carrinho, arrastada só pelo cabeçalho "Pedido atual".
+      // Na lista de itens o toque é rolagem, não arrasto da gaveta.
+      const cartSection = touchEvent.target
+        .closest(".carrinho-header")
+        ?.closest("#carrinho-section");
       if (cartSection) {
         dragState = {
           type: "cart",
@@ -81,9 +104,10 @@ export function initBottomSheetGestures() {
         return;
       }
 
-      // Priority 3: Sidebar panel (PDV) ou menu lateral em Offcanvas do Bootstrap (admin)
+      // Priority 3: Sidebar panel (PDV) ou menu lateral em Offcanvas do Bootstrap (admin).
+      // Painéis de cadastro (.painel-admin) ficam de fora: lá o arrasto é seleção de texto.
       const sidebarPanel = touchEvent.target.closest(
-        ".sidebar-panel, .offcanvas.offcanvas-end.show",
+        ".sidebar-panel, .offcanvas.offcanvas-end.show:not(.painel-admin)",
       );
       if (sidebarPanel) {
         dragState = {
@@ -124,7 +148,7 @@ export function initBottomSheetGestures() {
 
       /* ── Modal (header-only drag) ── */
       if (dragState.type === "modal") {
-        if (fechamentoLegadoBloqueado(dragState.overlay)) {
+        if (dragState.bloqueado()) {
           dragState.el.style.transform = "";
           dragState.el.style.transition = "";
           dragState = null;
@@ -164,14 +188,14 @@ export function initBottomSheetGestures() {
         if (verticalDisplacement < 0) {
           if (isCartClosed) {
             touchEvent.preventDefault();
-            dragState.el.style.transform = `translateY(max(0px, calc(100% - 64px + ${verticalDisplacement}px)))`;
+            dragState.el.style.transform = `translateY(max(0px, calc(100% - var(--altura-cabecalho-carrinho) - 2px + ${verticalDisplacement}px)))`;
             dragState.currentOffset = verticalDisplacement;
           }
           return;
         }
 
-        // Swipe down — only when scrolled to top
-        if (verticalDisplacement > 0 && dragState.el.scrollTop <= 0) {
+        // Swipe down
+        if (verticalDisplacement > 0) {
           if (isCartClosed) return;
           touchEvent.preventDefault();
           dragState.el.style.transform = `translateY(${verticalDisplacement}px)`;
@@ -226,7 +250,7 @@ export function initBottomSheetGestures() {
     if (dragState.type === "modal") {
       const {
         el: modalElement,
-        overlay: modalOverlay,
+        fechar,
         currentOffset: verticalOffset,
         points: trackedPoints,
       } = dragState;
@@ -236,7 +260,7 @@ export function initBottomSheetGestures() {
       modalElement.style.transform = "";
       modalElement.style.transition = "";
       if (verticalOffset > dismissThreshold || velocity > VELOCITY_DISMISS) {
-        pedirFechamentoModal(modalOverlay);
+        fechar();
       }
       dragState = null;
       return;

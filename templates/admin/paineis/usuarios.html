@@ -1,0 +1,28 @@
+{# Painel lateral da aba de usuários: cadastro e edição do acesso.
+Comportamento em admin/usuario-form.js. Incluído por admin.html; manter IDs únicos na página composta. #}
+{% from 'shared/painel.html' import painel_lateral %}
+
+{% call painel_lateral('painel-usuario', 'Novo usuário', 'Salvar usuário') %}
+<div class="row g-3">
+    <div class="col-12">
+        <label class="form-label" for="usuario-nome">Nome de exibição</label>
+        <input type="text" class="form-control py-2" id="usuario-nome" autocomplete="off" placeholder="Nome">
+    </div>
+    <div class="col-12">
+        <label class="form-label" for="usuario-email">E-mail (login)</label>
+        <input type="email" class="form-control py-2" id="usuario-email" autocomplete="off" placeholder="usuario@email.com">
+    </div>
+    <div class="col-12 col-sm-6">
+        {# O rótulo muda na edição: lá a senha é opcional e só troca se for preenchida. #}
+        <label class="form-label" for="usuario-senha" id="usuario-senha-rotulo">Senha inicial</label>
+        <input type="password" class="form-control py-2" id="usuario-senha" autocomplete="new-password" placeholder="Mínimo 6 caracteres">
+    </div>
+    <div class="col-12 col-sm-6">
+        <label class="form-label" for="usuario-perfil">Perfil de acesso</label>
+        <select class="form-select py-2" id="usuario-perfil">
+            <option value="operador">Operador</option>
+            <option value="admin">Administrador</option>
+        </select>
+    </div>
+</div>
+{% endcall %}

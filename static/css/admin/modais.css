@@ -43,17 +43,6 @@
     border-bottom-color: var(--header-border);
 }
 
-.edicao-itens-contagem {
-    background: color-mix(in srgb, var(--accent) 14%, transparent);
-    color: var(--accent-readable);
-    font-size: 0.875rem;
-    font-variant-numeric: tabular-nums;
-}
-
-.edicao-itens-contagem:empty {
-    display: none;
-}
-
 /* Células mais baixas que as das tabelas do painel: a tabela vive dentro de um modal. */
 .tabela-itens-venda {
     --bs-table-cell-padding-x: 1rem;

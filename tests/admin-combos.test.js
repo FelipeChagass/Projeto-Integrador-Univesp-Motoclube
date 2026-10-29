@@ -2,8 +2,14 @@
  * Combos no painel com o template real da aba de produtos: payload enviado,
  * resumo de economia e desativação restrita à ação do administrador.
  */
-import { beforeEach, expect, jest, test } from "@jest/globals";
+import { beforeAll, beforeEach, expect, jest, test } from "@jest/globals";
 import { readFileSync } from "node:fs";
+import {
+  renderizarPaineis,
+  instalarOffcanvas,
+  enviarPainel,
+  painelAberto,
+} from "./helpers/admin.js";
 
 const request = jest.fn();
 const confirm = jest.fn((_mensagem, aoConfirmar) => aoConfirmar());
@@ -63,6 +69,8 @@ const catalogo = [
 ];
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 
+beforeAll(instalarOffcanvas);
+
 beforeEach(async () => {
   request.mockReset();
   confirm.mockClear();
@@ -75,7 +83,9 @@ beforeEach(async () => {
     "templates/admin/produtos.html",
     "utf8",
   ).replace(/\{#[\s\S]*?#\}/g, "");
-  document.body.innerHTML = `<div id="toast"></div>${template}`;
+  document.body.innerHTML = `<div id="toast"></div>${template}${renderizarPaineis(
+    "templates/admin/paineis/produtos.html",
+  )}`;
   setupEventListeners();
   await produtos.carregarProdutos();
 });
@@ -90,6 +100,7 @@ function escolher(linha, produtoId, quantidade) {
 
 test("novo combo envia itens do estoque e mostra a economia", async () => {
   document.getElementById("btn-add-combo").click();
+  expect(painelAberto("painel-combo")).toBe(true);
   const opcoes = [
     ...document.querySelectorAll(".combo-item-produto option"),
   ].map((o) => o.value);
@@ -104,7 +115,7 @@ test("novo combo envia itens do estoque e mostra a economia", async () => {
   expect(resumo).toContain("54.00");
   expect(resumo).toContain("9.00");
   expect(resumo).toMatch(/monta\s+2\s+combos/);
-  document.getElementById("btn-save-combo").click();
+  enviarPainel("painel-combo");
   await settle();
   expect(request).toHaveBeenCalledWith("POST", "/admin/combos", {
     nome: "Combo da noite",
@@ -138,9 +149,12 @@ test("linha do combo edita itens e desativa somente pela ação do admin", async
   expect(linha.querySelector("select")).toBeNull();
 
   linha.querySelector('[data-action="editar-combo"]').click();
+  expect(document.getElementById("painel-combo-complemento").textContent).toBe(
+    "Combo da estrada",
+  );
   expect(document.querySelectorAll(".combo-item-linha")).toHaveLength(2);
   escolher(document.querySelectorAll(".combo-item-linha")[0], 1, 3);
-  document.getElementById("btn-save-combo").click();
+  enviarPainel("painel-combo");
   await settle();
   expect(request).toHaveBeenCalledWith("PUT", "/admin/combos/9/itens", {
     itens: [

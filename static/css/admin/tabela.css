@@ -21,12 +21,6 @@
 .img-placeholder {
     border-style: dashed;
     color: var(--text-muted);
-    cursor: pointer;
-}
-
-/* Campo numérico curto dentro da linha (preço). */
-.campo-curto {
-    width: 4.5rem;
 }
 
 @media (max-width: 767.98px) {
@@ -89,15 +83,5 @@
         border: 0;
         object-fit: contain;
         background: var(--surface-bg);
-    }
-
-    .tabela-cartoes .campo-curto {
-        width: 100%;
-    }
-
-    /* 16px evita o zoom automático do iOS ao focar o campo. */
-    .tabela-cartoes .form-control,
-    .tabela-cartoes .form-select {
-        font-size: calc(16px * var(--escala-fonte, 1));
     }
 }

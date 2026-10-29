@@ -88,7 +88,7 @@ export async function abrirReconciliacao() {
         <div class="drag-handle d-md-none mx-auto mb-2" aria-hidden="true"></div>
         <div class="d-flex align-items-center justify-content-between gap-3">
           <h2 class="modal-cabecalho-titulo flex-grow-1 m-0" id="reconciliacao-titulo">Operações pendentes</h2>
-          <button type="button" class="modal-cabecalho-fechar d-flex align-items-center justify-content-center flex-shrink-0 p-0" aria-label="Fechar" data-acionar="fechar-pendencias"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+          <button type="button" class="modal-cabecalho-fechar d-none d-md-flex align-items-center justify-content-center flex-shrink-0 p-0" aria-label="Fechar" data-acionar="fechar-pendencias"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
         </div>
       </header>
       <div class="modal-scroll-body d-flex flex-column gap-3 p-3 p-md-4 flex-grow-1 overflow-auto">

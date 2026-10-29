@@ -20,17 +20,9 @@
     text-transform: uppercase;
 }
 
-/* Hífen entre o título e o complemento (produto), só quando o complemento tem texto. */
+/* Hífen entre o título e o complemento (produto, membro, data), só quando há texto. */
 .modal-cabecalho-complemento:not(:empty)::before {
     content: " - ";
-}
-
-.modal-contexto {
-    overflow-wrap: anywhere;
-}
-
-.modal-contexto:empty {
-    display: none;
 }
 
 .modal-cabecalho-fechar {
@@ -96,7 +88,39 @@
     }
 }
 
+/* ─── Bottom sheet: alça e cabeçalho arrastável ───
+ * Modais do PDV e painéis de cadastro do admin. A alça só aparece no celular (d-md-none no
+ * markup do macro cabecalho_modal); o gesto fica em shared/gestures.js.
+ */
+.drag-handle {
+    width: 40px;
+    height: 4px;
+    background: var(--border-hover);
+    border-radius: 2px;
+    transition: width 0.2s, background-color 0.2s;
+}
+
+@media (max-width: 767.98px) {
+    /* touch-action: o arrasto do cabeçalho não pode virar rolagem da página. */
+    .modal-drag-header {
+        cursor: grab;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: none;
+    }
+
+    .modal-drag-header:active {
+        cursor: grabbing;
+    }
+
+    .modal-drag-header:active .drag-handle {
+        width: 50px;
+        background: var(--text-muted);
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
+    .drag-handle,
     .modal-cabecalho-fechar {
         transition: none;
     }

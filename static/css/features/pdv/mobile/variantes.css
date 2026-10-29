@@ -21,7 +21,7 @@
     }
 
     .pdv-menu {
-        --bs-offcanvas-width: min(260px, 85vw);
+        --bs-offcanvas-width: min(16.25rem, 85vw);
     }
 }
 
@@ -41,7 +41,7 @@
 
 @media (prefers-reduced-motion: reduce) {
     .pdv-produto-card,
-    #carrinho-section,
+    .carrinho-gaveta,
     .page-pdv .modal-overlay .modal-content {
         animation: none !important;
         transition: none !important;

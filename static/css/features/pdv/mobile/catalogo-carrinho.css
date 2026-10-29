@@ -2,6 +2,13 @@
  * Carregado por static/css/ponto_venda-mobile.css; preserve a ordem da cascata no manifesto.
  */
 @media (max-width: 767.98px) {
+    /* Altura do cabeçalho "Pedido atual": é a única parte da gaveta visível quando fechada.
+     * Em rem para acompanhar o ajuste de fonte; o deslocamento da gaveta (aqui e em
+     * shared/gestures.js) usa o mesmo valor, então nenhum item aparece embaixo do cabeçalho. */
+    :root {
+        --altura-cabecalho-carrinho: 4rem;
+    }
+
     #main-content {
         flex-direction: column;
         position: relative;
@@ -10,14 +17,15 @@
     #catalogo-section {
         flex: 1 1 auto;
         padding: 0;
-        padding-bottom: 72px;
+        padding-bottom: calc(var(--altura-cabecalho-carrinho) + 0.5rem);
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         height: auto;
     }
 
+    /* Com a fonte ampliada os quatro filtros não cabem numa linha: quebram em vez de cortar o texto. */
     .filtro-catalogo {
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
         padding: 6px var(--pdv-mobile-inline-gutter);
         gap: 6px;
     }
@@ -29,8 +37,8 @@
     }
 
     .filtro-catalogo [data-categoria] {
-        flex: 0 1 auto;
-        min-width: 0;
+        flex: 1 1 auto;
+        justify-content: center;
         gap: 4px;
         padding: 6px 8px;
         font-size: clamp(0.65rem, 3vw, 0.78rem);
@@ -63,7 +71,7 @@
 
     .grid-produtos {
         padding: 16px;
-        grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
         gap: 6px;
     }
 
@@ -102,7 +110,8 @@
         border-left: none;
         border-top: 2px solid rgba(179, 0, 0, 0.4);
         border-radius: 16px 16px 0 0;
-        transform: translateY(calc(100% - 64px));
+        /* 2px: borda superior da gaveta, que também fica à mostra. */
+        transform: translateY(calc(100% - var(--altura-cabecalho-carrinho) - 2px));
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         z-index: 150;
         box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.6);
@@ -120,6 +129,7 @@
     }
 
     .carrinho-header {
+        height: var(--altura-cabecalho-carrinho);
         cursor: pointer;
         padding: 14px 16px 12px;
         position: relative;
@@ -139,7 +149,7 @@
         border-radius: 2px;
     }
 
-    .carrinho-header #titulo-carrinho {
+    .carrinho-header .titulo-carrinho {
         font-size: 0.85rem;
     }
 

@@ -289,7 +289,7 @@ describe("isolamento CSS", () => {
         (regra) =>
           regra.selectorText &&
           modal.matches(regra.selectorText) &&
-          regra.style.getPropertyValue("max-width") === "560px",
+          regra.style.getPropertyValue("max-width") === "35rem",
       ),
     ).toBe(true);
   });

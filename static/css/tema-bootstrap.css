@@ -103,20 +103,84 @@
     --bs-btn-disabled-opacity: 1;
 }
 
-/* Ícone SVG dentro de botão: tamanho e cor da marca. */
+/* Ícone dentro de botão (SVG colado ou Bootstrap Icons): tamanho e cor da marca.
+ * O tamanho do .bi vem de font-size; fs-* no markup aumenta quando preciso. */
 .btn > svg {
     width: 1rem;
     height: 1rem;
 }
 
+.btn > .bi {
+    font-size: 1rem;
+    line-height: 1;
+}
+
 .btn-contorno > svg,
 .btn-menu > svg,
-.btn-escuro > svg {
+.btn-escuro > svg,
+.btn-contorno > .bi,
+.btn-menu > .bi,
+.btn-escuro > .bi {
     color: var(--accent-text);
 }
 
-.btn-excluir > svg {
+.btn-excluir > svg,
+.btn-excluir > .bi {
     color: var(--accent-readable);
+}
+
+/* Botão só com ícone (ações das tabelas): quadrado e com alvo de toque confortável.
+ * Precisa de aria-label e title no markup, já que não tem texto visível. */
+.btn-icone {
+    --bs-btn-padding-x: 0;
+    --bs-btn-padding-y: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+}
+
+@media (max-width: 767.98px) {
+    .btn-icone {
+        width: 2.75rem;
+        height: 2.75rem;
+    }
+}
+
+/* Nas ações das tabelas o vermelho fica só no que destrói (lixeira): lápis e menu neutros. */
+.btn-icone.btn-escuro > .bi {
+    color: var(--text-primary);
+}
+
+/* Botão do menu lateral no celular: ícone branco sobre fundo translúcido. */
+.btn-hamburger {
+    --bs-btn-bg: var(--surface-translucida);
+    --bs-btn-hover-bg: var(--surface-hover);
+}
+
+.btn-contorno.btn-hamburger > svg,
+.btn-contorno.btn-hamburger > .bi {
+    color: var(--bs-white);
+}
+
+/* ─── Menu suspenso ("Mais ações" das tabelas) ─── */
+.dropdown-menu {
+    --bs-dropdown-bg: var(--card-bg);
+    --bs-dropdown-color: var(--text-primary);
+    --bs-dropdown-border-color: var(--border-color);
+    --bs-dropdown-link-color: var(--text-primary);
+    --bs-dropdown-link-hover-color: var(--bs-white);
+    --bs-dropdown-link-hover-bg: var(--surface-hover);
+    --bs-dropdown-link-active-color: var(--bs-white);
+    --bs-dropdown-link-active-bg: var(--surface-hover);
+    --bs-dropdown-font-size: 0.875rem;
+    box-shadow: var(--sombra-elevada);
+}
+
+.dropdown-item > .bi {
+    color: var(--text-secondary);
+}
+
+.dropdown-item.text-danger > .bi {
+    color: inherit;
 }
 
 /* ─── Formulários ─── */
@@ -195,7 +259,8 @@
 
 /* ─── Offcanvas (menu lateral do celular) ─── */
 .offcanvas {
-    --bs-offcanvas-width: 280px;
+    /* Em rem para acompanhar o ajuste de fonte; 85vw segura em telas estreitas. */
+    --bs-offcanvas-width: min(17.5rem, 85vw);
     --bs-offcanvas-bg: var(--card-bg);
     --bs-offcanvas-color: var(--text-primary);
 }

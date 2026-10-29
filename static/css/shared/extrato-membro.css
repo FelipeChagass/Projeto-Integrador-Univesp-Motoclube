@@ -1,7 +1,7 @@
 /* Consulta compartilhada. Layout usa Bootstrap; estas regras mantêm o tema e
  * acomodam o extrato nos modais e bottom sheets existentes. */
 .modal-content.modal-extrato {
-    max-width: 960px;
+    max-width: 60rem;
     max-height: 92vh;
     color-scheme: dark;
 }

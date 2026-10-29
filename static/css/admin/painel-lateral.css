@@ -1,0 +1,39 @@
+/* admin: painel de cadastro (Offcanvas do Bootstrap, templates/shared/painel.html).
+ * Cores e fundo vêm do tema (.offcanvas em tema-bootstrap.css); layout e espaçamento ficam
+ * no markup. O Bootstrap não troca a posição do Offcanvas por breakpoint, então ela fica
+ * aqui: o markup nasce offcanvas-bottom (celular) e do md em diante o painel vai para a
+ * direita. Decidir isso em JS ao abrir fazia o primeiro acesso animar de lado.
+ */
+.painel-admin {
+    /* Celular: altura do conteúdo até 92% da tela, topo arredondado. Em rem para
+     * acompanhar o ajuste de fonte. */
+    --bs-offcanvas-height: auto;
+    --bs-offcanvas-width: min(32rem, 100vw);
+    max-height: 92dvh;
+    border-radius: 1rem 1rem 0 0;
+}
+
+@media (min-width: 768px) {
+    .offcanvas.painel-admin {
+        top: 0;
+        right: 0;
+        left: auto;
+        width: var(--bs-offcanvas-width);
+        height: 100%;
+        max-height: none;
+        border-top: 0;
+        border-left: var(--bs-offcanvas-border-width) solid var(--bs-offcanvas-border-color);
+        border-radius: 0;
+    }
+
+    /* Fechado (e fechando) fica fora da tela pela direita; aberto, o Bootstrap zera o
+     * transform (.show:not(.hiding)). Os seletores só valem fora do estado aberto. */
+    .offcanvas.painel-admin:not(.show):not(.showing),
+    .offcanvas.painel-admin.hiding {
+        transform: translateX(100%);
+    }
+
+    .painel-admin .modal-cabecalho {
+        border-radius: 0;
+    }
+}

@@ -295,7 +295,7 @@ function htmlCartaoCombo(produto, disponivel, comboZerado) {
 
 function htmlAcionadorProduto(produto) {
   const rotulo = `${estadoPdv.modoGerenciaEstoque ? "Editar" : "Adicionar"} ${produto.nome}`;
-  return `<button type="button" class="pdv-produto-acionador stretched-link" aria-label="${esc(rotulo)}"><span class="visually-hidden">${esc(rotulo)}</span></button>`;
+  return `<button type="button" class="pdv-produto-acionador stretched-link border-0 p-0 bg-transparent" aria-label="${esc(rotulo)}"><span class="visually-hidden">${esc(rotulo)}</span></button>`;
 }
 
 export function selecionarCategoria(categoria) {

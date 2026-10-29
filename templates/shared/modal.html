@@ -1,17 +1,19 @@
 {# Cabeçalho único dos modais do PDV e da administração; cores em static/css/shared/modal.css,
    espaçamento pelas utilidades do Bootstrap.
-   Só título e botão de fechar; id_complemento acrescenta ao título um trecho que o JS preenche ("Título - Produto");
-   id_contexto cria, logo abaixo do cabeçalho, uma linha que o JS preenche.
+   Só título e botão de fechar. id_complemento acrescenta ao título um trecho que o JS preenche
+   ("Ajuste de estoque - Heineken"); o texto fixo fica em [data-titulo-texto], para o JS poder
+   trocá-lo sem apagar o complemento.
    arrastavel=True mantém .modal-drag-header (alça e gesto de bottom sheet no celular, shared/gestures.js).
    fechar recebe os atributos do botão X: um id já ligado em JS, data-fechar-edicao ou
    data-acionar="<id do Cancelar>", que repete o Cancelar do modal (pdv/app.js). Valores fixos do template. #}
-{% macro cabecalho_modal(titulo, id_titulo, fechar='', arrastavel=True, id_contexto='', id_complemento='') -%}
+{% macro cabecalho_modal(titulo, id_titulo, fechar='', arrastavel=True, id_complemento='') -%}
 <header class="modal-cabecalho flex-shrink-0 px-3 px-md-4 pb-3 {% if arrastavel %}modal-drag-header pt-2 pt-md-3{% else %}pt-3{% endif %}">
     {% if arrastavel %}<div class="drag-handle d-md-none mx-auto mb-2" aria-hidden="true"></div>{% endif %}
     <div class="d-flex align-items-center justify-content-between gap-3">
-        <h2 class="modal-cabecalho-titulo flex-grow-1 m-0" id="{{ id_titulo }}">{{ titulo }}{% if id_complemento %}<span class="modal-cabecalho-complemento" id="{{ id_complemento }}"></span>{% endif %}</h2>
+        <h2 class="modal-cabecalho-titulo flex-grow-1 m-0" id="{{ id_titulo }}">{% if id_complemento %}<span data-titulo-texto>{{ titulo }}</span><span class="modal-cabecalho-complemento" id="{{ id_complemento }}"></span>{% else %}{{ titulo }}{% endif %}</h2>
         {% if fechar %}
-        <button type="button" class="modal-cabecalho-fechar d-flex align-items-center justify-content-center flex-shrink-0 p-0"
+        {# No celular o modal arrastável fecha pelo gesto (ou pelo Cancelar/Fechar do rodapé): sem X. #}
+        <button type="button" class="modal-cabecalho-fechar {% if arrastavel %}d-none d-md-flex{% else %}d-flex{% endif %} align-items-center justify-content-center flex-shrink-0 p-0"
             aria-label="Fechar" {{ fechar|safe }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                 aria-hidden="true">
@@ -22,6 +24,4 @@
         {% endif %}
     </div>
 </header>
-{# Contexto do modal (produto, membro, data da venda), preenchido pelo JS; some quando vazio. #}
-{% if id_contexto %}<p class="modal-contexto small text-body-secondary px-3 px-md-4 pt-3 m-0" id="{{ id_contexto }}"></p>{% endif %}
 {%- endmacro %}

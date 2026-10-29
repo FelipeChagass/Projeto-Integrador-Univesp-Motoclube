@@ -84,6 +84,8 @@ O projeto usa Bootstrap 5. Layout e espaçamento ficam nas classes utilitárias,
 - O CSS do projeto fica com o que o Bootstrap não cobre: cores e tokens de `static/css/tokens.css`, bordas, tamanhos fixos (ex.: botão de 40px), tipografia, estados (`:hover`, `:focus-visible`, `:empty`), `line-clamp` e grids com colunas de largura mínima que o grid de 12 colunas não expressa.
 - Regras antigas que ainda declaram `display: flex` no CSS são legado: ao mexer nelas, mova o layout para o markup.
 - Modais usam o cabeçalho único de `templates/shared/modal.html` (macro `cabecalho_modal`) e a estrutura cabeçalho, `modal-scroll-body` e `modal-rodape`.
+- No admin, cadastrar e editar registros acontece no painel lateral (Offcanvas): macro `painel_lateral` de `templates/shared/painel.html` e `static/js/features/admin/painel.js`. As linhas das tabelas são só leitura; a coluna "Ações" sai de `acoes-linha.js` (ícones para editar e excluir, menu "Mais ações" com texto para o resto).
+- Ícones: Bootstrap Icons (`<i class="bi bi-…" aria-hidden="true">`). Botão só com ícone leva `aria-label` e `title`.
 - Estado visual muda por classe ou atributo (`d-none`, `disabled`, `text-success`), nunca por `element.style`. A exceção é valor contínuo, como a posição durante um arrasto.
 - O tema é o do Bootstrap: `data-bs-theme="dark"` e a paleta do clube em `--bs-*` (`static/css/tokens.css`). Use `text-body-secondary`, `text-success`, `border-primary`… em vez de criar classes de cor.
 - `tests/arquitetura.test.js` é uma catraca: nenhum arquivo pode piorar nas categorias de `scripts/arquitetura.mjs`. Rode `npm run arquitetura` para ver o placar e `npm run arquitetura:limites` para travar uma melhoria. O plano completo está em `plans/padronizacao-bootstrap.md`.

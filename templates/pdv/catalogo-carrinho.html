@@ -53,16 +53,16 @@ Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
         
         <div id="grid-produtos" class="grid-produtos"></div>
     </section>
-    <section id="carrinho-section">
+    <section id="carrinho-section" class="carrinho-gaveta">
         <button type="button" class="btn carrinho-header" id="btn-alternar-carrinho" aria-controls="carrinho-lista" aria-expanded="false">
 
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            <svg class="flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                 <circle cx="8" cy="21" r="1" />
                 <circle cx="19" cy="21" r="1" />
                 <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
             </svg>
-            <span class="m-0" id="titulo-carrinho">PEDIDO ATUAL</span>
+            <span class="titulo-carrinho m-0" id="titulo-carrinho">PEDIDO ATUAL</span>
             <span id="carrinho-badge-mobile">0</span>
         </button>
         <div id="carrinho-lista" class="carrinho-lista"></div>
@@ -73,16 +73,16 @@ Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
             </div>
             <input type="text" id="input-cliente" class="form-control p-3" placeholder="Nome Visitante (Opcional)" aria-label="Nome do visitante (opcional)">
             <div class="grid-pagamento">
-                <button type="button" class="btn btn-escuro btn-lg pdv-pagamento d-flex align-items-center gap-3 w-100 btn-dinheiro" id="btn-pag-dinheiro">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                <button type="button" class="btn btn-escuro btn-lg pdv-pagamento d-flex align-items-center gap-2 gap-sm-3 px-2 px-sm-3 w-100 btn-dinheiro" id="btn-pag-dinheiro">
+                    <svg class="flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                         <line x1="12" x2="12" y1="2" y2="22" />
                         <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                     </svg>
                     DINHEIRO
                 </button>
-                <button type="button" class="btn btn-escuro btn-lg pdv-pagamento d-flex align-items-center gap-3 w-100 btn-pix" id="btn-pag-pix">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                <button type="button" class="btn btn-escuro btn-lg pdv-pagamento d-flex align-items-center gap-2 gap-sm-3 px-2 px-sm-3 w-100 btn-pix" id="btn-pag-pix">
+                    <svg class="flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                         <rect width="5" height="5" x="3" y="3" rx="1" />
                         <rect width="5" height="5" x="16" y="3" rx="1" />
@@ -99,16 +99,16 @@ Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
                     </svg>
                     PIX
                 </button>
-                <button type="button" class="btn btn-escuro btn-lg pdv-pagamento d-flex align-items-center gap-3 w-100 btn-cartao" id="btn-pag-cartao">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                <button type="button" class="btn btn-escuro btn-lg pdv-pagamento d-flex align-items-center gap-2 gap-sm-3 px-2 px-sm-3 w-100 btn-cartao" id="btn-pag-cartao">
+                    <svg class="flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                         <rect width="20" height="14" x="2" y="5" rx="2" />
                         <line x1="2" x2="22" y1="10" y2="10" />
                     </svg>
                     CARTÃO
                 </button>
-                <button type="button" class="btn btn-escuro btn-lg pdv-pagamento d-flex align-items-center gap-3 w-100 btn-fiado" id="btn-pag-fiado">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                <button type="button" class="btn btn-escuro btn-lg pdv-pagamento d-flex align-items-center gap-2 gap-sm-3 px-2 px-sm-3 w-100 btn-fiado" id="btn-pag-fiado">
+                    <svg class="flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                         <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                         <circle cx="9" cy="7" r="4" />
@@ -119,7 +119,7 @@ Incluído por ponto_venda.html; manter IDs únicos na página composta. #}
                 </button>
             </div>
             <button type="button" class="btn btn-escuro btn-lg pdv-pagamento d-flex align-items-center justify-content-center gap-3 w-100 btn-fechar-conta" id="btn-fechar-conta">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                <svg class="flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                     <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                 </svg>

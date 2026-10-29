@@ -3,17 +3,8 @@
  * Layout e espaçamento ficam nas classes do Bootstrap (templates/admin/produtos.html e
  * admin/combos.js); aqui só cor, tipografia e tamanho.
  */
-.btn-add-combo > svg {
+.btn-add-combo > .bi {
     color: var(--combo);
-}
-
-/* Filete de latão antes do título do formulário de combo. */
-.form-combo .card-header h3::before {
-    content: "";
-    width: 4px;
-    height: 1.1em;
-    border-radius: 2px;
-    background: var(--combo);
 }
 
 /* fieldset e item flex: sem largura mínima o select longo estoura a linha. */

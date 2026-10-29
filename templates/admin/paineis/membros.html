@@ -1,0 +1,30 @@
+{# Painéis laterais da aba de membros: cadastro/edição e ajuste de saldo.
+Comportamento em admin/membro-form.js. Incluído por admin.html; manter IDs únicos na página composta. #}
+{% from 'shared/painel.html' import painel_lateral %}
+
+{% call painel_lateral('painel-membro', 'Novo membro', 'Salvar membro') %}
+<div>
+    <label class="form-label" for="membro-nome">Nome</label>
+    <input type="text" class="form-control py-2" id="membro-nome" autocomplete="off" placeholder="Nome completo">
+</div>
+{% endcall %}
+
+{% call painel_lateral('painel-saldo', 'Ajustar saldo', 'Confirmar ajuste') %}
+<div class="row g-3">
+    <div class="col-12 col-sm-6">
+        <label class="form-label" for="ajuste-tipo">Tipo</label>
+        <select class="form-select py-2" id="ajuste-tipo">
+            <option value="credito">Crédito (abater dívida)</option>
+            <option value="debito">Débito (aumentar dívida)</option>
+        </select>
+    </div>
+    <div class="col-12 col-sm-6">
+        <label class="form-label" for="ajuste-valor">Valor (R$)</label>
+        <input class="form-control py-2" type="number" id="ajuste-valor" step="0.01" min="0" placeholder="0,00" inputmode="decimal">
+    </div>
+    <div class="col-12">
+        <label class="form-label" for="ajuste-descricao">Descrição (opcional)</label>
+        <input class="form-control py-2" type="text" id="ajuste-descricao" placeholder="Motivo do ajuste">
+    </div>
+</div>
+{% endcall %}
