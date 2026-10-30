@@ -44,7 +44,9 @@ export function htmlAcoes(registro, { editar, excluir, mais = [] }) {
             <ul class="dropdown-menu dropdown-menu-end">${mais.map((acao) => itemMenu(acao, registro)).join("")}</ul>
         </div>`
     : "";
-  return `<div class="d-flex flex-wrap justify-content-md-center gap-2">
+  // No desktop os botões não quebram: senão a tabela cede a largura para a coluna de
+  // texto mais longo (Itens) e empilha as ações em coluna.
+  return `<div class="d-flex flex-wrap flex-md-nowrap justify-content-md-center gap-2">
             ${editar ? botaoIcone(editar, registro) : ""}
             ${menu}
             ${excluir ? botaoIcone({ ...excluir, perigo: true }, registro) : ""}
