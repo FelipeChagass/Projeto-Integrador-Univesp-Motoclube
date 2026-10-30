@@ -291,7 +291,11 @@ def test_endpoint_de_movimento_avulso_mantem_contrato(pg, seed, client):
 
 def test_importar_database_nao_cria_engine():
     codigo = 'import app.core.database as d; assert d.engine is None; import app.models'
-    subprocess.run([sys.executable, '-c', codigo], cwd=ROOT / 'backend', check=True)
+    # Interpretador limpo, sem a cobertura do pytest-cov: o subprocesso roda em backend/,
+    # onde não acha o pyproject.toml (branch = true), e gravaria um .coverage.* sem
+    # branch que o pytest-cov não consegue combinar com o principal (quebrava o CI).
+    ambiente = {chave: valor for chave, valor in os.environ.items() if not chave.startswith('COV_CORE_')}
+    subprocess.run([sys.executable, '-c', codigo], cwd=ROOT / 'backend', env=ambiente, check=True)
 
 
 def test_create_app_cria_engine_com_a_configuracao_atual():

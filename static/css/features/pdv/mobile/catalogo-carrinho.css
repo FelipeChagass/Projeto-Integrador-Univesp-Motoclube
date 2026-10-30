@@ -223,14 +223,12 @@
         min-height: 70px;
     }
 
-    .pdv-pagamento svg {
-        width: 30px;
-        height: 30px;
+    .pdv-pagamento .bi {
+        font-size: 1.875rem;
     }
 
-    .btn-fechar-conta svg {
-        width: 24px;
-        height: 24px;
+    .btn-fechar-conta .bi {
+        font-size: 1.5rem;
     }
 
     .page-pdv .modal-overlay .btn-lg {

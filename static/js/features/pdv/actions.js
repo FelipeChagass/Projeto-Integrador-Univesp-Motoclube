@@ -32,7 +32,6 @@ export {
   carregarDadosFechamento,
 } from "./actions/membros.js";
 export {
-  processarTrocaOperador,
   trocarMembro,
   abrirModalAberturaCaixa,
   confirmarAberturaValor,

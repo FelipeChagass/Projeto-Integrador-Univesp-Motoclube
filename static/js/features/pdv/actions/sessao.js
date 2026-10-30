@@ -20,24 +20,6 @@ import {
 
 /* ─── Operator ─── */
 
-export function processarTrocaOperador(nomeOperadorInformado) {
-  if (
-    !nomeOperadorInformado ||
-    estadoPdv.operadorAtual === nomeOperadorInformado
-  )
-    return;
-  if (estadoPdv.carrinho.length > 0)
-    return showToast(
-      "Conclua a venda em andamento antes de trocar o operador",
-      "err",
-    );
-  UIModal.confirm("Confirma a troca de operador?", () => {
-    estadoPdv.operadorAtual = nomeOperadorInformado;
-    LocalDB.set("motoBarOperador", estadoPdv.operadorAtual);
-    atualizarUI();
-  });
-}
-
 export function trocarMembro() {
   UIModal.confirm("Deseja sair do operador atual e voltar ao login?", () => {
     fecharModal("modal-relatorios");

@@ -14,6 +14,7 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/tema-bootstrap.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/checkboxes.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/shared/dialogs.css') }}">
@@ -58,6 +59,8 @@
             </div>
 
             <button class="btn btn-primary btn-lg w-100 mt-2" id="btn-login" type="button">ENTRAR</button>
+
+            <p class="text-body-secondary small opacity-20 mt-4 mb-0">Versão {{ versao_app }}</p>
 
         </div>
     </div>

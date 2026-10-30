@@ -4,15 +4,11 @@
  * observação por item, contador das observações da venda e o resumo com o total.
  * Trabalha só no contêiner de campos do modal; não chama a API.
  */
-import { dinheiro } from "./edicao-venda-html.js";
+import { formatCurrency, formatarValor } from "../../shared/utils.js";
 
 const QUANTIDADE_MAXIMA = 100000;
 /** Linha da observação aberta: bloco no cartão do celular, linha da tabela no desktop. */
 const OBSERVACAO_ABERTA = ["d-block", "d-md-table-row"];
-const formatarReais = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
 
 const valorDoCampo = (linha, prefixo) =>
   Math.max(0, Number(linha.querySelector(`[name^="${prefixo}"]`).value) || 0);
@@ -27,7 +23,7 @@ export function atualizarResumoVenda(camposEdicao) {
     const quantidade = valorDoCampo(linha, "qtd-");
     const subtotal = quantidade * valorDoCampo(linha, "preco-");
     linha.querySelector("[data-subtotal-item]").textContent =
-      dinheiro(subtotal);
+      formatarValor(subtotal);
     linha.classList.toggle("removido", quantidade === 0);
     linha.querySelector("tr").classList.toggle("opacity-50", quantidade === 0);
     total += subtotal;
@@ -38,7 +34,7 @@ export function atualizarResumoVenda(camposEdicao) {
   camposEdicao.querySelector("[data-resumo-quantidade]").textContent =
     quantidadeTotal;
   camposEdicao.querySelector("[data-resumo-total]").textContent =
-    formatarReais.format(total);
+    formatCurrency(total);
 }
 
 /** Muda a quantidade e avisa pelo evento input, o mesmo caminho da digitação. */

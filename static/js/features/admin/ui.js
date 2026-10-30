@@ -9,14 +9,9 @@ export {
   configurarModaisAdmin,
 } from "./dialogos.js";
 
-export function esc(texto) {
-  return (texto || "")
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
+/** Escape de HTML único do projeto (PDV e painel), reexportado para os módulos do admin. */
+import { esc } from "../../shared/utils.js";
+export { esc };
 
 /** Validação de formulário: mostra o aviso e leva o foco ao campo que precisa ser corrigido. */
 export function avisarCampo(idCampo, mensagem) {

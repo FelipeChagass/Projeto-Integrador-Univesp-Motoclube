@@ -2,7 +2,7 @@
  * Filtros e renderização do histórico administrativo de vendas.
  * Usa requests/ui; limites de consulta são definidos pela API, não pelo DOM.
  */
-import { BASE, authFetch } from "./requests.js";
+import { requisitar } from "./requests.js";
 import {
   esc,
   mostrarEsqueleto,
@@ -12,7 +12,7 @@ import {
 } from "./ui.js";
 import { htmlAcoes, ACAO } from "./acoes-linha.js";
 import { criarCsv } from "./csv.js";
-import { mensagemErro } from "../../shared/utils.js";
+import { mensagemErro, formatCurrency } from "../../shared/utils.js";
 
 function filtrosVendas(limite) {
   const campoDataInicio = document.getElementById("vendas-data-inicio");
@@ -49,11 +49,11 @@ export async function exportarVendasCsv() {
     let deslocamentoPagina = 0;
     while (true) {
       parametrosConsulta.set("offset", String(deslocamentoPagina));
-      const resposta = await authFetch(
-        `${BASE}/api/admin/vendas?${parametrosConsulta}`,
+      const dadosResposta = await requisitar(
+        "GET",
+        `/admin/vendas?${parametrosConsulta}`,
       );
-      if (!resposta) return;
-      const dadosResposta = await resposta.json();
+      if (!dadosResposta) return;
       for (const venda of dadosResposta.vendas || [])
         vendas.set(venda.id, venda);
       if (!dadosResposta.paginacao?.tem_mais) break;
@@ -84,11 +84,11 @@ export async function carregarVendas() {
   mostrarEsqueleto("tabelaVendas");
   const parametrosConsulta = filtrosVendas(200);
 
-  const resposta = await authFetch(
-    `${BASE}/api/admin/vendas?${parametrosConsulta}`,
+  const dadosResposta = await requisitar(
+    "GET",
+    `/admin/vendas?${parametrosConsulta}`,
   );
-  if (!resposta) return;
-  const dadosResposta = await resposta.json();
+  if (!dadosResposta) return;
   const vendas = dadosResposta.vendas || [];
 
   const total = vendas.reduce(
@@ -100,7 +100,7 @@ export async function carregarVendas() {
     `<div class="card flex-fill flex-sm-grow-0 px-4 py-3 text-center text-sm-start"><span class="resumo-numero">${valor}</span><span class="small text-uppercase mt-1">${rotulo}</span></div>`;
   resumoVendas.innerHTML =
     cartaoResumo(vendas.length, "Vendas") +
-    cartaoResumo(`R$ ${total.toFixed(2)}`, "Total");
+    cartaoResumo(formatCurrency(total), "Total");
 
   const corpoTabela = document.getElementById("tabelaVendas");
   corpoTabela.innerHTML = "";
@@ -128,7 +128,7 @@ export async function carregarVendas() {
             <td class="${T.celula}" data-label="Método">${venda.metodo_pagamento}</td>
             <td class="${T.celula}" data-label="Operador">${esc(venda.usuario_nome || "—")}</td>
             <td class="${T.celula}" data-label="Cliente">${esc(venda.nome_cliente || "—")}</td>
-            <td class="${T.celula} fw-semibold" data-label="Valor">R$ ${venda.valor_total.toFixed(2)}</td>
+            <td class="${T.celula} fw-semibold" data-label="Valor">${formatCurrency(venda.valor_total)}</td>
             <td class="${T.celula}" data-label="Itens">${esc(descricaoItens)}</td>
             <td class="${T.celulaAcoes}">${htmlAcoes(
               { id: venda.id, nome: `de ${dataFormatada}` },

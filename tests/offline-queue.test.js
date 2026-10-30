@@ -145,3 +145,57 @@ test("falha do IndexedDB chega em português, não como DOMException em inglês"
     "Sem espaço no armazenamento do navegador. Libere espaço e tente de novo.",
   );
 });
+
+test("listagem padrão lê pelo índice de estado e ignora recibos confirmados", async () => {
+  const outra = { ...payload, id_externo: "sale-2" };
+  await queue.persistirOperacao(payload);
+  await queue.persistirOperacao(outra);
+  await queue.confirmarOperacao(payload, ack);
+  await queue.registrarFalha("sale-2", { status: 409, message: "Conflito" });
+  expect(
+    (await queue.listarOperacoes()).map((operacao) => operacao.estado),
+  ).toEqual(["conflito"]);
+  expect(
+    await queue.listarOperacoes({ incluirConfirmadas: true }),
+  ).toHaveLength(2);
+});
+
+test("poda apaga só recibos confirmados há mais de 30 dias", async () => {
+  const antiga = { ...payload, id_externo: "sale-antiga" };
+  const recente = { ...payload, id_externo: "sale-recente" };
+  const pendente = { ...payload, id_externo: "sale-pendente" };
+  for (const operacao of [antiga, recente, pendente])
+    await queue.persistirOperacao(operacao);
+  await queue.confirmarOperacao(antiga, { ...ack, id_externo: "sale-antiga" });
+  await queue.confirmarOperacao(recente, {
+    ...ack,
+    id_externo: "sale-recente",
+  });
+  const daquiA31Dias = Date.now() + 31 * 24 * 60 * 60 * 1000;
+  // Do ponto de vista de daqui a 31 dias, as duas confirmadas estão vencidas...
+  expect(await queue.podarConfirmadas({ agora: daquiA31Dias, dias: 30 })).toBe(
+    2,
+  );
+  // ...e a pendente nunca é apagada, por mais antiga que seja.
+  const restantes = await queue.listarOperacoes({ incluirConfirmadas: true });
+  expect(restantes.map((operacao) => operacao.id_externo)).toEqual([
+    "sale-pendente",
+  ]);
+  expect(await queue.podarConfirmadas()).toBe(0);
+});
+
+test("aparelho com o banco na v1 migra para a v2 sem perder a fila", async () => {
+  await new Promise((resolver) => {
+    const abertura = indexedDB.open("motoBarOperacoes", 1);
+    abertura.onupgradeneeded = () =>
+      abertura.result
+        .createObjectStore("operacoes", { keyPath: "id_externo" })
+        .add({ id_externo: "sale-v1", estado: "pendente", payload });
+    abertura.onsuccess = () => {
+      abertura.result.close();
+      resolver();
+    };
+  });
+  const operacoes = await queue.listarOperacoes();
+  expect(operacoes.map((operacao) => operacao.id_externo)).toEqual(["sale-v1"]);
+});

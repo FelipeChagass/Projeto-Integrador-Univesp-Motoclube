@@ -11,7 +11,7 @@ import {
   precoAvulso,
 } from "../../shared/combos.js";
 import { formatCurrency } from "../../shared/utils.js";
-import { BASE, authFetch } from "./requests.js";
+import { requisitar } from "./requests.js";
 import { esc, toast, avisarCampo } from "./ui.js";
 import { abrirPainel, fecharPainel } from "./painel.js";
 import { carregarProdutos, produtosCarregados } from "./produtos.js";
@@ -146,11 +146,12 @@ export async function salvarCombo() {
   const itens = itensDoFormulario();
   if (itens.reduce((total, item) => total + item.quantidade, 0) < 2)
     return toast("O combo precisa reunir 2 ou mais itens.", false);
-  let resposta;
+  let dadosResposta;
   if (comboEmEdicao) {
-    resposta = await authFetch(
-      `${BASE}/api/admin/combos/${comboEmEdicao.id}/itens`,
-      { method: "PUT", body: JSON.stringify({ itens }) },
+    dadosResposta = await requisitar(
+      "PUT",
+      `/admin/combos/${comboEmEdicao.id}/itens`,
+      { itens },
     );
   } else {
     const nome = document.getElementById("combo-nome").value.trim();
@@ -162,13 +163,13 @@ export async function salvarCombo() {
         "combo-preco",
         "O preço do combo deve ser maior que zero.",
       );
-    resposta = await authFetch(`${BASE}/api/admin/combos`, {
-      method: "POST",
-      body: JSON.stringify({ nome, preco_atual, itens }),
+    dadosResposta = await requisitar("POST", `/admin/combos`, {
+      nome,
+      preco_atual,
+      itens,
     });
   }
-  if (!resposta) return;
-  const dadosResposta = await resposta.json();
+  if (!dadosResposta) return;
   if (dadosResposta.status !== "ok")
     return toast(dadosResposta.mensagem || "Combo não salvo.", false);
   toast(comboEmEdicao ? "Itens do combo salvos." : "Combo criado.", true);
@@ -180,12 +181,10 @@ export function desativarCombo(id, nome) {
   UIModal.confirm(
     `Desativar o combo "${nome}"? Ele sai do PDV; as vendas já feitas continuam registradas.`,
     async () => {
-      const resposta = await authFetch(`${BASE}/api/admin/produtos/${id}`, {
-        method: "PUT",
-        body: JSON.stringify({ ativo: false }),
+      const dadosResposta = await requisitar("PUT", `/admin/produtos/${id}`, {
+        ativo: false,
       });
-      if (!resposta) return;
-      const dadosResposta = await resposta.json();
+      if (!dadosResposta) return;
       if (dadosResposta.status !== "ok")
         return toast(dadosResposta.mensagem || "Combo não desativado.", false);
       toast("Combo desativado.", true);

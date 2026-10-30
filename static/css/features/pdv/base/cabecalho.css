@@ -74,10 +74,8 @@
     white-space: nowrap;
 }
 
-.top-buttons .btn svg {
+.top-buttons .btn .bi {
     color: var(--accent-text);
-    stroke-width: 2;
-    flex-shrink: 0;
 }
 
 .btn-estoque {

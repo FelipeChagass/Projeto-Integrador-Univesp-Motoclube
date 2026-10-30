@@ -112,8 +112,8 @@ test("novo combo envia itens do estoque e mostra a economia", async () => {
   escolher(primeira, 1, 2);
   escolher(segunda, 2, 1);
   const resumo = document.getElementById("combo-resumo").textContent;
-  expect(resumo).toContain("54.00");
-  expect(resumo).toContain("9.00");
+  expect(resumo).toContain("54,00");
+  expect(resumo).toContain("9,00");
   expect(resumo).toMatch(/monta\s+2\s+combos/);
   enviarPainel("painel-combo");
   await settle();

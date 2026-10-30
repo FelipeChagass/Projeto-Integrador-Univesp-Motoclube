@@ -460,16 +460,16 @@ describe("Integridade: falhas e reconciliação", () => {
     });
     await reports.executarRelatorio("TURNO", {});
     const html = document.getElementById("resultado-relatorio").textContent;
-    expect(html).toContain("150.00");
-    expect(html).not.toContain("160.00");
+    expect(html).toContain("150,00");
+    expect(html).not.toContain("160,00");
     window.focus = jest.fn();
     window.print = jest.fn();
     reports.imprimirRelatorioAtual();
     expect(document.getElementById("area-impressao").textContent).toContain(
-      "150.00",
+      "150,00",
     );
     expect(document.getElementById("area-impressao").textContent).not.toContain(
-      "160.00",
+      "160,00",
     );
   });
 });

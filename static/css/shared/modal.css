@@ -73,7 +73,7 @@
 
 /* Rodapé: ações lado a lado, a principal à direita. */
 .modal-rodape {
-    background: var(--card-bg);
+    background: var(--modal-bg);
     border-top: 1px solid var(--divider-color);
 }
 

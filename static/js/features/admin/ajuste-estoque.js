@@ -3,7 +3,7 @@
  * (estoque esperado), para o backend recusar o ajuste se outra venda mexeu no estoque
  * nesse meio tempo. O motivo é obrigatório e fica na auditoria.
  */
-import { BASE, authFetch } from "./requests.js";
+import { requisitar } from "./requests.js";
 import { toast, avisarCampo } from "./ui.js";
 import { abrirPainel, fecharPainel } from "./painel.js";
 import { buscarProduto, carregarProdutos } from "./produtos.js";
@@ -49,12 +49,12 @@ export async function confirmarAjusteEstoque() {
       "O motivo do ajuste é obrigatório.",
     );
 
-  const resposta = await authFetch(
-    `${BASE}/api/admin/produtos/${produtoAjustado.id}/estoque`,
-    { method: "POST", body: JSON.stringify(dados) },
+  const dadosResposta = await requisitar(
+    "POST",
+    `/admin/produtos/${produtoAjustado.id}/estoque`,
+    dados,
   );
-  if (!resposta) return;
-  const dadosResposta = await resposta.json();
+  if (!dadosResposta) return;
   toast(dadosResposta.mensagem, dadosResposta.status === "ok");
   if (dadosResposta.status === "ok") {
     fecharPainel(PAINEL);

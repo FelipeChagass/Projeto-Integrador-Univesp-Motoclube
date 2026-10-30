@@ -235,6 +235,7 @@ describe("eventos extraídos do PDV", () => {
   test.each([
     ["sidebar-config", "modal-config"],
     ["sidebar-gestao", "modal-relatorios"],
+    ["sidebar-logout", "modal-sair"],
   ])(
     "%s só abre modal depois de hidden.bs.offcanvas, uma vez",
     async (botao, modal) => {

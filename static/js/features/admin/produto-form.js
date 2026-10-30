@@ -6,7 +6,7 @@
 import { API } from "../../shared/api.js";
 import { temCategoriaCombo } from "../../shared/combos.js";
 import { mensagemErro } from "../../shared/utils.js";
-import { BASE, authFetch } from "./requests.js";
+import { requisitar } from "./requests.js";
 import { toast, avisarCampo } from "./ui.js";
 import { abrirPainel, fecharPainel } from "./painel.js";
 import { buscarProduto, carregarProdutos } from "./produtos.js";
@@ -68,17 +68,14 @@ export async function salvarProduto() {
   if (!produtoEmEdicao || !temCategoriaCombo(produtoEmEdicao))
     dados.categoria = campo("produto-categoria").value;
 
-  const resposta = await authFetch(
+  const dadosResposta = await requisitar(
+    produtoEmEdicao ? "PUT" : "POST",
     produtoEmEdicao
-      ? `${BASE}/api/admin/produtos/${produtoEmEdicao.id}`
-      : `${BASE}/api/admin/produtos`,
-    {
-      method: produtoEmEdicao ? "PUT" : "POST",
-      body: JSON.stringify(dados),
-    },
+      ? `/admin/produtos/${produtoEmEdicao.id}`
+      : `/admin/produtos`,
+    dados,
   );
-  if (!resposta) return;
-  const dadosResposta = await resposta.json();
+  if (!dadosResposta) return;
   if (dadosResposta.status !== "ok")
     return toast(dadosResposta.mensagem || "Produto não salvo.", false);
 

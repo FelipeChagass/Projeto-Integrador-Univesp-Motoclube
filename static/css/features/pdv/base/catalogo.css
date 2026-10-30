@@ -176,8 +176,9 @@
     color: #eee;
 }
 
+/* Preço é a informação mais lida do cartão: o vermelho de texto, com contraste de 4,5:1. */
 .card-price {
-    color: var(--accent);
+    color: var(--accent-readable);
     font-weight: bold;
     font-size: 1.1rem;
 }
@@ -220,5 +221,4 @@
     left: 4px;
     background: var(--edit-mode-color);
     color: white;
-    display: none;
 }

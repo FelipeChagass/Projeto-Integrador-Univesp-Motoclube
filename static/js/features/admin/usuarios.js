@@ -4,7 +4,7 @@
  * Exporta usuarios como binding vivo para navigation.js; autorização pertence ao backend.
  */
 import { UIModal } from "../../shared/modals.js";
-import { BASE, authFetch } from "./requests.js";
+import { requisitar } from "./requests.js";
 import {
   esc,
   toast,
@@ -24,9 +24,8 @@ export function buscarUsuario(id) {
 
 export async function carregarUsuarios() {
   mostrarEsqueleto("tabelaUsuarios");
-  const resposta = await authFetch(`${BASE}/api/admin/usuarios`);
-  if (!resposta) return;
-  const dadosResposta = await resposta.json();
+  const dadosResposta = await requisitar("GET", `/admin/usuarios`);
+  if (!dadosResposta) return;
   usuarios = dadosResposta.usuarios || [];
   renderizarUsuarios();
 }
@@ -56,12 +55,10 @@ export function renderizarUsuarios() {
 }
 
 export async function alternarUsuario(id, ativo) {
-  const resposta = await authFetch(`${BASE}/api/admin/usuarios/${id}`, {
-    method: "PUT",
-    body: JSON.stringify({ ativo }),
+  const dadosResposta = await requisitar("PUT", `/admin/usuarios/${id}`, {
+    ativo,
   });
-  if (!resposta) return;
-  const dadosResposta = await resposta.json();
+  if (!dadosResposta) return;
   toast(dadosResposta.mensagem, dadosResposta.status === "ok");
   if (dadosResposta.status === "ok") carregarUsuarios();
 }
@@ -70,11 +67,8 @@ export async function excluirUsuario(id, nome) {
   UIModal.confirm(
     `Excluir definitivamente o acesso de "${nome}"?`,
     async function () {
-      const resposta = await authFetch(`${BASE}/api/admin/usuarios/${id}`, {
-        method: "DELETE",
-      });
-      if (!resposta) return;
-      const dadosResposta = await resposta.json();
+      const dadosResposta = await requisitar("DELETE", `/admin/usuarios/${id}`);
+      if (!dadosResposta) return;
       toast(dadosResposta.mensagem, dadosResposta.status === "ok");
       if (dadosResposta.status === "ok") carregarUsuarios();
     },

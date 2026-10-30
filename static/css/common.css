@@ -1,5 +1,3 @@
-@import url('checkboxes.css');
-
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background-color: var(--bg-color);
@@ -132,7 +130,7 @@ body.modal-open {
 }
 
 .modal-overlay .modal-content {
-    background: var(--card-bg);
+    background: var(--modal-bg);
     border-radius: 14px;
     width: 90%;
     max-width: 35rem;

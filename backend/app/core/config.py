@@ -7,6 +7,9 @@ load_dotenv()
 class Config:
     """Configurações do Flask e do banco de dados."""
 
+    # Versão exibida ao usuário (rodapé do login). Única fonte; atualizar a cada release.
+    VERSAO_APP = '2.0'
+
     # --- Flask ---
     SECRET_KEY = os.getenv('SECRET_KEY', '')
     DEBUG = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'

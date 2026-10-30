@@ -3,7 +3,7 @@
  * No cadastro a senha é obrigatória; na edição é opcional e só é trocada se preenchida
  * (o backend ignora senha vazia). A identidade no Auth é responsabilidade do backend.
  */
-import { BASE, authFetch } from "./requests.js";
+import { requisitar } from "./requests.js";
 import { toast, avisarCampo } from "./ui.js";
 import { abrirPainel, fecharPainel } from "./painel.js";
 import { buscarUsuario, carregarUsuarios } from "./usuarios.js";
@@ -62,17 +62,14 @@ export async function salvarUsuario() {
       `A senha deve ter pelo menos ${SENHA_MINIMA} caracteres.`,
     );
 
-  const resposta = await authFetch(
+  const dadosResposta = await requisitar(
+    usuarioEmEdicao ? "PUT" : "POST",
     usuarioEmEdicao
-      ? `${BASE}/api/admin/usuarios/${usuarioEmEdicao.id}`
-      : `${BASE}/api/admin/usuarios`,
-    {
-      method: usuarioEmEdicao ? "PUT" : "POST",
-      body: JSON.stringify(dados),
-    },
+      ? `/admin/usuarios/${usuarioEmEdicao.id}`
+      : `/admin/usuarios`,
+    dados,
   );
-  if (!resposta) return;
-  const dadosResposta = await resposta.json();
+  if (!dadosResposta) return;
   toast(dadosResposta.mensagem, dadosResposta.status === "ok");
   if (dadosResposta.status === "ok") {
     fecharPainel(PAINEL);

@@ -1,6 +1,5 @@
 /** Liga a interface do PDV às actions, sem alterar regras ou payloads. */
 import { API } from "../../shared/api.js";
-import { UIModal } from "../../shared/modals.js";
 import { elementoVisivel } from "../../shared/dialogs.js";
 import {
   fechamentoLegadoBloqueado,
@@ -8,6 +7,7 @@ import {
 } from "../../shared/gestures.js";
 import { estadoPdv } from "./state.js";
 import {
+  abrirModal,
   fecharModal,
   selecionarCategoria,
   mostrarCarregamento,
@@ -51,12 +51,15 @@ const gradesConfiguradas = new WeakSet();
 let eventosGlobaisConfigurados = false;
 
 function realizarLogout() {
-  UIModal.confirm("Tem certeza que deseja sair?", () => {
-    mostrarCarregamento(true);
-    API.logout()
-      .then(() => window.location.replace("/login"))
-      .catch(() => window.location.replace("/login"));
-  });
+  abrirModal("modal-sair");
+}
+
+function confirmarLogout() {
+  fecharModal("modal-sair");
+  mostrarCarregamento(true);
+  API.logout()
+    .then(() => window.location.replace("/login"))
+    .catch(() => window.location.replace("/login"));
 }
 
 function abrirAdministracao() {
@@ -211,6 +214,7 @@ export function configurarEventosPdv() {
     "btn-pendencias": abrirReconciliacao,
     "btn-confirmar-fechamento-caixa": executarFechamentoCaixa,
     "btn-salvar-config": salvarConfig,
+    "btn-confirmar-sair": confirmarLogout,
   };
   Object.entries(acoes).forEach(([id, acao]) => aoClicar(id, acao));
   const cancelamentos = {
@@ -223,6 +227,7 @@ export function configurarEventosPdv() {
     "btn-fechar-relatorios": "modal-relatorios",
     "btn-cancelar-fechamento-caixa": "modal-fechar-caixa",
     "btn-cancelar-config": "modal-config",
+    "btn-cancelar-sair": "modal-sair",
   };
   Object.entries(cancelamentos).forEach(([id, modal]) =>
     aoClicar(id, () => fecharModal(modal)),

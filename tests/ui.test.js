@@ -10,6 +10,7 @@ import {
   afterEach,
 } from "@jest/globals";
 import { estadoPdv } from "../static/js/features/pdv/state.js";
+import { reais } from "./helpers/moeda.js";
 
 function mockMatchMedia() {
   window.matchMedia = jest.fn().mockImplementation(() => ({
@@ -86,6 +87,42 @@ test("filtro fixo separa categorias sem alterar produtos ou carrinho", async () 
   expect(estadoPdv.carrinho).toEqual([{ id: 1, qtd: 1 }]);
   selecionarCategoria("outro");
   expect(document.querySelector(".catalogo-vazio")).not.toBeNull();
+});
+
+test("mudar o carrinho refaz só o cartão do item e dos combos que usam o estoque dele", async () => {
+  setupDOM();
+  mockMatchMedia();
+  const { renderizarCatalogo, atualizarUI } =
+    await import("../static/js/features/pdv/ui.js");
+  estadoPdv.produtos = [
+    { id: 1, nome: "Cerveja", categoria: "bebida", estoque_bar: 4 },
+    { id: 2, nome: "Água", categoria: "bebida", estoque_bar: 5 },
+    {
+      id: 3,
+      nome: "Balde",
+      categoria: "combo",
+      itens_combo: [{ produto_id: 1, nome: "Cerveja", quantidade: 2 }],
+    },
+  ];
+  estadoPdv.carrinho = [];
+  renderizarCatalogo();
+  const cartao = (id) =>
+    document.querySelector(`.pdv-produto-card[data-produto-id="${id}"]`);
+  const [cerveja, agua, balde] = [cartao(1), cartao(2), cartao(3)];
+
+  estadoPdv.carrinho = [{ id: 1, nome: "Cerveja", preco: 10, qtd: 1 }];
+  atualizarUI();
+  expect(cartao(2)).toBe(agua);
+  expect(cartao(1)).not.toBe(cerveja);
+  expect(cartao(1).textContent).toContain("Bar: 3");
+  // 4 cervejas montam 2 baldes; com 1 no carrinho sobram 3, que montam 1.
+  expect(cartao(3)).not.toBe(balde);
+  expect(cartao(3).textContent).toContain("Monta no bar: 1");
+  expect(
+    [...document.querySelectorAll(".pdv-produto-card")].map(
+      (elemento) => elemento.dataset.produtoId,
+    ),
+  ).toEqual(["1", "2", "3"]);
 });
 
 describe("ui.js — showToast()", () => {
@@ -263,7 +300,7 @@ describe("ui.js — renderizarCatalogo()", () => {
       "<script>Evil</script>",
     );
     expect(card.innerHTML).toContain("&lt;script&gt;");
-    expect(card.innerHTML).toContain("R$ 99.90");
+    expect(card.querySelector(".card-price").textContent).toBe(reais("99,90"));
   });
 
   test("marca card esgotado quando estoque_bar <= 0", () => {
@@ -352,7 +389,9 @@ describe("ui.js — atualizarUI()", () => {
   test("mostra total R$ 0,00 com carrinho vazio", () => {
     estadoPdv.carrinho = [];
     atualizarUI();
-    expect(document.getElementById("total-display").innerText).toBe("R$ 0.00");
+    expect(document.getElementById("total-display").innerText).toBe(
+      reais("0,00"),
+    );
   });
 
   test("calcula total correto com múltiplos itens", () => {
@@ -361,7 +400,9 @@ describe("ui.js — atualizarUI()", () => {
       { id: 2, nome: "Água", preco: 5, qtd: 2, obs: "" },
     ];
     atualizarUI();
-    expect(document.getElementById("total-display").innerText).toBe("R$ 40.00");
+    expect(document.getElementById("total-display").innerText).toBe(
+      reais("40,00"),
+    );
   });
 
   test("renderiza itens do carrinho no DOM", () => {

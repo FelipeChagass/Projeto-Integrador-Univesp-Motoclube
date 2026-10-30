@@ -1,7 +1,13 @@
 import { API } from "../../shared/api.js";
 import { UIModal } from "../../shared/modals.js";
 import { estadoPdv, salvarDadosLocais } from "./state.js";
-import { mensagemErro, esc, formatCurrency } from "../../shared/utils.js";
+import {
+  mensagemErro,
+  esc,
+  formatCurrency,
+  formatarValor,
+  dataLocalISO,
+} from "../../shared/utils.js";
 import {
   showToast,
   fecharModal,
@@ -23,11 +29,10 @@ export function abrirMenuRelatorios() {
   document.getElementById("nome-operador-atual").innerText =
     estadoPdv.operadorAtual;
   const hoje = new Date();
-  const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-  document.getElementById("data-inicio").value = primeiroDia
-    .toISOString()
-    .split("T")[0];
-  document.getElementById("data-fim").value = hoje.toISOString().split("T")[0];
+  document.getElementById("data-inicio").value = dataLocalISO(
+    new Date(hoje.getFullYear(), hoje.getMonth(), 1),
+  );
+  document.getElementById("data-fim").value = dataLocalISO(hoje);
 }
 
 export function gerarRelatorio(tipoRelatorio) {
@@ -82,19 +87,19 @@ export function executarRelatorio(tipoRelatorio, filtroRelatorio) {
 
       let htmlCupom = `
                 <div class="cupom-visual">
-                    <div style="text-align:center; font-weight:bold; margin-bottom:10px; border-bottom:1px dashed #000; padding-bottom:5px;">
+                    <div class="text-center fw-bold mb-2 pb-1 border-bottom border-black cupom-tracejado">
                         RELATÓRIO DE CAIXA<br>${esc(dadosRelatorio.periodo)}
                     </div>
-                    <div style="border-bottom:1px dashed #555; padding:5px 0; font-weight:bold; color:var(--accent);">RESUMO FINANCEIRO</div>
+                    <div class="py-1 fw-bold border-bottom border-secondary cupom-tracejado cupom-secao-resumo">RESUMO FINANCEIRO</div>
                     <div class="relatorio-linha"><span>(+) Fundo de Caixa:</span><span>${formatCurrency(saldoInicial)}</span></div>
                     <div class="relatorio-linha"><span>(+) Entradas Dinheiro:</span><span>${formatCurrency(totalDinheiro)}</span></div>
                     <div class="relatorio-linha"><span>(+) Entradas Pix:</span><span>${formatCurrency(totalPix)}</span></div>
                     <div class="relatorio-linha"><span>(+) Entradas Cartão:</span><span>${formatCurrency(totalCartao)}</span></div>
                     <div class="relatorio-linha"><span>Receb. Dívidas (já incluídos):</span><span>${formatCurrency(recebimentoDivida)}</span></div>
-                    <div class="relatorio-linha" style="border-top:1px solid #777; margin-top:5px; padding-top:5px; font-weight:bold; font-size:1.1em; color:var(--success);">
+                    <div class="relatorio-linha relatorio-total border-top border-secondary mt-1 pt-1 fw-bold">
                         <span>(=) TOTAL EM CAIXA:</span><span>${formatCurrency(totalGeralCaixa)}</span>
                     </div>
-                    <div style="border-bottom:1px dashed #555; padding:5px 0; margin-top:15px; font-weight:bold; color:var(--danger);">MOVIMENTAÇÃO FIADO</div>
+                    <div class="py-1 mt-3 fw-bold border-bottom border-secondary cupom-tracejado cupom-secao-fiado">MOVIMENTAÇÃO FIADO</div>
                     <div class="relatorio-linha"><span>(>) Total Vendido Fiado:</span><span>${formatCurrency(vendasFiado)}</span></div>`;
 
       if (
@@ -105,10 +110,10 @@ export function executarRelatorio(tipoRelatorio, filtroRelatorio) {
           dadosRelatorio.produtosVendidos,
         );
         if (nomesProdutosVendidos.length > 0) {
-          htmlCupom += `<br><div style="text-align:center; font-weight:bold; border-bottom:1px dashed #000;">ITENS VENDIDOS</div>
-                        <table style="width:100%; font-size:0.9em; margin-top:5px;">`;
+          htmlCupom += `<br><div class="text-center fw-bold border-bottom border-black cupom-tracejado">ITENS VENDIDOS</div>
+                        <table class="w-100 small mt-1">`;
           for (const nomeProduto in dadosRelatorio.produtosVendidos) {
-            htmlCupom += `<tr><td>${esc(nomeProduto)}</td><td style="text-align:right">${dadosRelatorio.produtosVendidos[nomeProduto]}</td></tr>`;
+            htmlCupom += `<tr><td>${esc(nomeProduto)}</td><td class="text-end">${dadosRelatorio.produtosVendidos[nomeProduto]}</td></tr>`;
           }
           htmlCupom += "</table>";
         }
@@ -118,20 +123,20 @@ export function executarRelatorio(tipoRelatorio, filtroRelatorio) {
         Array.isArray(dadosRelatorio.historico) &&
         dadosRelatorio.historico.length > 0
       ) {
-        htmlCupom += `<br><div style="text-align:center; font-weight:bold; border-bottom:1px dashed #000; margin-top:10px;">${dadosRelatorio.historico_truncado ? "HISTÓRICO PARCIAL — totais incluem todo o período" : "HISTÓRICO COMPLETO"}</div>
-                    <table style="width:100%; font-size:0.8em; margin-top:5px; border-collapse: collapse;">
-                    <tr style="background:#ddd; font-weight:bold;"><td style="padding:2px;">Hora</td><td style="padding:2px;">Desc.</td><td style="padding:2px;">Valor</td></tr>`;
+        htmlCupom += `<br><div class="text-center fw-bold mt-2 border-bottom border-black cupom-tracejado">${dadosRelatorio.historico_truncado ? "HISTÓRICO PARCIAL — totais incluem todo o período" : "HISTÓRICO COMPLETO"}</div>
+                    <table class="w-100 cupom-pequeno mt-1">
+                    <tr class="fw-bold bg-secondary-subtle"><td class="p-1">Hora</td><td class="p-1">Desc.</td><td class="p-1">Valor</td></tr>`;
         dadosRelatorio.historico.forEach((movimentacao) => {
           const metodoPagamento = movimentacao.metodo || "";
           const corMovimentacao = metodoPagamento.includes("FIADO")
-            ? "red"
+            ? " text-danger"
             : movimentacao.tipo === "RECEBIMENTO"
-              ? "green"
-              : "inherit";
-          htmlCupom += `<tr style="border-bottom:1px solid #eee; color:${corMovimentacao}">
-                        <td style="padding:2px;">${esc(movimentacao.hora || "")}</td>
-                        <td style="padding:2px;">${esc(movimentacao.descricao || "")}</td>
-                        <td style="padding:2px; text-align:right">${Number(movimentacao.valor).toFixed(2)}</td></tr>`;
+              ? " text-success"
+              : "";
+          htmlCupom += `<tr class="border-bottom border-light${corMovimentacao}">
+                        <td class="p-1">${esc(movimentacao.hora || "")}</td>
+                        <td class="p-1">${esc(movimentacao.descricao || "")}</td>
+                        <td class="p-1 text-end">${formatarValor(movimentacao.valor)}</td></tr>`;
         });
         htmlCupom += "</table>";
       }
@@ -140,7 +145,7 @@ export function executarRelatorio(tipoRelatorio, filtroRelatorio) {
       const elementoResultadoRelatorio = document.getElementById(
         "resultado-relatorio",
       );
-      elementoResultadoRelatorio.innerHTML = `${htmlCupom}<br><button id="btn-imprimir-rel" class="btn-action w-100">IMPRIMIR RELATORIO</button>`;
+      elementoResultadoRelatorio.innerHTML = `${htmlCupom}<button type="button" id="btn-imprimir-rel" class="btn btn-escuro btn-lg w-100 mt-3">IMPRIMIR RELATÓRIO</button>`;
       document
         .getElementById("btn-imprimir-rel")
         .addEventListener("click", imprimirRelatorioAtual);
@@ -148,7 +153,8 @@ export function executarRelatorio(tipoRelatorio, filtroRelatorio) {
       if (tipoRelatorio === "TURNO" || tipoRelatorio === "DIA") {
         const botaoFechamento = document.createElement("button");
         botaoFechamento.id = "btn-confirmar-fechamento";
-        botaoFechamento.className = "btn-action w-100 mt-2";
+        botaoFechamento.type = "button";
+        botaoFechamento.className = "btn btn-primary btn-lg w-100 mt-2";
         botaoFechamento.textContent = "CONFIRMAR FECHAMENTO E SAIR";
         botaoFechamento.addEventListener("click", confirmarFechamentoCaixa);
         elementoResultadoRelatorio.appendChild(botaoFechamento);
@@ -259,7 +265,7 @@ export function montarImpressao(itensVenda, metodoPagamento, nomeCliente) {
     minute: "2-digit",
   });
   const logotipoHtml =
-    '<div style="text-align:center; margin-bottom:10px"><img src="/static/img/motorhead.svg" style="width:70px; height:70px; "></div>';
+    '<div class="text-center mb-2"><img src="/static/img/motorhead.svg" alt="" width="70" height="70"></div>';
   const nomeClienteEscapado = esc(nomeCliente.toUpperCase());
 
   itensVenda.forEach((itemVenda) => {
@@ -298,7 +304,7 @@ export function montarImpressao(itensVenda, metodoPagamento, nomeCliente) {
                     <span class="ticket-item">${esc(itemVenda.nome)}</span>
                     ${observacaoHtml}
                     <div class="ticket-info">CLI: <b>${nomeClienteEscapado}</b> | ${esc(metodoPagamento)}</div>
-                    ${produtoComida ? '<div style="font-size:0.8em; margin-top:5px">VIA CLIENTE</div>' : ""}
+                    ${produtoComida ? '<div class="cupom-pequeno mt-1">VIA CLIENTE</div>' : ""}
                 </div></div>`;
       if (produtoComida) {
         htmlImpressao += `<div class="ticket ${estadoPdv.config.largura}">${logotipoHtml}
@@ -307,7 +313,7 @@ export function montarImpressao(itensVenda, metodoPagamento, nomeCliente) {
                         <span class="ticket-item">${esc(itemVenda.nome)}</span>
                         ${observacaoHtml}
                         <div class="ticket-info">CLI: <b>${nomeClienteEscapado}</b></div>
-                        <div style="font-size:0.9em; margin-top:5px; font-weight:bold">VIA COZINHA</div>
+                        <div class="small mt-1 fw-bold">VIA COZINHA</div>
                     </div></div>`;
       }
     }
@@ -336,7 +342,7 @@ export function imprimirRelatorioAtual() {
     estadoPdv.dadosRelatorioAtual.historico.length > 0
   ) {
     htmlHistorico =
-      '<br><div style="border-bottom:1px dashed black; font-weight:bold; text-align:center">EXTRATO DETALHADO</div>';
+      '<br><div class="fw-bold text-center border-bottom border-black cupom-tracejado">EXTRATO DETALHADO</div>';
     estadoPdv.dadosRelatorioAtual.historico.forEach((movimentacao) => {
       const indicadorFiado = movimentacao.metodo.includes("FIADO") ? "(!)" : "";
       let horarioExibicao = "";
@@ -347,30 +353,30 @@ export function imprimirRelatorioAtual() {
       else if (movimentacao.dataHora)
         horarioExibicao =
           movimentacao.dataHora.split(" ")[1] || movimentacao.dataHora;
-      htmlHistorico += `<div style="font-size:0.8em; border-bottom:1px dotted #ccc; margin-bottom:2px;">
+      htmlHistorico += `<div class="cupom-pequeno border-bottom border-secondary-subtle cupom-pontilhado mb-1">
                 ${esc(horarioExibicao)} ${esc(movimentacao.descricao.substring(0, 15))}... ${indicadorFiado}
-                <br><div style="text-align:right">${Number(movimentacao.valor).toFixed(2)} (${esc(movimentacao.metodo.substring(0, 3))})</div></div>`;
+                <br><div class="text-end">${formatarValor(movimentacao.valor)} (${esc(movimentacao.metodo.substring(0, 3))})</div></div>`;
     });
   }
   areaImpressao.innerHTML = `<div class="sheet-a4">
         <div class="ticket-header">RELATÓRIO DE CAIXA</div>
-        <div class="ticket-header" style="font-size:1em">${esc(estadoPdv.dadosRelatorioAtual.periodo)}</div>
-        <div style="border-bottom:1px solid black; margin:10px 0"></div>
-        <div style="text-align:left; font-weight:bold; margin-top:5px;">RESUMO FINANCEIRO</div>
+        <div class="ticket-header">${esc(estadoPdv.dadosRelatorioAtual.periodo)}</div>
+        <div class="border-bottom border-black my-2"></div>
+        <div class="text-start fw-bold mt-1">RESUMO FINANCEIRO</div>
         <div class="relatorio-linha"><span>(+) Saldo Inicial:</span><span>${formatCurrency(saldoInicial)}</span></div>
         <div class="relatorio-linha"><span>(+) Dinheiro:</span><span>${formatCurrency(totalDinheiro)}</span></div>
         <div class="relatorio-linha"><span>(+) Pix:</span><span>${formatCurrency(totalPix)}</span></div>
         <div class="relatorio-linha"><span>(+) Cartão:</span><span>${formatCurrency(totalCartao)}</span></div>
         <div class="relatorio-linha"><span>Receb. Dívidas (já incluídos):</span><span>${formatCurrency(recebimentoDivida)}</span></div>
-        <div style="border-top:1px solid black; margin:5px 0"></div>
-        <div class="relatorio-linha" style="font-weight:bold; font-size:1.3em"><span>(=) TOTAL CAIXA:</span><span>${formatCurrency(totalGeral)}</span></div>
-        <div style="border-bottom:1px dashed black; margin:10px 0"></div>
-        <div style="text-align:left; font-weight:bold;">MOVIMENTAÇÃO FIADO</div>
+        <div class="border-top border-black my-1"></div>
+        <div class="relatorio-linha relatorio-total-grande fw-bold"><span>(=) TOTAL CAIXA:</span><span>${formatCurrency(totalGeral)}</span></div>
+        <div class="border-bottom border-black cupom-tracejado my-2"></div>
+        <div class="text-start fw-bold">MOVIMENTAÇÃO FIADO</div>
         <div class="relatorio-linha"><span>(>) Total Vendido Fiado:</span><span>${formatCurrency(estadoPdv.dadosRelatorioAtual.vendasFiado)}</span></div>
         ${htmlHistorico}
         <br><br><br>
-        <div style="border-top:1px solid black; width:60%; margin:0 auto"></div>
-        <div style="text-align:center; font-size:0.8em; margin-top:5px">Assinatura Responsável</div>
+        <div class="assinatura-linha border-top border-black mx-auto"></div>
+        <div class="text-center cupom-pequeno mt-1">Assinatura Responsável</div>
     </div>`;
   imprimirArea();
 }
@@ -379,21 +385,21 @@ export function montarImpressaoFechamento(dadosFechamento) {
   const areaImpressao = document.getElementById("area-impressao");
   const horarioImpressao = new Date().toLocaleTimeString("pt-BR");
   const logotipoHtml =
-    '<div style="text-align:center; margin-bottom:10px"><img src="/static/img/motorhead.svg" style="width:70px; height:70px; "></div>';
+    '<div class="text-center mb-2"><img src="/static/img/motorhead.svg" alt="" width="70" height="70"></div>';
   let itensHtml = "";
   dadosFechamento.itens.forEach((itemFechamento) => {
-    itensHtml += `<div class="extrato-print-item"><span>${itemFechamento.qtd}x ${esc(itemFechamento.produto)}</span><span>${itemFechamento.valor.toFixed(2)}</span></div>`;
+    itensHtml += `<div class="extrato-print-item"><span>${itemFechamento.qtd}x ${esc(itemFechamento.produto)}</span><span>${formatarValor(itemFechamento.valor)}</span></div>`;
   });
   areaImpressao.innerHTML = `<div class="ticket ${estadoPdv.config.largura}">${logotipoHtml}
         <div class="ticket-content">
             <div class="ticket-header">RECIBO PAGAMENTO</div>
             <div class="ticket-header">MOTORHEAD</div>
-            <div style="border-bottom:1px solid black; margin:5px 0"></div>
+            <div class="border-bottom border-black my-1"></div>
             <div>Membro: <b>${esc(dadosFechamento.nome.toUpperCase())}</b></div>
             <div>Data: ${esc(horarioImpressao)}</div>
-            <div style="margin-top:10px">${itensHtml}</div>
+            <div class="mt-2">${itensHtml}</div>
             <div class="extrato-print-total">TOTAL PAGO: ${formatCurrency(dadosFechamento.total)}</div>
-            <div style="text-align:right; font-size:0.9em; margin-top:5px">Forma: ${esc(dadosFechamento.metodo || "DINHEIRO")}</div>
-            <div style="text-align:center; margin-top:10px; font-size:0.8em">Conta Quitada</div>
+            <div class="text-end small mt-1">Forma: ${esc(dadosFechamento.metodo || "DINHEIRO")}</div>
+            <div class="text-center mt-2 cupom-pequeno">Conta Quitada</div>
         </div></div>`;
 }

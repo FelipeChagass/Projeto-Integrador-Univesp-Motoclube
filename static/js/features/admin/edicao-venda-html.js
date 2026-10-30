@@ -5,7 +5,9 @@
  * Os atributos name dos campos são o contrato lido por montarPayload (financeiro.js).
  */
 import { esc } from "./ui.js";
+import { formatarValor } from "../../shared/utils.js";
 
+/** Valor para o atributo value de <input type="number">, que exige ponto decimal. */
 export const dinheiro = (valor) => Number(valor).toFixed(2);
 
 export const HTML_CARREGANDO =
@@ -68,7 +70,7 @@ function htmlItemVenda(item, indice) {
                         value="${dinheiro(item.preco_unitario)}" aria-label="Preço unitário (R$)">
                 </td>
                 <td class="d-flex flex-column gap-1 d-md-table-cell" data-label="Subtotal (R$)">
-                    <strong class="edicao-item-subtotal" data-subtotal-item>${dinheiro(item.preco_total)}</strong>
+                    <strong class="edicao-item-subtotal" data-subtotal-item>${formatarValor(item.preco_total)}</strong>
                 </td>
                 <td class="sem-rotulo d-md-table-cell">
                     <div class="d-flex gap-2 justify-content-md-center">

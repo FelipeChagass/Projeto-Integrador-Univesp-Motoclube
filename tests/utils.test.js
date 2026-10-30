@@ -6,9 +6,11 @@ import {
   esc,
   sanitizeUrl,
   formatCurrency,
+  dataLocalISO,
   LocalDB,
   mensagemErro,
 } from "../static/js/shared/utils.js";
+import { reais } from "./helpers/moeda.js";
 
 describe("utils.js — esc()", () => {
   test("escapa HTML perigoso", () => {
@@ -75,24 +77,24 @@ describe("utils.js — sanitizeUrl()", () => {
 
 describe("utils.js — formatCurrency()", () => {
   test("formata valores normais", () => {
-    expect(formatCurrency(10)).toBe("R$ 10.00");
-    expect(formatCurrency(5.5)).toBe("R$ 5.50");
-    expect(formatCurrency(0)).toBe("R$ 0.00");
+    expect(formatCurrency(10)).toBe(reais("10,00"));
+    expect(formatCurrency(5.5)).toBe(reais("5,50"));
+    expect(formatCurrency(0)).toBe(reais("0,00"));
   });
 
   test("formata valores grandes", () => {
-    expect(formatCurrency(1250.99)).toBe("R$ 1250.99");
+    expect(formatCurrency(1250.99)).toBe(reais("1.250,99"));
   });
 
   test("lida com strings numéricas", () => {
-    expect(formatCurrency("15.75")).toBe("R$ 15.75");
+    expect(formatCurrency("15.75")).toBe(reais("15,75"));
   });
 
-  test("retorna R$ 0.00 para valores inválidos", () => {
-    expect(formatCurrency(null)).toBe("R$ 0.00");
-    expect(formatCurrency(undefined)).toBe("R$ 0.00");
-    expect(formatCurrency("abc")).toBe("R$ 0.00");
-    expect(formatCurrency(NaN)).toBe("R$ 0.00");
+  test("retorna R$ 0,00 para valores inválidos", () => {
+    expect(formatCurrency(null)).toBe(reais("0,00"));
+    expect(formatCurrency(undefined)).toBe(reais("0,00"));
+    expect(formatCurrency("abc")).toBe(reais("0,00"));
+    expect(formatCurrency(NaN)).toBe(reais("0,00"));
   });
 });
 
@@ -149,5 +151,12 @@ describe("utils.js — mensagemErro()", () => {
   test("valor sem mensagem usa o padrão", () => {
     expect(mensagemErro(null)).toBe("Erro inesperado. Tente novamente.");
     expect(mensagemErro({})).toBe("Erro inesperado. Tente novamente.");
+  });
+});
+
+describe("utils.js — dataLocalISO()", () => {
+  test("usa o dia do aparelho, não o de UTC (23h30 continua no mesmo dia)", () => {
+    expect(dataLocalISO(new Date(2026, 9, 28, 23, 30))).toBe("2026-10-28");
+    expect(dataLocalISO(new Date(2026, 0, 5, 0, 5))).toBe("2026-01-05");
   });
 });

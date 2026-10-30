@@ -33,7 +33,6 @@ const mockedApi = {
     Promise.resolve({ status: "ok", caixa_id: "cx-test-123" }),
   ),
   logout: jest.fn(() => Promise.resolve({ status: "ok" })),
-  invalidateCache: jest.fn(),
   getDadosIniciais: jest.fn(() =>
     Promise.resolve({ produtos: [], membros: [] }),
   ),
@@ -102,6 +101,7 @@ function setupDOM() {
         <div id="modal-abertura-caixa" style="display:none"></div>
         <input id="input-valor-abertura" type="number" value="100" />
         <div id="modal-config" style="display:none"></div>
+        <div id="modal-sair" style="display:none"></div>
         <input id="cfg-imprimir" type="checkbox" checked />
         <select id="cfg-largura"><option value="ticket-80mm">80mm</option><option value="ticket-58mm">58mm</option></select>
         <div id="modal-selecionar-membro" style="display:none"></div>

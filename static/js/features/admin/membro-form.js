@@ -3,7 +3,7 @@
  * ajuste manual de saldo. O saldo em si é calculado pelo backend a partir das movimentações;
  * o ajuste só registra um crédito ou débito com descrição.
  */
-import { BASE, authFetch } from "./requests.js";
+import { requisitar } from "./requests.js";
 import { toast, avisarCampo } from "./ui.js";
 import { abrirPainel, fecharPainel } from "./painel.js";
 import { buscarMembro, carregarMembros } from "./membros.js";
@@ -37,17 +37,12 @@ export function abrirEdicaoMembro(id) {
 export async function salvarMembro() {
   const nome = document.getElementById("membro-nome").value.trim();
   if (!nome) return avisarCampo("membro-nome", "Informe o nome do membro.");
-  const resposta = await authFetch(
-    membroEmEdicao
-      ? `${BASE}/api/admin/membros/${membroEmEdicao.id}`
-      : `${BASE}/api/admin/membros`,
-    {
-      method: membroEmEdicao ? "PUT" : "POST",
-      body: JSON.stringify({ nome }),
-    },
+  const dadosResposta = await requisitar(
+    membroEmEdicao ? "PUT" : "POST",
+    membroEmEdicao ? `/admin/membros/${membroEmEdicao.id}` : `/admin/membros`,
+    { nome },
   );
-  if (!resposta) return;
-  const dadosResposta = await resposta.json();
+  if (!dadosResposta) return;
   toast(dadosResposta.mensagem, dadosResposta.status === "ok");
   if (dadosResposta.status === "ok") {
     fecharPainel(PAINEL_MEMBRO);
@@ -75,12 +70,12 @@ export async function confirmarAjusteSaldo() {
   const descricao = document.getElementById("ajuste-descricao").value;
   if (valor <= 0)
     return avisarCampo("ajuste-valor", "O valor deve ser maior que zero.");
-  const resposta = await authFetch(
-    `${BASE}/api/admin/membros/${membroDoAjuste.id}/ajuste`,
-    { method: "POST", body: JSON.stringify({ valor, tipo, descricao }) },
+  const dadosResposta = await requisitar(
+    "POST",
+    `/admin/membros/${membroDoAjuste.id}/ajuste`,
+    { valor, tipo, descricao },
   );
-  if (!resposta) return;
-  const dadosResposta = await resposta.json();
+  if (!dadosResposta) return;
   toast(dadosResposta.mensagem, dadosResposta.status === "ok");
   if (dadosResposta.status === "ok") {
     fecharPainel(PAINEL_SALDO);

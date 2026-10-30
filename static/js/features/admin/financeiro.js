@@ -5,12 +5,11 @@
  * Vínculos financeiros sempre passam pela venda: movimento de venda abre a própria venda.
  * Markup em edicao-venda-html.js; comportamento dos itens em edicao-venda-itens.js.
  */
-import { authFetch } from "./requests.js";
+import { requisitar } from "./requests.js";
 import { toast, abrirModalAdmin, fecharModalAdmin } from "./ui.js";
 import { UIModal } from "../../shared/modals.js";
-import { mensagemErro } from "../../shared/utils.js";
+import { mensagemErro, formatCurrency } from "../../shared/utils.js";
 import {
-  dinheiro,
   HTML_CARREGANDO,
   HTML_ERRO_VENDA,
   htmlCamposVenda,
@@ -97,18 +96,15 @@ function confirmarExclusao(url, versao, descricao) {
     async () => {
       let versaoAtual = versao;
       if (versaoAtual === undefined) {
-        const respostaDetalhe = await authFetch(url);
+        const respostaDetalhe = await requisitar("GET", url);
         if (!respostaDetalhe) return;
-        versaoAtual = (await respostaDetalhe.json()).venda?.versao;
+        versaoAtual = respostaDetalhe.venda?.versao;
         if (versaoAtual == null)
           return toast("Não foi possível carregar a versão da venda.", false);
       }
-      const resposta = await authFetch(url, {
-        method: "DELETE",
-        body: JSON.stringify({ versao: versaoAtual }),
-      });
+      const resposta = await requisitar("DELETE", url, { versao: versaoAtual });
       if (!resposta) return;
-      toast((await resposta.json()).mensagem, true);
+      toast(resposta.mensagem, true);
       fecharModalAdmin("modalExtrato");
       await atualizarListas();
     },
@@ -125,14 +121,14 @@ const dataDaVenda = (venda) =>
     : "";
 
 export async function administrarVenda(id, acao) {
-  const url = `/api/admin/vendas/${id}`;
+  const url = `/admin/vendas/${id}`;
   if (acao === "excluir")
     return confirmarExclusao(url, undefined, "Venda selecionada.");
 
   const geracao = ++geracaoConsultaVenda;
   botaoSalvar().disabled = true;
   abrir("Editar venda", HTML_CARREGANDO, null);
-  const resposta = await authFetch(url);
+  const resposta = await requisitar("GET", url);
   if (consultaObsoleta(geracao)) return;
   if (!resposta) {
     camposEdicao().innerHTML = HTML_ERRO_VENDA;
@@ -140,7 +136,7 @@ export async function administrarVenda(id, acao) {
   }
   let venda;
   try {
-    ({ venda } = await resposta.json());
+    ({ venda } = resposta);
     if (!venda) throw new Error("Venda indisponível.");
   } catch (erro) {
     if (!consultaObsoleta(geracao)) {
@@ -161,12 +157,12 @@ export async function administrarVenda(id, acao) {
 
 export function administrarMovimento(membroId, movimento, acao) {
   if (movimento.venda_id) return administrarVenda(movimento.venda_id, acao);
-  const url = `/api/admin/membros/${membroId}/movimentos/${movimento.id}`;
+  const url = `/admin/membros/${membroId}/movimentos/${movimento.id}`;
   if (acao === "excluir")
     return confirmarExclusao(
       url,
       movimento.versao,
-      `Movimentação de R$ ${dinheiro(movimento.valor)}.`,
+      `Movimentação de ${formatCurrency(movimento.valor)}.`,
     );
   abrir(
     "Editar movimentação",
@@ -209,12 +205,9 @@ async function salvar(evento) {
   const dados = montarPayload(registro, new FormData(evento.target));
   botao.disabled = true;
   try {
-    const resposta = await authFetch(registro.url, {
-      method: "PUT",
-      body: JSON.stringify(dados),
-    });
+    const resposta = await requisitar("PUT", registro.url, dados);
     if (!resposta) return;
-    toast((await resposta.json()).mensagem, true);
+    toast(resposta.mensagem, true);
     fecharModalAdmin(MODAL, { concluido: true });
     await atualizarListas();
   } finally {

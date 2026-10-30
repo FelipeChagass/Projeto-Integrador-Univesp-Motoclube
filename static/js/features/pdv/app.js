@@ -12,7 +12,7 @@ import {
   processarFilaVendas,
   sincronizarProdutosEmSegundoPlano,
 } from "./actions.js";
-import { listarOperacoes } from "./offline-queue.js";
+import { listarOperacoes, podarConfirmadas } from "./offline-queue.js";
 import { configurarEventosPdv } from "./events.js";
 
 async function iniciarSistema() {
@@ -22,6 +22,10 @@ async function iniciarSistema() {
     estadoPdv.usuarioAtual = null;
     estadoPdv.caixaAberto = false;
     estadoPdv.filaVendas = await listarOperacoes();
+    // Recibos confirmados há mais de 30 dias saem do aparelho; nunca bloqueia a abertura.
+    podarConfirmadas().catch((erroPoda) =>
+      console.warn("Poda de recibos antigos não concluída.", erroPoda),
+    );
     atualizarUI();
     if (estadoPdv.operadorAtual) atualizarEstadoBotoes();
     if (estadoPdv.logoUrl) {

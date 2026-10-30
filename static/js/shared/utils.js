@@ -46,8 +46,36 @@ export function sanitizeUrl(url) {
   }
 }
 
+/**
+ * Dinheiro sempre no padrão brasileiro, num só lugar: "R$ 12,30" e "1.234,50".
+ * Valor ausente ou inválido vira zero. Para o `value` de <input type="number"> continue
+ * usando toFixed(2): o campo exige ponto decimal.
+ */
+const FORMATO_REAIS = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+});
+const FORMATO_VALOR = new Intl.NumberFormat("pt-BR", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
 export function formatCurrency(valorMonetario) {
-  return `R$ ${(Number(valorMonetario) || 0).toFixed(2)}`;
+  return FORMATO_REAIS.format(Number(valorMonetario) || 0);
+}
+
+/**
+ * Data "AAAA-MM-DD" no fuso do aparelho, para <input type="date">. toISOString() usa UTC:
+ * depois das 21h em São Paulo ele já devolve o dia seguinte.
+ */
+export function dataLocalISO(data = new Date()) {
+  const doisDigitos = (numero) => String(numero).padStart(2, "0");
+  return `${data.getFullYear()}-${doisDigitos(data.getMonth() + 1)}-${doisDigitos(data.getDate())}`;
+}
+
+/** Só o número ("12,30"), para colunas que já dizem "(R$)" no cabeçalho. */
+export function formatarValor(valorMonetario) {
+  return FORMATO_VALOR.format(Number(valorMonetario) || 0);
 }
 
 export const LocalDB = {

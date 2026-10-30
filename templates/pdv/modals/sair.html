@@ -1,0 +1,17 @@
+{# Confirmação de saída do PDV; mesmo modal Bootstrap (e animação fade) da Configuração.
+   Aberto e confirmado em pdv/events.js; incluído por ponto_venda.html. #}
+{% from 'shared/modal.html' import cabecalho_modal %}
+    <div id="modal-sair" class="modal fade" tabindex="-1" aria-hidden="true" aria-labelledby="modal-sair-titulo">
+        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            {{ cabecalho_modal('Sair do sistema', 'modal-sair-titulo', fechar='data-acionar="btn-cancelar-sair"', arrastavel=False) }}
+            <div class="modal-body p-3 p-md-4">
+                <p class="m-0">Tem certeza que deseja sair?</p>
+            </div>
+            <div class="modal-footer gap-2 p-3 p-md-4 flex-nowrap flex-column-reverse flex-sm-row">
+                <button type="button" class="btn btn-escuro btn-lg w-100" id="btn-cancelar-sair">CANCELAR</button>
+                <button type="button" class="btn btn-primary btn-lg w-100" id="btn-confirmar-sair">SAIR</button>
+            </div>
+        </div>
+        </div>
+    </div>

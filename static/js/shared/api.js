@@ -110,30 +110,6 @@ export const API = (function () {
     return clienteAutenticacao;
   }
 
-  const cacheRespostas = {};
-  const DURACAO_CACHE_MS = 30000;
-
-  function _getCached(chaveCache) {
-    let entradaCache = cacheRespostas[chaveCache];
-    if (entradaCache && Date.now() - entradaCache.ts < DURACAO_CACHE_MS)
-      return entradaCache.data;
-    return null;
-  }
-
-  function _setCache(chaveCache, dadosResposta) {
-    cacheRespostas[chaveCache] = { data: dadosResposta, ts: Date.now() };
-  }
-
-  function _clearCache(chaveCache) {
-    if (chaveCache) {
-      delete cacheRespostas[chaveCache];
-    } else {
-      Object.keys(cacheRespostas).forEach(function (chaveArmazenada) {
-        delete cacheRespostas[chaveArmazenada];
-      });
-    }
-  }
-
   const TEMPO_LIMITE_REQUISICAO_MS = 15000;
 
   async function _request(
@@ -165,13 +141,7 @@ export const API = (function () {
       });
     }
 
-    // Financial state and identity must never come from a stale client cache.
-    let chaveCache = null;
-    if (chaveCache) {
-      let respostaEmCache = _getCached(chaveCache);
-      if (respostaEmCache) return respostaEmCache;
-    }
-
+    // Sem cache de respostas: estoque, saldo e identidade sempre vêm frescos do servidor.
     let controladorCancelamento = new AbortController();
     let temporizadorRequisicaoId = setTimeout(function () {
       controladorCancelamento.abort();
@@ -239,8 +209,6 @@ export const API = (function () {
           },
         );
       }
-
-      if (chaveCache) _setCache(chaveCache, dadosResposta);
 
       clearTimeout(temporizadorRequisicaoId);
       return dadosResposta;
@@ -335,7 +303,6 @@ export const API = (function () {
 
       supabaseClient = null;
       inicializacaoSupabaseEmCurso = null;
-      _clearCache();
       return { status: "ok" };
     },
 
@@ -355,10 +322,6 @@ export const API = (function () {
       return _request("POST", "/produtos/estoque/verificar-senha", {
         senha: senha,
       });
-    },
-
-    invalidateCache: function (caminhoEndpoint) {
-      _clearCache(caminhoEndpoint || null);
     },
 
     getListaMembros: function () {
@@ -386,17 +349,11 @@ export const API = (function () {
         estoque_min_deposito: estoqueMinimoDeposito,
         estoque_bar_esperado: estoqueEsperadoBar,
         estoque_deposito_esperado: estoqueEsperadoDeposito,
-      }).then(function (respostaEstoque) {
-        _clearCache();
-        return respostaEstoque;
       });
     },
 
     processarVenda: function (venda) {
-      return _request("POST", "/vendas", venda).then(function (respostaVenda) {
-        _clearCache();
-        return respostaVenda;
-      });
+      return _request("POST", "/vendas", venda);
     },
 
     buscarExtratoMembro: function (membroId, filtros = {}) {
@@ -408,12 +365,7 @@ export const API = (function () {
     },
 
     quitarContaMembro: function (pagamento) {
-      return _request("POST", "/vendas/pagamento", pagamento).then(
-        function (respostaPagamento) {
-          _clearCache();
-          return respostaPagamento;
-        },
-      );
+      return _request("POST", "/vendas/pagamento", pagamento);
     },
 
     gerarRelatorioCaixa: function (tipoRelatorio, dadosFiltro) {

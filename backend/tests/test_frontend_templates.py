@@ -71,3 +71,10 @@ def test_ids_usados_pelo_js_compartilhado_existem_em_alguma_pagina():
     codigo = _codigo('shared')
     disponiveis = set().union(*(ids_da_pagina(rota) for rota in PAGINAS)) | ids_criados(codigo)
     assert sorted(ids_usados(codigo) - disponiveis) == []
+
+
+def test_login_mostra_a_versao_configurada():
+    app = create_app({'TESTING': True, 'VERSAO_APP': '9.9'})
+    html = app.test_client().get('/login').get_data(as_text=True)
+    assert 'Versão 9.9' in html
+    assert create_app({'TESTING': True}).config['VERSAO_APP'] == '2.0'

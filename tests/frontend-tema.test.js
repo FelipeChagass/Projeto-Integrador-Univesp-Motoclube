@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "@jest/globals";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { resolve } from "node:path";
 import { createHash } from "node:crypto";
 
 const ler = (arquivo) => readFileSync(resolve(arquivo), "utf8");
@@ -18,29 +18,17 @@ const documento = (arquivo) =>
 
 function regras(arquivo) {
   const estilo = document.createElement("style");
-  // Imports são verificados separadamente; não há rede nos testes de CSS.
-  estilo.textContent = ler(arquivo).replace(/@import[^;]+;/g, "");
+  estilo.textContent = ler(arquivo);
   document.head.append(estilo);
   return [...estilo.sheet.cssRules];
 }
 
+/** Folhas locais ligadas pela página (sem @import: cada componente tem o próprio link). */
 function folhasCarregadas(arquivo) {
-  const resultado = [];
-  function visitar(caminho) {
-    resultado.push(caminho);
-    for (const [, relativo] of ler(caminho).matchAll(
-      /@import\s+url\(['"]([^'"]+)['"]\);/g,
-    )) {
-      visitar(resolve(dirname(caminho), relativo));
-    }
-  }
-  for (const link of documento(arquivo).querySelectorAll(
-    'link[rel="stylesheet"]',
-  )) {
-    const caminho = link.getAttribute("href").match(/filename='(css\/[^']+)'/);
-    if (caminho) visitar(resolve("static", caminho[1]));
-  }
-  return resultado;
+  return [...documento(arquivo).querySelectorAll('link[rel="stylesheet"]')]
+    .map((link) => link.getAttribute("href").match(/filename='(css\/[^']+)'/))
+    .filter(Boolean)
+    .map((caminho) => resolve("static", caminho[1]));
 }
 
 afterEach(() => {
@@ -49,9 +37,12 @@ afterEach(() => {
 });
 
 describe("carregamento do tema Motorhead", () => {
-  test.each(["ponto_venda", "login"])(
+  test.each([
+    ["ponto_venda", "features/pdv/base/cabecalho.css"],
+    ["login", "login.css"],
+  ])(
     "%s aplica Bootstrap, tokens, tema, common e feature nessa ordem",
-    (pagina) => {
+    (pagina, feature) => {
       const doc = documento(`templates/${pagina}.html`);
       const links = [...doc.querySelectorAll('link[rel="stylesheet"]')].map(
         (link) => link.getAttribute("href"),
@@ -61,7 +52,7 @@ describe("carregamento do tema Motorhead", () => {
         "css/tokens.css",
         "css/tema-bootstrap.css",
         "css/common.css",
-        `css/${pagina}.css`,
+        `css/${feature}`,
       ];
       const posicoes = caminhos.map((caminho) =>
         links.findIndex((link) => link.includes(caminho)),

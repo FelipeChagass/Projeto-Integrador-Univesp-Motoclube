@@ -44,10 +44,8 @@
 }
 
 .section-header-icon {
-    width: 17px;
-    height: 17px;
-    flex: 0 0 auto;
-    color: var(--accent);
+    font-size: 1.0625rem;
+    color: var(--accent-text);
 }
 
 .extrato-lista {
@@ -153,6 +151,42 @@
     max-height: 350px;
     overflow-y: auto;
     text-align: left;
+}
+
+/* Cupom do relatório (tela e impressão). Espaço e alinhamento ficam nos utilitários do markup;
+   aqui só o que o Bootstrap não tem: traço do cupom, tamanhos em em e cores das seções.
+   O estilo da borda entra pela variável que .border-top/.border-bottom já usam. */
+.cupom-tracejado {
+    --bs-border-style: dashed;
+}
+
+.cupom-pontilhado {
+    --bs-border-style: dotted;
+}
+
+.cupom-pequeno {
+    font-size: 0.8em;
+}
+
+.cupom-secao-resumo {
+    color: var(--accent);
+}
+
+.cupom-secao-fiado {
+    color: var(--danger);
+}
+
+.relatorio-total {
+    font-size: 1.1em;
+    color: var(--success);
+}
+
+.relatorio-total-grande {
+    font-size: 1.3em;
+}
+
+.assinatura-linha {
+    width: 60%;
 }
 
 .relatorio-linha {

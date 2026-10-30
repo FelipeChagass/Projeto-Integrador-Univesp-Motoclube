@@ -4,6 +4,8 @@
     --bg-color: #0D0B0B;
     --surface-bg: #111111;
     --card-bg: #191919;
+    /* Fundo de todo modal e diálogo: o mesmo que o Bootstrap dá ao .modal (--bs-body-bg). */
+    --modal-bg: var(--bg-color);
     --control-bg: #1c1c1c;
     --surface-hover: #222222;
     --input-bg: #0D0D0D;
@@ -25,12 +27,16 @@
     /* Marca e estados */
     --accent: #c70808;
     --accent-hover: #da0101;
-    --accent-text: #B30707;
-    /* Vermelho vivo para textos pequenos; os ícones mantêm o vermelho de marca. */
-    --accent-readable: #ff3333;
+    /* Contrastes (WCAG 2.1) medidos sobre os fundos acima, até o --surface-hover:
+     * --accent-text: ícones e bordas, mínimo de 3:1 (3,05:1 no hover);
+     * --accent-readable: texto (preço, valores), mínimo de 4,5:1 (4,52:1 no cartão de
+     * estoque baixo, o fundo mais claro onde há preço). --accent fica para fundos de botão. */
+    --accent-text: #DA0909;
+    --accent-readable: #FF4040;
     --success: #4caf50;
     --danger: #f44336;
-    --edit-mode-color: #B30000;
+    /* Moldura do modo estoque: 3:1 sobre o fundo da página. */
+    --edit-mode-color: #C00000;
     --warning-bg: rgba(255, 152, 0, 0.15);
     --warning-border: #ff9800;
     --info: #3498db;
@@ -91,7 +97,7 @@
     --bs-info-text-emphasis: var(--info);
 
     --bs-link-color: var(--accent-readable);
-    --bs-link-color-rgb: 255, 51, 51;
+    --bs-link-color-rgb: 255, 64, 64;
     --bs-link-hover-color: var(--accent-hover);
     --bs-link-hover-color-rgb: 218, 1, 1;
     --bs-focus-ring-color: color-mix(in srgb, var(--accent) 30%, transparent);

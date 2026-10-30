@@ -21,6 +21,23 @@ import {
 
 /* ─── Queue ─── */
 
+/** Motivo do servidor no meio de uma frase: sem o ponto final dele, para não sair "fora.. Consulte". */
+const semPontoFinal = (texto) => String(texto).replace(/[.!]+$/, "");
+
+/** Estados que o envio automático ainda vai mandar ao servidor. */
+const ESTADOS_ENVIAVEIS = ["pendente", "aguardando_reenvio"];
+
+/**
+ * Operação que este aparelho vai enviar sozinho: do operador logado e em estado enviável.
+ * Conflito, reconciliação e operações de outro operador não saem sem alguém agir.
+ */
+export function operacaoParaEnviar(registro, usuarioId) {
+  return (
+    registro.payload?.usuario_origem_id === usuarioId &&
+    ESTADOS_ENVIAVEIS.includes(registro.estado)
+  );
+}
+
 export async function processarFilaVendas({ notificarFalhas = false } = {}) {
   if (
     estadoPdv.processandoFila ||
@@ -34,8 +51,7 @@ export async function processarFilaVendas({ notificarFalhas = false } = {}) {
     for (const registro of estadoPdv.filaVendas) {
       const dadosOperacao = registro.payload;
       if (
-        dadosOperacao.usuario_origem_id !== estadoPdv.usuarioAtual?.id ||
-        !["pendente", "aguardando_reenvio"].includes(registro.estado) ||
+        !operacaoParaEnviar(registro, estadoPdv.usuarioAtual?.id) ||
         registro.proxima_tentativa > Date.now()
       )
         continue;
@@ -53,7 +69,7 @@ export async function processarFilaVendas({ notificarFalhas = false } = {}) {
         await registrarFalha(registro.id_externo, erroSincronizacao);
         if (notificarFalhas) {
           showToast(
-            `Operação preservada: ${mensagemErro(erroSincronizacao)}. Consulte Operações pendentes.`,
+            `Operação preservada: ${semPontoFinal(mensagemErro(erroSincronizacao))}. Consulte Operações pendentes.`,
           );
         } else {
           console.warn(
@@ -96,8 +112,8 @@ export async function abrirReconciliacao() {
         <div id="lista-pendencias" class="lista-pendencias m-0"></div>
       </div>
       <div class="modal-rodape d-flex gap-2 px-3 px-md-4 pt-3 pb-md-3 flex-shrink-0 flex-column-reverse flex-sm-row">
-        <button class="btn-action m-0 justify-content-center" id="fechar-pendencias">FECHAR JANELA</button>
-        <button class="btn-action btn-acao-primaria m-0 justify-content-center" id="exportar-pendencias">EXPORTAR CÓPIA JSON</button>
+        <button type="button" class="btn btn-escuro btn-lg w-100" id="fechar-pendencias">FECHAR JANELA</button>
+        <button type="button" class="btn btn-primary btn-lg w-100" id="exportar-pendencias">EXPORTAR CÓPIA JSON</button>
       </div>
     </div>`;
     const listaPendencias = modal.querySelector("#lista-pendencias");
@@ -114,7 +130,8 @@ export async function abrirReconciliacao() {
       linhaPendencia.appendChild(detalhesPendencia);
       if (registro.payload.usuario_origem_id === estadoPdv.usuarioAtual?.id) {
         const botaoReenviar = document.createElement("button");
-        botaoReenviar.className = "btn-action btn-reenviar-pendencia";
+        botaoReenviar.type = "button";
+        botaoReenviar.className = "btn btn-escuro btn-reenviar-pendencia";
         botaoReenviar.textContent = "Reenviar mesma operação";
         botaoReenviar.onclick = async () => {
           botaoReenviar.disabled = true;
@@ -157,14 +174,23 @@ export async function abrirReconciliacao() {
     abrirModal(modal.id);
   } catch (erroReconciliacao) {
     showToast(
-      `Reconciliação indisponível: ${mensagemErro(erroReconciliacao)}. Preserve os dados locais.`,
+      `Reconciliação indisponível: ${semPontoFinal(mensagemErro(erroReconciliacao))}. Preserve os dados locais.`,
     );
   }
 }
 
+/**
+ * Atualiza o estoque com o do servidor. Espera só enquanto houver venda deste operador
+ * prestes a ser enviada: ela já baixou o estoque na tela e o servidor ainda não sabe dela.
+ * Uma operação travada (conflito, reconciliação) ou de outro operador não bloqueia mais a
+ * atualização: antes, uma única venda presa deixava o aparelho com estoque parado.
+ */
 export function sincronizarProdutosEmSegundoPlano() {
+  const usuarioId = estadoPdv.usuarioAtual?.id;
   if (
-    estadoPdv.filaVendas.length > 0 ||
+    estadoPdv.filaVendas.some((registro) =>
+      operacaoParaEnviar(registro, usuarioId),
+    ) ||
     document.hidden ||
     navigator.onLine === false
   )

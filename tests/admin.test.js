@@ -10,6 +10,7 @@ import {
   enviarPainel,
   painelAberto,
 } from "./helpers/admin.js";
+import { reais } from "./helpers/moeda.js";
 
 const request = jest.fn();
 const confirm = jest.fn((_mensagem, aoConfirmar) => aoConfirmar());
@@ -33,7 +34,7 @@ const configuracoes =
 const { setupEventListeners } =
   await import("../static/js/features/admin/events.js");
 const { switchTab } = await import("../static/js/features/admin/navigation.js");
-const { authFetch } = await import("../static/js/features/admin/requests.js");
+const { requisitar } = await import("../static/js/features/admin/requests.js");
 const { esc, mostrarEsqueleto } =
   await import("../static/js/features/admin/ui.js");
 const { criarCsv } = await import("../static/js/features/admin/csv.js");
@@ -248,7 +249,7 @@ test("extrato administrativo mantém membro ao filtrar, limpar e mostrar períod
     "Nenhum lançamento encontrado para o período selecionado.",
   );
   expect(document.querySelector("[data-total-atual]").textContent).toBe(
-    "R$ 350.00",
+    reais("350,00"),
   );
   document.querySelector("[data-limpar]").click();
   await settleEvents();
@@ -301,7 +302,7 @@ test("vendas mantém filtros e configurações mantém booleanos", async () => {
 
 test("adapter compartilhado mantém tratamento de erro do painel", async () => {
   request.mockRejectedValueOnce(new Error("Não autorizado"));
-  expect(await authFetch("/api/admin/usuarios")).toBeNull();
+  expect(await requisitar("GET", "/admin/usuarios")).toBeNull();
   expect(document.getElementById("toast").textContent).toBe("Não autorizado");
 });
 

@@ -6,7 +6,7 @@
     --bs-modal-zindex: 11000;
     --bs-modal-width: 480px;
     --bs-modal-color: var(--text-primary);
-    --bs-modal-bg: var(--card-bg);
+    --bs-modal-bg: var(--modal-bg);
     --bs-modal-border-color: var(--border-subtle);
     --bs-modal-border-radius: 14px;
     --bs-modal-inner-border-radius: 13px;
@@ -23,7 +23,7 @@
     max-width: none;
     transform: none;
     transition: none;
-    background: var(--card-bg, var(--bs-body-bg));
+    background: var(--modal-bg);
     color: var(--text-primary, var(--bs-body-color));
     box-shadow: var(--sombra-dialogo);
 }

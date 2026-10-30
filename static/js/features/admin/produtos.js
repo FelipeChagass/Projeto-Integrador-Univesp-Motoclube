@@ -4,7 +4,7 @@
  * produto-form.js; ajuste de estoque em ajuste-estoque.js; combos em combos.js.
  */
 import { UIModal } from "../../shared/modals.js";
-import { BASE, authFetch } from "./requests.js";
+import { requisitar } from "./requests.js";
 import { esc, toast, CLASSES_TABELA as T, badgeStatus } from "./ui.js";
 import { htmlAcoes, ACAO } from "./acoes-linha.js";
 import { temCategoriaCombo, descricaoCombo } from "../../shared/combos.js";
@@ -25,9 +25,8 @@ export function buscarProduto(id) {
 }
 
 export async function carregarProdutos() {
-  const resposta = await authFetch(`${BASE}/api/admin/produtos`);
-  if (!resposta) return;
-  const dadosResposta = await resposta.json();
+  const dadosResposta = await requisitar("GET", `/admin/produtos`);
+  if (!dadosResposta) return;
   const incluirInativos = document.getElementById(
     "mostrarProdutosInativos",
   ).checked;
@@ -126,23 +125,18 @@ function htmlLinhaCombo(combo) {
 
 export async function deletarProduto(id, nome) {
   UIModal.confirm(`Excluir definitivamente "${nome}"?`, async function () {
-    const resposta = await authFetch(`${BASE}/api/admin/produtos/${id}`, {
-      method: "DELETE",
-    });
-    if (!resposta) return;
-    const dadosResposta = await resposta.json();
+    const dadosResposta = await requisitar("DELETE", `/admin/produtos/${id}`);
+    if (!dadosResposta) return;
     toast(dadosResposta.mensagem, dadosResposta.status === "ok");
     if (dadosResposta.status === "ok") carregarProdutos();
   });
 }
 
 export async function reativarProduto(id) {
-  const resposta = await authFetch(`${BASE}/api/admin/produtos/${id}`, {
-    method: "PUT",
-    body: JSON.stringify({ ativo: true }),
+  const dadosResposta = await requisitar("PUT", `/admin/produtos/${id}`, {
+    ativo: true,
   });
-  if (!resposta) return;
-  const dadosResposta = await resposta.json();
+  if (!dadosResposta) return;
   toast(dadosResposta.mensagem, dadosResposta.status === "ok");
   if (dadosResposta.status === "ok") carregarProdutos();
 }

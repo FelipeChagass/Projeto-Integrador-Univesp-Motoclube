@@ -5,7 +5,7 @@
  */
 import { administrarMovimento } from "./financeiro.js";
 import { UIModal } from "../../shared/modals.js";
-import { BASE, authFetch } from "./requests.js";
+import { requisitar } from "./requests.js";
 import {
   abrirModalAdmin,
   esc,
@@ -16,6 +16,7 @@ import {
 } from "./ui.js";
 import { htmlAcoes, ACAO } from "./acoes-linha.js";
 import { criarConsultaExtrato } from "../../shared/extrato-membro.js";
+import { formatCurrency } from "../../shared/utils.js";
 import { API } from "../../shared/api.js";
 
 export let membros = [];
@@ -40,9 +41,8 @@ export function atualizarExtratoAberto() {
 
 export async function carregarMembros() {
   mostrarEsqueleto("tabelaMembros");
-  const resposta = await authFetch(`${BASE}/api/admin/membros`);
-  if (!resposta) return;
-  const dadosResposta = await resposta.json();
+  const dadosResposta = await requisitar("GET", `/admin/membros`);
+  if (!dadosResposta) return;
   const incluirInativos = document.getElementById(
     "mostrarMembrosInativos",
   ).checked;
@@ -65,7 +65,7 @@ export function renderizarMembros() {
         : "text-success fw-semibold";
     linhaMembro.innerHTML = `
             <td class="${T.celula} fw-semibold" data-label="Nome">${esc(membro.nome)}</td>
-            <td class="${T.celula} ${classeSaldo}" data-label="Saldo Devedor">R$ ${membro.saldo_devedor.toFixed(2)}</td>
+            <td class="${T.celula} ${classeSaldo}" data-label="Saldo Devedor">${formatCurrency(membro.saldo_devedor)}</td>
             <td class="${T.celulaStatus}" data-label="Status">${badgeStatus(membro.ativo)}</td>
             <td class="${T.celulaAcoes}">${htmlAcoes(
               { id: membro.id, nome: membro.nome },
@@ -95,11 +95,8 @@ export async function excluirMembro(id, nome) {
   UIModal.confirm(
     `Excluir definitivamente membro "${nome}"?`,
     async function () {
-      const resposta = await authFetch(`${BASE}/api/admin/membros/${id}`, {
-        method: "DELETE",
-      });
-      if (!resposta) return;
-      const dadosResposta = await resposta.json();
+      const dadosResposta = await requisitar("DELETE", `/admin/membros/${id}`);
+      if (!dadosResposta) return;
       toast(dadosResposta.mensagem, dadosResposta.status === "ok");
       if (dadosResposta.status === "ok") carregarMembros();
     },
@@ -107,12 +104,10 @@ export async function excluirMembro(id, nome) {
 }
 
 export async function reativarMembro(id) {
-  const resposta = await authFetch(`${BASE}/api/admin/membros/${id}`, {
-    method: "PUT",
-    body: JSON.stringify({ ativo: true }),
+  const dadosResposta = await requisitar("PUT", `/admin/membros/${id}`, {
+    ativo: true,
   });
-  if (!resposta) return;
-  const dadosResposta = await resposta.json();
+  if (!dadosResposta) return;
   toast(dadosResposta.mensagem, dadosResposta.status === "ok");
   if (dadosResposta.status === "ok") carregarMembros();
 }

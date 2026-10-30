@@ -90,7 +90,7 @@ def create_app(test_config=None):
 
     @app.route('/login')
     def pagina_login():
-        return render_template('login.html')
+        return render_template('login.html', versao_app=app.config['VERSAO_APP'])
 
     @app.route('/admin')
     def pagina_admin():

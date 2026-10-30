@@ -38,10 +38,9 @@
     gap: 10px;
 }
 
-.carrinho-header svg {
-    width: 20px;
-    height: 20px;
-    stroke: var(--accent);
+.carrinho-header .bi {
+    font-size: 1.25rem;
+    color: var(--accent-text);
 }
 
 .carrinho-header .titulo-carrinho {

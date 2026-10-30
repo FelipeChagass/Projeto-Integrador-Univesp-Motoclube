@@ -74,7 +74,12 @@ describe("Servidor — Módulos ES6 do PDV", () => {
       `${BASE}/static/js/features/pdv/ui.js`,
     );
     expect(status).toBe(200);
-    expect(body).toContain("export function renderizarCatalogo");
+    expect(body).toContain('from "./catalogo.js"');
+    const catalogo = await fetchText(
+      `${BASE}/static/js/features/pdv/catalogo.js`,
+    );
+    expect(catalogo.status).toBe(200);
+    expect(catalogo.body).toContain("export function renderizarCatalogo");
   });
 
   test("actions.js é servido", async () => {
@@ -168,7 +173,7 @@ describe("Servidor — API Auth", () => {
 
 describe("Servidor — Segurança", () => {
   test("CSS estáticos são servidos", async () => {
-    const { status } = await fetchText(`${BASE}/static/css/ponto_venda.css`);
+    const { status } = await fetchText(`${BASE}/static/css/common.css`);
     expect(status).toBe(200);
   });
 
@@ -185,7 +190,7 @@ describe("Servidor — Segurança", () => {
     const { status, body } = await fetchText(`${BASE}/static/css/tokens.css`);
     expect(status).toBe(200);
     expect(body).toContain("--header-border: #5F451F");
-    expect(body).toContain("--accent-text: #B30707");
+    expect(body).toContain("--accent-text: #DA0909");
     // Cada página liga a paleta direto no <head>, antes do tema e dos estilos próprios.
     for (const pagina of ["/", "/admin", "/login"]) {
       const html = await fetchText(`${BASE}${pagina}`);
@@ -250,26 +255,9 @@ describe("Servidor — Dependências extraídas", () => {
           caminho,
           status: 200,
         });
-        // Regras ou, nos manifestos do PDV ainda não migrados, @import.
-        expect(/{|@import/.test(folha.body)).toBe(true);
-      }
-    }
-  });
-
-  test("todos os componentes dos manifestos CSS do PDV são servidos", async () => {
-    const files = ["ponto_venda.css", "ponto_venda-mobile.css"];
-    for (const filename of files) {
-      const path = `/static/css/${filename}`;
-      const manifest = await fetchText(BASE + path);
-      expect(manifest.status).toBe(200);
-      const imports = [
-        ...manifest.body.matchAll(/@import\s+url\(['"]([^'"]+)['"]\);/g),
-      ];
-      expect(imports.length).toBeGreaterThan(1);
-      for (const match of imports) {
-        const component = await fetchText(new URL(match[1], BASE + path));
-        expect(component.status).toBe(200);
-        expect(component.body).toContain("{");
+        // Sem @import: a cadeia de manifestos atrasava a descoberta das folhas.
+        expect(folha.body).toContain("{");
+        expect(folha.body).not.toMatch(/@import/);
       }
     }
   });

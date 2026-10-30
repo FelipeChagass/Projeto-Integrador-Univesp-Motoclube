@@ -4,16 +4,16 @@
     "static/css/admin/modais.css": 4,
     "static/css/checkboxes.css": 3,
     "static/css/common.css": 3,
-    "static/css/features/pdv/base/cabecalho.css": 20,
+    "static/css/features/pdv/base/cabecalho.css": 19,
     "static/css/features/pdv/base/carrinho.css": 34,
     "static/css/features/pdv/base/catalogo.css": 30,
     "static/css/features/pdv/base/componentes.css": 5,
-    "static/css/features/pdv/base/modais-relatorios.css": 30,
-    "static/css/features/pdv/base/pagamento.css": 3,
+    "static/css/features/pdv/base/modais-relatorios.css": 29,
+    "static/css/features/pdv/base/pagamento.css": 1,
     "static/css/features/pdv/base/responsivo.css": 4,
     "static/css/features/pdv/mobile/catalogo-carrinho.css": 35,
     "static/css/features/pdv/mobile/modais.css": 8,
-    "static/css/features/pdv/mobile/navegacao.css": 13,
+    "static/css/features/pdv/mobile/navegacao.css": 12,
     "static/css/features/pdv/mobile/tablet.css": 1,
     "static/css/features/pdv/mobile/variantes.css": 1,
     "static/css/features/pdv/print.css": 15,
@@ -73,11 +73,6 @@
     "static/js/shared/acessibilidade.js": 2,
     "static/js/shared/gestures.js": 20
   },
-  "style-inline": {
-    "static/js/features/pdv/reports.js": 39,
-    "static/js/features/pdv/ui.js": 2
-  },
-  "handler-inline": {
-    "static/js/features/pdv/ui.js": 2
-  }
+  "style-inline": {},
+  "handler-inline": {}
 }

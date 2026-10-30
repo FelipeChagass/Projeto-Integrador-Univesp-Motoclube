@@ -5,6 +5,7 @@ import {
   criarConsultaExtrato,
   periodoExtrato,
 } from "../static/js/shared/extrato-membro.js";
+import { reais } from "./helpers/moeda.js";
 
 const partial = readFileSync(
   "templates/shared/extrato-membro.html",
@@ -72,10 +73,10 @@ test("aplicar e limpar filtros preserva membro e saldo total; repetir estado nã
     offset: 0,
   });
   expect(root.querySelector("[data-total-atual]").textContent).toBe(
-    "R$ 350.00",
+    reais("350,00"),
   );
   expect(root.querySelector("[data-resumo]").textContent).toContain(
-    "R$ 200.00",
+    reais("200,00"),
   );
   aplicar("datas", { inicio: "2026-02-01", fim: "2026-02-28" });
   await tick();
@@ -103,7 +104,7 @@ test("invalidez bloqueia consulta e erro permite tentar novamente", async () => 
   await tick();
   expect(root.getAttribute("aria-busy")).toBe("false");
   expect(root.querySelector("[data-total-atual]").textContent).toBe(
-    "R$ 350.00",
+    reais("350,00"),
   );
 });
 
@@ -120,7 +121,7 @@ test("troca rápida de membro ignora resposta antiga e limpa dívida anterior", 
   resolver(dados(999));
   await antiga;
   expect(root.querySelector("[data-total-atual]").textContent).toBe(
-    "R$ 350.00",
+    reais("350,00"),
   );
   await consulta.selecionar(null);
   expect(root.querySelector("[data-total-atual]").textContent).toBe("—");
@@ -147,7 +148,7 @@ test("troca rápida de período descarta resposta atrasada e paginação mantém
   resolver(dados(999));
   await tick();
   expect(root.querySelector("[data-total-atual]").textContent).toBe(
-    "R$ 350.00",
+    reais("350,00"),
   );
   root.querySelector("[data-proxima]").click();
   await tick();
@@ -173,7 +174,7 @@ test("voltar ao filtro anterior durante uma requisição não aceita dados do fi
   await tick();
   expect(buscar).toHaveBeenCalledTimes(3);
   expect(root.querySelector("[data-total-atual]").textContent).toBe(
-    "R$ 350.00",
+    reais("350,00"),
   );
   expect(root.querySelector("[data-periodo]").textContent).toBe(
     "Todo o histórico",
@@ -194,7 +195,7 @@ test("atualizar após edição invalida a consulta que já estava em andamento",
   resolver(dados(999));
   await antiga;
   expect(root.querySelector("[data-total-atual]").textContent).toBe(
-    "R$ 200.00",
+    reais("200,00"),
   );
 });
 
@@ -228,9 +229,9 @@ test("resumo e movimentos preservam valores financeiros, rótulos e escape de HT
     [...resumoPeriodo.querySelectorAll("strong")].map(
       (valorResumo) => valorResumo.textContent,
     ),
-  ).toEqual(["R$ 500.00", "R$ 150.00", "R$ 350.00"]);
+  ).toEqual([reais("500,00"), reais("150,00"), reais("350,00")]);
   expect(resumoPeriodo.textContent).toContain(
-    "Créditos de ajuste no período: R$ 25.00 (não são pagamentos).",
+    `Créditos de ajuste no período: ${reais("25,00")} (não são pagamentos).`,
   );
   const movimento = root.querySelector("[data-itens] article");
   expect(movimento.textContent).toContain("<img src=x onerror=alert(1)>");
@@ -238,7 +239,7 @@ test("resumo e movimentos preservam valores financeiros, rótulos e escape de HT
   expect(movimento.textContent).toContain("Venda pendurada");
   expect(movimento.textContent).toContain("Parcialmente pago");
   expect(movimento.textContent).toContain(
-    "Abatido: R$ 150.00 · Em aberto: R$ 350.00",
+    `Abatido: ${reais("150,00")} · Em aberto: ${reais("350,00")}`,
   );
   expect(root.querySelector("[data-pagina]").textContent).toBe("1–1 de 1");
 });

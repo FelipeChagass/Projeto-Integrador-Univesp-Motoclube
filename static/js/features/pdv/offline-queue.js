@@ -1,7 +1,12 @@
 import { mensagemErro } from "../../shared/utils.js";
-// Durable outbox. Confirmations remain as receipts; pending operations are never deleted.
+// Fila durável. Confirmadas ficam como recibo por um tempo (podarConfirmadas); o que não foi
+// confirmado (pendente, conflito, reconciliação, autenticação) nunca é apagado.
 const NOME_BANCO_OPERACOES = "motoBarOperacoes";
 const NOME_COLECAO_OPERACOES = "operacoes";
+/** v2: índice por estado, para ler só o que falta confirmar sem varrer os recibos. */
+const VERSAO_BANCO = 2;
+const INDICE_ESTADO = "estado";
+const DIAS_RETENCAO_RECIBOS = 30;
 
 export function novoIdExterno() {
   if (!globalThis.crypto?.randomUUID)
@@ -32,11 +37,22 @@ async function abrirBanco() {
   if (!globalThis.indexedDB)
     throw new Error("IndexedDB indisponível. A operação não foi registrada.");
   return new Promise((resolver, rejeitar) => {
-    const requisicaoAbertura = indexedDB.open(NOME_BANCO_OPERACOES, 1);
-    requisicaoAbertura.onupgradeneeded = () =>
-      requisicaoAbertura.result.createObjectStore(NOME_COLECAO_OPERACOES, {
-        keyPath: "id_externo",
-      });
+    const requisicaoAbertura = indexedDB.open(
+      NOME_BANCO_OPERACOES,
+      VERSAO_BANCO,
+    );
+    // Migração incremental: aparelhos na v1 ganham o índice sem perder a fila.
+    requisicaoAbertura.onupgradeneeded = (evento) => {
+      const colecao =
+        evento.oldVersion < 1
+          ? requisicaoAbertura.result.createObjectStore(
+              NOME_COLECAO_OPERACOES,
+              { keyPath: "id_externo" },
+            )
+          : requisicaoAbertura.transaction.objectStore(NOME_COLECAO_OPERACOES);
+      if (!colecao.indexNames.contains(INDICE_ESTADO))
+        colecao.createIndex(INDICE_ESTADO, "estado");
+    };
     requisicaoAbertura.onsuccess = () => resolver(requisicaoAbertura.result);
     requisicaoAbertura.onerror = () =>
       rejeitar(erroArmazenamento(requisicaoAbertura.error));
@@ -69,17 +85,57 @@ async function transacao(modoTransacao, executarOperacao) {
   }
 }
 
+/**
+ * Operações da fila. Por padrão só as não confirmadas, lidas pelo índice de estado (as
+ * faixas antes e depois de "confirmado"), sem carregar os recibos.
+ */
 export async function listarOperacoes({ incluirConfirmadas = false } = {}) {
-  const todasOperacoes = await transacao(
-    "readonly",
-    (colecaoOperacoes, concluir) => {
+  return transacao("readonly", (colecaoOperacoes, concluir) => {
+    if (incluirConfirmadas) {
       colecaoOperacoes.getAll().onsuccess = (eventoConsulta) =>
         concluir(eventoConsulta.target.result);
-    },
-  );
-  return todasOperacoes.filter(
-    (operacao) => incluirConfirmadas || operacao.estado !== "confirmado",
-  );
+      return;
+    }
+    const indice = colecaoOperacoes.index(INDICE_ESTADO);
+    const faixas = [
+      IDBKeyRange.upperBound("confirmado", true),
+      IDBKeyRange.lowerBound("confirmado", true),
+    ];
+    const encontradas = [];
+    let faltam = faixas.length;
+    for (const faixa of faixas)
+      indice.getAll(faixa).onsuccess = (eventoConsulta) => {
+        encontradas.push(...eventoConsulta.target.result);
+        if (--faltam === 0) concluir(encontradas);
+      };
+  });
+}
+
+/**
+ * Apaga recibos confirmados há mais de `dias` (30 por padrão). Nunca toca no que não foi
+ * confirmado. Devolve quantos recibos saíram.
+ */
+export function podarConfirmadas({
+  dias = DIAS_RETENCAO_RECIBOS,
+  agora = Date.now(),
+} = {}) {
+  const limite = agora - dias * 24 * 60 * 60 * 1000;
+  return transacao("readwrite", (colecaoOperacoes, concluir) => {
+    let removidos = 0;
+    const cursor = colecaoOperacoes
+      .index(INDICE_ESTADO)
+      .openCursor(IDBKeyRange.only("confirmado"));
+    cursor.onsuccess = (eventoCursor) => {
+      const posicao = eventoCursor.target.result;
+      if (!posicao) return concluir(removidos);
+      const confirmadoEm = Date.parse(posicao.value.confirmado_em);
+      if (Number.isFinite(confirmadoEm) && confirmadoEm < limite) {
+        posicao.delete();
+        removidos += 1;
+      }
+      posicao.continue();
+    };
+  });
 }
 
 export function persistirOperacao(dadosOperacao) {

@@ -1,9 +1,0 @@
-/* Ordem de carregamento preservada: altere os componentes, não este manifesto. */
-@import url('features/pdv/base/cabecalho.css');
-@import url('features/pdv/base/catalogo.css');
-@import url('features/pdv/base/carrinho.css');
-@import url('features/pdv/base/pagamento.css');
-@import url('features/pdv/base/modais-relatorios.css');
-@import url('features/pdv/base/responsivo.css');
-@import url('features/pdv/base/componentes.css');
-@import url('features/pdv/base/combos.css');
