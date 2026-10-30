@@ -1,3 +1,0 @@
-go test fuzz v1
-[]byte("{\"input\":[{\"type\":\"function_call\"}]}")
-[]byte("0")
