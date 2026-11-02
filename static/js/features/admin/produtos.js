@@ -1,6 +1,6 @@
 /**
  * Catálogo do painel: cache local dos produtos, tabela (linhas só de leitura) e as ações de
- * linha que não precisam de formulário (excluir, reativar). Cadastro e edição ficam em
+ * linha que não precisam de formulário (excluir, desativar, reativar). Cadastro e edição ficam em
  * produto-form.js; ajuste de estoque em ajuste-estoque.js; combos em combos.js.
  */
 import { UIModal } from "../../shared/modals.js";
@@ -82,7 +82,9 @@ function htmlLinhaProduto(produto) {
                   rotulo: "Ajustar estoque",
                   icone: "bi-boxes",
                 },
-                ...(produto.ativo ? [] : [ACAO.reativar("reativar-produto")]),
+                produto.ativo
+                  ? ACAO.desativar("desativar-produto")
+                  : ACAO.reativar("reativar-produto"),
               ],
             })}</td>`;
 }
@@ -113,11 +115,7 @@ function htmlLinhaCombo(combo) {
                   icone: "bi-list-ul",
                 },
                 combo.ativo
-                  ? {
-                      acao: "desativar-combo",
-                      rotulo: "Desativar",
-                      icone: "bi-slash-circle",
-                    }
+                  ? ACAO.desativar("desativar-produto")
                   : ACAO.reativar("reativar-produto"),
               ],
             })}</td>`;
@@ -130,6 +128,27 @@ export async function deletarProduto(id, nome) {
     toast(dadosResposta.mensagem, dadosResposta.status === "ok");
     if (dadosResposta.status === "ok") carregarProdutos();
   });
+}
+
+/** Tira do PDV sem apagar: as vendas já feitas continuam registradas. */
+export function desativarProduto(id, nome) {
+  const tipo = temCategoriaCombo(buscarProduto(id) || {}) ? "Combo" : "Produto";
+  UIModal.confirm(
+    `Desativar o ${tipo.toLowerCase()} "${nome}"? Ele sai do PDV; as vendas já feitas continuam registradas.`,
+    async () => {
+      const dadosResposta = await requisitar("PUT", `/admin/produtos/${id}`, {
+        ativo: false,
+      });
+      if (!dadosResposta) return;
+      if (dadosResposta.status !== "ok")
+        return toast(
+          dadosResposta.mensagem || `${tipo} não desativado.`,
+          false,
+        );
+      toast(`${tipo} desativado.`, true);
+      carregarProdutos();
+    },
+  );
 }
 
 export async function reativarProduto(id) {

@@ -57,6 +57,11 @@ export function htmlAcoes(registro, { editar, excluir, mais = [] }) {
 export const ACAO = {
   editar: (acao) => ({ acao, rotulo: "Editar", icone: "bi-pencil" }),
   excluir: (acao) => ({ acao, rotulo: "Excluir", icone: "bi-trash3" }),
+  desativar: (acao) => ({
+    acao,
+    rotulo: "Desativar",
+    icone: "bi-slash-circle",
+  }),
   reativar: (acao) => ({
     acao,
     rotulo: "Reativar",
