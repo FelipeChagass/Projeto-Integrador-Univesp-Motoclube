@@ -4,7 +4,6 @@
  * Desativar é decisão do admin: o combo sem itens no bar continua ativo, só esgotado.
  * O formulário abre no painel lateral "painel-combo" (templates/admin/paineis/produtos.html).
  */
-import { UIModal } from "../../shared/modals.js";
 import {
   temCategoriaCombo,
   disponivelNoBar,
@@ -175,22 +174,6 @@ export async function salvarCombo() {
   toast(comboEmEdicao ? "Itens do combo salvos." : "Combo criado.", true);
   fecharPainel(PAINEL);
   carregarProdutos();
-}
-
-export function desativarCombo(id, nome) {
-  UIModal.confirm(
-    `Desativar o combo "${nome}"? Ele sai do PDV; as vendas já feitas continuam registradas.`,
-    async () => {
-      const dadosResposta = await requisitar("PUT", `/admin/produtos/${id}`, {
-        ativo: false,
-      });
-      if (!dadosResposta) return;
-      if (dadosResposta.status !== "ok")
-        return toast(dadosResposta.mensagem || "Combo não desativado.", false);
-      toast("Combo desativado.", true);
-      carregarProdutos();
-    },
-  );
 }
 
 export function configurarFormCombo() {

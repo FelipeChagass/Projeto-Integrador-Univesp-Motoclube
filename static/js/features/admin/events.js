@@ -8,6 +8,7 @@ import { switchTab } from "./navigation.js";
 import {
   carregarProdutos,
   deletarProduto,
+  desativarProduto,
   reativarProduto,
 } from "./produtos.js";
 import {
@@ -32,11 +33,7 @@ import { abrirNovoUsuario, abrirEdicaoUsuario } from "./usuario-form.js";
 import { carregarVendas, exportarVendasCsv } from "./vendas.js";
 import { salvarConfig } from "./configuracoes.js";
 import { configurarEdicaoFinanceira } from "./financeiro.js";
-import {
-  configurarFormCombo,
-  abrirEdicaoItensCombo,
-  desativarCombo,
-} from "./combos.js";
+import { configurarFormCombo, abrirEdicaoItensCombo } from "./combos.js";
 
 /**
  * Delegação dos cliques de uma tabela: cada data-action vira uma chamada (id, nome).
@@ -96,9 +93,9 @@ export function setupEventListeners() {
       "editar-produto": abrirEdicaoProduto,
       "ajuste-estoque": abrirAjusteEstoque,
       "excluir-produto": deletarProduto,
+      "desativar-produto": desativarProduto,
       "reativar-produto": reativarProduto,
       "editar-combo": abrirEdicaoItensCombo,
-      "desativar-combo": desativarCombo,
     },
     (id) => parseInt(id, 10),
   );

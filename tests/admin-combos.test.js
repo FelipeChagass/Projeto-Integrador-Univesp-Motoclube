@@ -127,6 +127,29 @@ test("novo combo envia itens do estoque e mostra a economia", async () => {
   });
 });
 
+test("produto ativo desativa pelo menu e o inativo oferece reativar", async () => {
+  document.getElementById("mostrarProdutosInativos").checked = true;
+  await produtos.carregarProdutos();
+  const linhaInativo = document
+    .querySelector('[data-action="editar-produto"][data-id="3"]')
+    .closest("tr");
+  expect(
+    linhaInativo.querySelector('[data-action="desativar-produto"]'),
+  ).toBeNull();
+  expect(
+    linhaInativo.querySelector('[data-action="reativar-produto"]'),
+  ).not.toBeNull();
+
+  document
+    .querySelector('[data-action="desativar-produto"][data-id="1"]')
+    .click();
+  await settle();
+  expect(confirm.mock.calls[0][0]).toContain('o produto "Cerveja"');
+  expect(request).toHaveBeenCalledWith("PUT", "/admin/produtos/1", {
+    ativo: false,
+  });
+});
+
 test("combo com menos de 2 unidades não é enviado", async () => {
   document.getElementById("btn-add-combo").click();
   document.getElementById("combo-nome").value = "Solo";
@@ -163,7 +186,9 @@ test("linha do combo edita itens e desativa somente pela ação do admin", async
     ],
   });
 
-  document.querySelector('[data-action="desativar-combo"]').click();
+  document
+    .querySelector('[data-action="desativar-produto"][data-id="9"]')
+    .click();
   await settle();
   expect(confirm).toHaveBeenCalledTimes(1);
   expect(request).toHaveBeenCalledWith("PUT", "/admin/produtos/9", {
