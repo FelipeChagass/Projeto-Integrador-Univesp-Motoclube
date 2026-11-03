@@ -128,7 +128,12 @@ export async function administrarVenda(id, acao) {
   const geracao = ++geracaoConsultaVenda;
   botaoSalvar().disabled = true;
   abrir("Editar venda", HTML_CARREGANDO, null);
-  const resposta = await requisitar("GET", url);
+  // Catálogo junto da venda, com o estoque de agora: alimenta a troca e a inclusão de
+  // produtos. Sem ele a venda ainda abre, só sem essas opções.
+  const [resposta, respostaCatalogo] = await Promise.all([
+    requisitar("GET", url),
+    requisitar("GET", "/admin/produtos"),
+  ]);
   if (consultaObsoleta(geracao)) return;
   if (!resposta) {
     camposEdicao().innerHTML = HTML_ERRO_VENDA;
@@ -148,7 +153,7 @@ export async function administrarVenda(id, acao) {
   if (consultaObsoleta(geracao)) return;
   preencher(
     "Editar venda",
-    htmlCamposVenda(venda),
+    htmlCamposVenda(venda, respostaCatalogo?.produtos || []),
     { url, venda, versao: venda.versao },
     dataDaVenda(venda),
   );
@@ -172,6 +177,38 @@ export function administrarMovimento(membroId, movimento, acao) {
   );
 }
 
+/** Campos editáveis de um item da tabela (os sufixos dos names são o índice do item). */
+const camposItem = (dadosFormulario, indice) => ({
+  quantidade: Number(dadosFormulario.get(`qtd-${indice}`)),
+  preco_unitario: dadosFormulario.get(`preco-${indice}`),
+  observacoes: dadosFormulario.get(`obs-${indice}`),
+});
+
+/**
+ * Itens da venda e itens incluídos. Trocar o produto de um item é zerá-lo (volta ao
+ * estoque) e incluir o produto escolhido com a quantidade, o preço e a observação dele.
+ */
+function montarItens(registro, dadosFormulario) {
+  const novosItens = [];
+  const itens = (registro.venda.itens || []).map((item, indice) => {
+    const campos = camposItem(dadosFormulario, indice);
+    const produtoId = Number(dadosFormulario.get(`produto-${indice}`));
+    if (!produtoId || produtoId === item.produto_id)
+      return { id: item.id, ...campos };
+    if (campos.quantidade > 0)
+      novosItens.push({ produto_id: produtoId, ...campos });
+    return { id: item.id, ...campos, quantidade: 0 };
+  });
+  for (const [nome, valor] of dadosFormulario) {
+    const indice = /^produto-(n\d+)$/.exec(nome)?.[1];
+    if (!indice || !valor) continue;
+    const campos = camposItem(dadosFormulario, indice);
+    if (campos.quantidade > 0)
+      novosItens.push({ produto_id: Number(valor), ...campos });
+  }
+  return { itens, novosItens };
+}
+
 /** Corpo do PUT a partir dos campos (os names são definidos em edicao-venda-html.js). */
 function montarPayload(registro, dadosFormulario) {
   const dados = { versao: registro.versao };
@@ -186,12 +223,9 @@ function montarPayload(registro, dadosFormulario) {
     metodo_pagamento: dadosFormulario.get("metodo_pagamento"),
     observacoes: dadosFormulario.get("observacoes"),
   });
-  dados.itens = (registro.venda.itens || []).map((item, indice) => ({
-    id: item.id,
-    quantidade: Number(dadosFormulario.get(`qtd-${indice}`)),
-    preco_unitario: dadosFormulario.get(`preco-${indice}`),
-    observacoes: dadosFormulario.get(`obs-${indice}`),
-  }));
+  const { itens, novosItens } = montarItens(registro, dadosFormulario);
+  dados.itens = itens;
+  if (novosItens.length) dados.novos_itens = novosItens;
   if (!dados.itens.length)
     dados.valor_total = dadosFormulario.get("valor_total");
   return dados;

@@ -8,6 +8,17 @@ jest.unstable_mockModule("../static/js/shared/api.js", () => ({
 jest.unstable_mockModule("../static/js/shared/modals.js", () => ({
   UIModal: { confirm },
 }));
+// Listas recarregadas depois de salvar: dependem do DOM do painel inteiro.
+jest.unstable_mockModule("../static/js/features/admin/vendas.js", () => ({
+  carregarVendas: jest.fn(),
+}));
+jest.unstable_mockModule("../static/js/features/admin/membros.js", () => ({
+  carregarMembros: jest.fn(),
+  atualizarExtratoAberto: jest.fn(),
+}));
+jest.unstable_mockModule("../static/js/features/admin/produtos.js", () => ({
+  carregarProdutos: jest.fn(),
+}));
 
 const { administrarVenda, configurarEdicaoFinanceira } =
   await import("../static/js/features/admin/financeiro.js");
@@ -116,6 +127,103 @@ test("resposta inválida mantém o modal aberto com erro e bloqueia salvamento",
   expect(document.getElementById("btn-salvar-edicao-financeira").disabled).toBe(
     true,
   );
+});
+
+const catalogo = [
+  { id: 7, nome: "Produto de nome longo", preco_atual: 6, ativo: true },
+  { id: 8, nome: "Refrigerante", preco_atual: 4, estoque_bar: 3, ativo: true },
+  { id: 9, nome: "Antigo", preco_atual: 1, ativo: false },
+];
+
+/** Abre a venda com o catálogo e devolve o corpo do PUT ao salvar. */
+async function abrirComCatalogo() {
+  request.mockImplementation(async (metodo, caminho) => {
+    if (caminho === "/admin/produtos") return { produtos: catalogo };
+    if (metodo === "GET") return { venda };
+    return { status: "ok", mensagem: "Venda atualizada" };
+  });
+  await administrarVenda(42, "editar");
+}
+
+function escolher(seletor, valor) {
+  seletor.value = valor;
+  seletor.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+async function salvarEdicao() {
+  document
+    .getElementById("form-edicao-financeira")
+    .dispatchEvent(new Event("submit", { cancelable: true }));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  return request.mock.calls.find(([metodo]) => metodo === "PUT")[2];
+}
+
+test("trocar o produto zera o item vendido e inclui o escolhido com o preço atual", async () => {
+  await abrirComCatalogo();
+  const opcoes = [
+    ...document.querySelectorAll('select[name="produto-0"] option'),
+  ].map((opcao) => opcao.value);
+  expect(opcoes).toEqual(["7", "8"]); // inativo fica de fora
+
+  document.querySelector("[data-alternar-troca]").click();
+  escolher(document.querySelector('select[name="produto-0"]'), "8");
+  expect(document.querySelector("[data-nome-item]").textContent).toBe(
+    "Refrigerante",
+  );
+  expect(document.querySelector('[name="preco-0"]').value).toBe("4.00");
+  expect(document.querySelector("[data-resumo-total]").textContent).toContain(
+    "8,00",
+  );
+
+  const corpo = await salvarEdicao();
+  expect(corpo.itens).toEqual([
+    {
+      id: 5,
+      quantidade: 0,
+      preco_unitario: "4.00",
+      observacoes: "Sem gelo",
+    },
+  ]);
+  expect(corpo.novos_itens).toEqual([
+    {
+      produto_id: 8,
+      quantidade: 2,
+      preco_unitario: "4.00",
+      observacoes: "Sem gelo",
+    },
+  ]);
+});
+
+test("adicionar produto inclui um item novo e removê-lo o tira da tabela", async () => {
+  await abrirComCatalogo();
+  const botaoAdicionar = document.querySelector("[data-adicionar-item]");
+  botaoAdicionar.click();
+  botaoAdicionar.click();
+  const novos = document.querySelectorAll("[data-item-novo]");
+  expect(novos).toHaveLength(2);
+  escolher(novos[0].querySelector("select"), "8");
+  novos[0].querySelector('[data-quantidade-delta="1"]').click();
+  novos[1].querySelector("[data-remover-item]").click();
+  expect(document.querySelectorAll("[data-item-novo]")).toHaveLength(1);
+  expect(document.querySelector("[data-resumo-total]").textContent).toContain(
+    "18,00",
+  );
+
+  const corpo = await salvarEdicao();
+  expect(corpo.itens[0]).toMatchObject({ id: 5, quantidade: 2 });
+  expect(corpo.novos_itens).toEqual([
+    { produto_id: 8, quantidade: 2, preco_unitario: "4.00", observacoes: "" },
+  ]);
+});
+
+test("sem catálogo a venda abre sem trocar nem adicionar produtos", async () => {
+  request.mockImplementation(async (metodo, caminho) =>
+    caminho === "/admin/produtos" ? null : { venda },
+  );
+  await administrarVenda(42, "editar");
+  expect(document.querySelector(".edicao-item-produto strong")).not.toBeNull();
+  expect(document.querySelector("[data-adicionar-item]")).toBeNull();
+  expect(document.querySelector("[data-alternar-troca]")).toBeNull();
 });
 
 test("confirma exclusão antes de requisitar a versão atual da venda", async () => {

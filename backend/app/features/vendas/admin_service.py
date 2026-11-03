@@ -2,8 +2,10 @@
 
 A chave externa é bloqueada antes dessas linhas, como no registro original.
 Valores contados no fechamento são preservados; fechamentos calculados são refeitos.
+Produtos incluídos na edição baixam o estoque como uma venda nova; trocar um produto é
+zerar o item antigo (que volta ao estoque) e incluir o novo.
 """
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from typing import Literal
 from uuid import UUID
 
@@ -16,8 +18,9 @@ from app.core.locks import bloquear_id_externo
 from app.core.schemas import Dinheiro
 from app.features.caixa.service import calcular_fechamento
 from app.features.membros.admin_service import alterar_movimento  # noqa: F401 (compatibilidade de import)
+from app.features.produtos.combos import composicoes
 from app.models import Caixa, Membro, MovimentacaoMembro, Produto, Venda
-from app.models.venda import OperacaoExcluida
+from app.models.venda import ItemVenda, ItemVendaComponente, OperacaoExcluida
 
 
 class ItemEdicao(BaseModel):
@@ -28,8 +31,17 @@ class ItemEdicao(BaseModel):
     observacoes: str = Field(default='', max_length=1000)
 
 
+class ItemNovo(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    produto_id: int = Field(gt=0, strict=True)
+    quantidade: int = Field(gt=0, le=100000, strict=True)
+    preco_unitario: Dinheiro | None = None  # Ausente: preço atual do cadastro.
+    observacoes: str = Field(default='', max_length=1000)
+
+
 class VendaEdicao(VersaoPayload):
     itens: list[ItemEdicao] = Field(default_factory=list, max_length=500)
+    novos_itens: list[ItemNovo] = Field(default_factory=list, max_length=200)
     valor_total: Dinheiro | None = None
     metodo_pagamento: Literal['dinheiro', 'pix', 'cartao_credito', 'cartao_debito', 'fiado', 'ajuste']
     nome_cliente: str = Field(default='', max_length=200)
@@ -71,26 +83,65 @@ def _destinos_estoque(item):
     return [(item.produto_id, 1)]
 
 
-def _bloquear_produtos(db, venda):
-    """Recarrega os itens e bloqueia em ID crescente os produtos cujo estoque eles movem."""
+def _bloquear_produtos(db, venda, incluidos=()):
+    """Recarrega os itens e bloqueia em ID crescente os produtos cujo estoque eles movem.
+
+    Os produtos incluídos e os itens dos combos incluídos entram no mesmo lote; a
+    composição é relida após o lock do combo, como no registro da venda.
+    """
     db.expire(venda, ['itens'])
     itens = list(venda.itens)
-    ids = {pid for item in itens for pid, _ in _destinos_estoque(item) if pid}
+    ids_incluidos = {novo.produto_id for novo in incluidos}
+    previstas = composicoes(db, ids_incluidos)
+    ids = ({pid for item in itens for pid, _ in _destinos_estoque(item) if pid} | ids_incluidos
+           | {pid for receita in previstas.values() for pid in receita})
     produtos = {p.id: p for p in db.query(Produto).filter(Produto.id.in_(ids)).order_by(Produto.id).populate_existing().with_for_update().all()}
-    return itens, produtos
+    receitas = composicoes(db, ids_incluidos)
+    if any(pid not in produtos for receita in receitas.values() for pid in receita):
+        raise ApiError('COMBO_ALTERADO', 'Combo alterado durante a edição; tente novamente.', 409, retryable=True)
+    return itens, produtos, receitas
+
+
+def _receita(produto, receitas):
+    """Unidades de estoque por unidade vendida: os itens do combo ou o próprio produto."""
+    return receitas.get(produto.id, {}) if produto.tem_categoria_combo() else {produto.id: 1}
+
+
+def _validar_incluidos(incluidos, produtos, receitas):
+    for novo in incluidos:
+        produto = produtos.get(novo.produto_id)
+        if not produto:
+            raise ApiError('PRODUTO_NAO_ENCONTRADO', 'Produto não encontrado.', 404, {'produto_id': novo.produto_id})
+        if not produto.ativo:
+            raise ApiError('PRODUTO_INATIVO', f'"{produto.nome}" está desativado.', 409, {'produto_id': produto.id})
+        receita = _receita(produto, receitas)
+        if not receita:
+            raise ApiError('COMBO_SEM_ITENS', 'Combo sem itens cadastrados.', 409, {'produto_id': produto.id})
+        for pid in receita:
+            if not produtos[pid].ativo:
+                raise ApiError('PRODUTO_INATIVO', f'Item do combo inativo: {produtos[pid].nome}.', 409, {'produto_id': pid})
 
 
 def _validar_edicao(venda, itens, novos, entrada):
     if len(novos) != len(entrada.itens) or set(novos) != {i.id for i in itens}:
         raise ApiError('ITENS_INVALIDOS', 'Envie cada item da venda uma vez; quantidade zero remove o item.', 422)
+    if entrada.novos_itens and not itens:
+        raise ApiError('ITENS_INVALIDOS', 'Recebimento e ajuste não têm itens para incluir.', 422)
     metodos = ('fiado',) if venda.tipo_venda == 'fiado' else ('ajuste',) if venda.tipo_venda == 'ajuste' else ('dinheiro', 'pix', 'cartao_credito', 'cartao_debito')
     if entrada.metodo_pagamento not in metodos:
         raise ApiError('METODO_INVALIDO', 'Método incompatível com o tipo da venda.', 422)
 
 
-def _aplicar_estoque(itens, novos, produtos):
-    """Devolve ao bar a diferença líquida por produto; item ausente em novos volta inteiro."""
+def _aplicar_estoque(itens, novos, produtos, incluidos=(), receitas=None):
+    """Devolve ao bar a diferença líquida por produto; item ausente em novos volta inteiro.
+
+    Os incluídos entram na mesma conta: trocar um produto por outro que ele mesmo libera
+    não falta estoque.
+    """
     deltas = {}
+    for novo in incluidos:
+        for produto_id, fator in _receita(produtos[novo.produto_id], receitas or {}).items():
+            deltas[produto_id] = deltas.get(produto_id, 0) - novo.quantidade * fator
     for item in itens:
         novo = novos.get(item.id)
         delta = item.quantidade - (novo.quantidade if novo else 0)
@@ -102,13 +153,30 @@ def _aplicar_estoque(itens, novos, produtos):
     for produto_id, delta in deltas.items():
         produto = produtos[produto_id]
         if produto.estoque_bar + delta < 0:
-            raise ApiError('ESTOQUE_INSUFICIENTE', 'Estoque insuficiente para aumentar a quantidade.', 409)
+            raise ApiError('ESTOQUE_INSUFICIENTE', f'Estoque insuficiente no bar: {produto.nome}.', 409,
+                           {'produto_id': produto.id, 'disponivel': produto.estoque_bar, 'solicitado': -delta})
         produto.estoque_bar += delta
 
 
-def _aplicar_itens(venda, itens, novos, entrada):
-    """Aplica a edição aos itens (quantidade zero remove) e devolve o novo total da venda."""
+def _incluir_itens(venda, incluidos, produtos, receitas):
+    """Cria os itens incluídos, com a composição do combo fotografada; devolve a soma deles."""
     total = Decimal('0')
+    for novo in incluidos:
+        produto = produtos[novo.produto_id]
+        preco = (novo.preco_unitario if novo.preco_unitario is not None
+                 else Decimal(produto.preco_atual).quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
+        componentes = sorted(receitas.get(produto.id, {}).items()) if produto.tem_categoria_combo() else []
+        item = ItemVenda(produto_id=produto.id, nome_produto=produto.nome, quantidade=novo.quantidade,
+                         preco_unitario=preco, preco_total=preco * novo.quantidade, observacoes=novo.observacoes,
+                         componentes=[ItemVendaComponente(produto_id=pid, quantidade=fator) for pid, fator in componentes])
+        venda.itens.append(item)
+        total += item.preco_total
+    return total
+
+
+def _aplicar_itens(venda, itens, novos, entrada, produtos, receitas):
+    """Aplica a edição aos itens (quantidade zero remove), inclui os novos e devolve o total da venda."""
+    total = _incluir_itens(venda, entrada.novos_itens, produtos, receitas)
     for item in itens:
         novo = novos.get(item.id)
         quantidade = novo.quantidade if novo else 0
@@ -124,7 +192,7 @@ def _aplicar_itens(venda, itens, novos, entrada):
         if entrada.valor_total is None:
             raise ApiError('VALOR_OBRIGATORIO', 'Informe o valor do recebimento ou ajuste.', 422)
         total = entrada.valor_total
-    if itens and not any(i.quantidade for i in entrada.itens):
+    if itens and not entrada.novos_itens and not any(i.quantidade for i in entrada.itens):
         raise ApiError('VENDA_SEM_ITENS', 'Mantenha um item ou exclua a venda.', 422)
     return total
 
@@ -168,12 +236,14 @@ def alterar_venda(db, venda_id, dados, excluir=False):
     with unit_of_work(db):
         caixa, venda, membro, movimentos = _bloquear_registros(db, venda_id, entrada.versao)
         _validar_vinculos(venda, membro, movimentos)
-        itens, produtos = _bloquear_produtos(db, venda)
+        incluidos = () if excluir else entrada.novos_itens
+        itens, produtos, receitas = _bloquear_produtos(db, venda, incluidos)
         novos = {} if excluir else {i.id: i for i in entrada.itens}
         if not excluir:
             _validar_edicao(venda, itens, novos, entrada)
-        _aplicar_estoque(itens, novos, produtos)
-        total = Decimal('0') if excluir else _aplicar_itens(venda, itens, novos, entrada)
+            _validar_incluidos(incluidos, produtos, receitas)
+        _aplicar_estoque(itens, novos, produtos, incluidos, receitas)
+        total = Decimal('0') if excluir else _aplicar_itens(venda, itens, novos, entrada, produtos, receitas)
         _aplicar_saldo_membro(db, venda, membro, movimentos, total, excluir)
         _gravar_venda(db, venda, entrada, total, excluir)
         db.flush()

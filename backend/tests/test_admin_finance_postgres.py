@@ -219,3 +219,45 @@ def test_repeated_product_lines_use_net_stock_delta(pg, seed):
         alterar_venda(db, id, dados)
         assert db.get(Produto, seed['product']).estoque_bar == 0
         assert db.get(Venda, id).valor_total == 100
+
+
+def test_swap_and_add_products_move_stock_and_member_balance(pg, seed):
+    with pg() as db:
+        suco = Produto(nome='Suco', preco_atual='7.00', estoque_bar=5, estoque_deposito=0)
+        db.add(suco)
+        db.commit()
+        id, _ = criar(db, seed, metodo='fiado', membro_id=seed['member'])
+        dados = edicao(db, id, quantidade=0)  # Troca: a água sai inteira...
+        dados['novos_itens'] = [{'produto_id': suco.id, 'quantidade': 2, 'preco_unitario': '7.00'},  # ...e entra o suco
+                                {'produto_id': seed['product'], 'quantidade': 1}]  # preço ausente: o atual
+        alterar_venda(db, id, dados)
+        db.expire_all()
+        assert db.get(Produto, seed['product']).estoque_bar == 9
+        assert db.get(Produto, suco.id).estoque_bar == 3
+        venda = db.get(Venda, id)
+        assert sorted((i.produto_id, i.quantidade, i.preco_total) for i in venda.itens) == sorted([
+            (suco.id, 2, 14), (seed['product'], 1, 10)])
+        assert venda.valor_total == 24
+        assert db.get(Membro, seed['member']).saldo_devedor == 24
+        assert db.query(MovimentacaoMembro).one().valor == 24
+
+
+def test_added_products_respect_stock_and_active_status(pg, seed):
+    with pg() as db:
+        inativo = Produto(nome='Inativo', preco_atual='5.00', estoque_bar=5, estoque_deposito=0, ativo=False)
+        db.add(inativo)
+        db.commit()
+        id, _ = criar(db, seed)
+        for novo, codigo in [({'produto_id': seed['product'], 'quantidade': 9}, 'ESTOQUE_INSUFICIENTE'),
+                             ({'produto_id': inativo.id, 'quantidade': 1}, 'PRODUTO_INATIVO'),
+                             ({'produto_id': 999999, 'quantidade': 1}, 'PRODUTO_NAO_ENCONTRADO')]:
+            with pytest.raises(ApiError) as erro:
+                alterar_venda(db, id, edicao(db, id, quantidade=2, novos_itens=[novo]))
+            assert erro.value.code == codigo
+        db.expire_all()
+        assert db.get(Produto, seed['product']).estoque_bar == 8
+        assert len(db.get(Venda, id).itens) == 1
+        # Diminuir o item libera estoque para o produto incluído na mesma edição.
+        alterar_venda(db, id, edicao(db, id, quantidade=0, novos_itens=[{'produto_id': seed['product'], 'quantidade': 10}]))
+        db.expire_all()
+        assert db.get(Produto, seed['product']).estoque_bar == 0

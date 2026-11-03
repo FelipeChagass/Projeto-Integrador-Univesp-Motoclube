@@ -43,37 +43,72 @@ function opcoesPagamento(venda) {
     .join("");
 }
 
+/** Índice provisório do modelo de item novo; edicao-venda-itens.js troca por um único. */
+export const INDICE_MODELO = "__N__";
+
 /**
- * Um <tbody> por item: a linha dos campos e a da observação. No desktop é uma linha da
- * .table; no celular (tabela-cartoes) o <tbody> vira o cartão e cada célula mostra o
- * próprio data-label.
+ * Opções do seletor de produto. A primeira é a do item (o produto vendido, com o preço da
+ * venda, para a troca poder ser desfeita) ou o "Escolha" do item novo; as demais são os
+ * produtos ativos, com o preço atual. data-nome e data-preco alimentam edicao-venda-itens.js.
  */
-function htmlItemVenda(item, indice) {
-  const nome = esc(item.nome_produto);
+function opcoesProduto(produtos, item) {
+  const primeira = item
+    ? `<option value="${esc(String(item.produto_id ?? ""))}" data-nome="${esc(item.nome_produto)}" data-preco="${dinheiro(item.preco_unitario)}" selected>${esc(item.nome_produto)} (vendido)</option>`
+    : '<option value="" selected>Escolha um produto</option>';
+  const demais = produtos
+    .filter((produto) => produto.ativo && produto.id !== item?.produto_id)
+    .map(
+      (produto) =>
+        `<option value="${produto.id}" data-nome="${esc(produto.nome)}" data-preco="${dinheiro(produto.preco_atual)}">${esc(produto.nome)} (bar: ${Number(produto.estoque_bar) || 0})</option>`,
+    );
+  return primeira + demais.join("");
+}
+
+/**
+ * Um <tbody> por item: a linha dos campos, a da troca de produto e a da observação. No
+ * desktop é uma linha da .table; no celular (tabela-cartoes) o <tbody> vira o cartão e cada
+ * célula mostra o próprio data-label. Sem item, monta o item novo, que escolhe o produto
+ * na própria célula.
+ */
+function htmlItemVenda(item, indice, produtos) {
+  const nome = item ? esc(item.nome_produto) : "o item novo";
+  const seletor = (atributos) =>
+    `<select class="form-select" name="produto-${indice}" ${atributos}>${opcoesProduto(produtos, item)}</select>`;
+  const podeTrocar = Boolean(item && produtos.length);
+  const celulaProduto = item
+    ? `<strong class="text-break" data-nome-item>${nome}</strong>
+                    <small class="d-block text-body-secondary" data-codigo-item>Código: ${esc(String(item.produto_id ?? "—"))}</small>`
+    : seletor('required aria-label="Produto a incluir"');
   return `
-        <tbody class="edicao-item-venda mb-3 mb-md-0" data-item-venda="${indice}">
+        <tbody class="edicao-item-venda mb-3 mb-md-0" data-item-venda="${indice}"${item ? "" : " data-item-novo"}>
             <tr class="d-flex flex-column d-md-table-row">
                 <td class="edicao-item-produto d-flex flex-column gap-1 d-md-table-cell" data-label="Produto">
-                    <strong class="text-break">${nome}</strong>
-                    <small class="d-block text-body-secondary">Código: ${esc(String(item.produto_id ?? "—"))}</small>
+                    ${celulaProduto}
                 </td>
                 <td class="d-flex flex-column gap-1 d-md-table-cell" data-label="Quantidade">
                     <div class="input-group flex-nowrap edicao-item-quantidade mx-md-auto">
                         <button type="button" class="btn btn-escuro" data-quantidade-delta="-1" aria-label="Diminuir quantidade">−</button>
-                        <input type="number" class="form-control text-center" name="qtd-${indice}" min="0" max="100000" step="1" required
-                            value="${item.quantidade}" aria-label="Quantidade de ${nome}">
+                        <input type="number" class="form-control text-center" name="qtd-${indice}" min="${item ? 0 : 1}" max="100000" step="1" required
+                            value="${item ? item.quantidade : 1}" aria-label="Quantidade de ${nome}">
                         <button type="button" class="btn btn-escuro" data-quantidade-delta="1" aria-label="Aumentar quantidade">+</button>
                     </div>
                 </td>
                 <td class="d-flex flex-column gap-1 d-md-table-cell" data-label="Preço unitário (R$)">
                     <input type="number" class="form-control edicao-item-preco mx-md-auto" name="preco-${indice}" min="0" step="0.01" required
-                        value="${dinheiro(item.preco_unitario)}" aria-label="Preço unitário (R$)">
+                        value="${dinheiro(item ? item.preco_unitario : 0)}" aria-label="Preço unitário (R$)">
                 </td>
                 <td class="d-flex flex-column gap-1 d-md-table-cell" data-label="Subtotal (R$)">
-                    <strong class="edicao-item-subtotal" data-subtotal-item>${formatarValor(item.preco_total)}</strong>
+                    <strong class="edicao-item-subtotal" data-subtotal-item>${formatarValor(item ? item.preco_total : 0)}</strong>
                 </td>
                 <td class="sem-rotulo d-md-table-cell">
                     <div class="d-flex gap-2 justify-content-md-center">
+                        ${
+                          podeTrocar
+                            ? `<button type="button" class="btn btn-escuro p-2 flex-fill flex-md-grow-0" data-alternar-troca aria-label="Trocar o produto ${nome}" title="Trocar produto">
+                            ${icone("bi-arrow-left-right")}
+                        </button>`
+                            : ""
+                        }
                         <button type="button" class="btn btn-escuro p-2 flex-fill flex-md-grow-0" data-alternar-observacao aria-label="Editar observação do item" title="Editar observação">
                             ${icone("bi-pencil")}
                         </button>
@@ -83,23 +118,46 @@ function htmlItemVenda(item, indice) {
                     </div>
                 </td>
             </tr>
+            ${
+              podeTrocar
+                ? `<tr class="d-none" data-troca-item>
+                <td class="sem-rotulo d-block d-md-table-cell" colspan="5">
+                    <label class="form-label" for="produto-item-${indice}">Trocar por</label>
+                    ${seletor(`id="produto-item-${indice}"`)}
+                    <div class="form-text">Ao salvar, o produto vendido volta ao estoque do bar e o novo é baixado.</div>
+                </td>
+            </tr>`
+                : ""
+            }
             <tr class="d-none" data-observacao-item>
                 <td class="sem-rotulo d-block d-md-table-cell" colspan="5">
                     <label class="form-label" for="obs-item-${indice}">Observação do item</label>
-                    <textarea class="form-control" id="obs-item-${indice}" name="obs-${indice}" maxlength="1000" rows="2">${esc(item.observacoes || "")}</textarea>
+                    <textarea class="form-control" id="obs-item-${indice}" name="obs-${indice}" maxlength="1000" rows="2">${esc(item?.observacoes || "")}</textarea>
                 </td>
             </tr>
         </tbody>`;
 }
 
-/** Tabela de itens, resumo (preenchido por edicao-venda-itens.js) e o aviso de recálculo. */
-function htmlEditorItens(venda) {
+/**
+ * Tabela de itens, resumo (preenchido por edicao-venda-itens.js) e o aviso de recálculo.
+ * Com o catálogo carregado, oferece incluir produtos: o <template> guarda o item novo.
+ */
+function htmlEditorItens(venda, produtos) {
+  const podeIncluir = produtos.length > 0;
   return `
         <div class="col-12">
             <section class="card edicao-itens-venda overflow-hidden" aria-labelledby="edicao-itens-titulo">
-                <header class="card-header edicao-itens-cabecalho px-3 px-md-4 py-3">
+                <header class="card-header edicao-itens-cabecalho d-flex align-items-center justify-content-between gap-2 px-3 px-md-4 py-3">
                     <h3 class="h6 fw-bold m-0" id="edicao-itens-titulo">Itens da venda</h3>
+                    ${
+                      podeIncluir
+                        ? `<button type="button" class="btn btn-escuro btn-sm d-flex align-items-center gap-2" data-adicionar-item>
+                        ${icone("bi-plus-lg")}Adicionar produto
+                    </button>`
+                        : ""
+                    }
                 </header>
+                ${podeIncluir ? `<template data-modelo-item-novo>${htmlItemVenda(null, INDICE_MODELO, produtos)}</template>` : ""}
                 <div class="table-responsive p-3 p-md-0">
                     <table class="table align-middle text-md-center mb-0 tabela-cartoes tabela-itens-venda d-block d-md-table">
                         <thead class="text-uppercase text-nowrap">
@@ -111,7 +169,7 @@ function htmlEditorItens(venda) {
                                 <th scope="col">Ações</th>
                             </tr>
                         </thead>
-                        ${venda.itens.map(htmlItemVenda).join("")}
+                        ${venda.itens.map((item, indice) => htmlItemVenda(item, indice, produtos)).join("")}
                     </table>
                 </div>
             </section>
@@ -134,8 +192,11 @@ function htmlEditorItens(venda) {
         </div>`;
 }
 
-/** Venda com itens edita cliente, pagamento, observações e itens; sem itens, edita o valor. */
-export function htmlCamposVenda(venda) {
+/**
+ * Venda com itens edita cliente, pagamento, observações e itens; sem itens, edita o valor.
+ * produtos é o catálogo do admin: sem ele, os itens só mudam quantidade, preço e observação.
+ */
+export function htmlCamposVenda(venda, produtos = []) {
   const pagamento = opcoesPagamento(venda);
   if (venda.itens?.length)
     return `<div class="row g-3">
@@ -152,7 +213,7 @@ export function htmlCamposVenda(venda) {
                 <textarea class="form-control" id="edicao-observacoes" name="observacoes" maxlength="2000" rows="2" placeholder="Digite observações gerais da venda...">${esc(venda.observacoes || "")}</textarea>
                 <div class="form-text text-end"><span data-contador-observacoes>${(venda.observacoes || "").length}</span>/2000</div>
             </div>
-            ${htmlEditorItens(venda)}
+            ${htmlEditorItens(venda, produtos)}
         </div>`;
   return `<div class="row g-3">${
     campo(
